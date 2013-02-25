@@ -1,7 +1,7 @@
 var sampleRate = 48000.0;
 
-var renderLengthSeconds = 8;
-var pulseLengthSeconds = 1;
+var renderLengthSeconds = 1;
+var pulseLengthSeconds = 0.1;
 var pulseLengthFrames = pulseLengthSeconds * sampleRate;
 
 var referenceData;
@@ -49,10 +49,10 @@ function checkConvolvedResult(trianglePulse) {
     
         var success = true;
     
-        drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1000);
-        drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1000);
+        drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
+        drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
 
-        drawCurve("#conv", renderedData, 0, 200000);
+        drawCurve("#conv", renderedData, 0, renderLengthSeconds * sampleRate);
 
         var n = renderedBuffer.length;
 
