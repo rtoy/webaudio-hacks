@@ -40,6 +40,7 @@ function drawCurve(tag, y, start, stop) {
       [ { data : yData } ]);
 }
 
+var context;
 var squarePulse;
 var trianglePulse;
 var bufferSource;
@@ -47,7 +48,7 @@ var convolver;
 
 function runTest() {
     // Create offline audio context.
-    var context = new webkitOfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
+    context = new webkitOfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
 
     squarePulse = createSquarePulseBuffer(context, pulseLengthFrames);
     trianglePulse = createTrianglePulseBuffer(context, 2 * pulseLengthFrames);
