@@ -1,0 +1,24 @@
+<html>
+<body>
+<h1>Play sine wave</h1>
+<div id="time"></div>
+</body>
+<script>
+a=new webkitAudioContext();
+r=a.sampleRate;
+b=a.createBuffer(1,r,r);
+d=b.getChannelData(0);
+for(t=0;t<r;t++){
+  d[t]=Math.sin(440*2*Math.PI*t/r);
+}
+function play() {
+  s=a.createBufferSource();
+  s.connect(a.destination);
+  s.buffer=b;
+  s.loop=true;
+  s.noteOn(0);
+}
+
+window.onload = play;      
+</script>
+</html>

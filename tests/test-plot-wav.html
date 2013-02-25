@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <script type="text/javascript" src="resources/buffer-loader.js"></script>
+    <!-- Slider stuff -->
+    <script type="text/javascript" src="resources/events.js"></script>
+    <style type="text/css">
+      #slider { margin: 10px; }
+    </style>
+    <title></title>
+<script>
+
+var sampleRate = 44100;
+var lengthInSeconds = 1;
+// Nominal number of samples to plot.
+var nSamples = 5000;
+// Spacing between grid lines.
+var xTickSpacing = 500;
+var maxSamplesToPlot = 60000;
+
+var context;
+var bufferLoader;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+var backgroundColor = "rgb(255, 255, 255)";
+var curveColor = "rgb(0, 192,0)";
+var gridColor = "rgb(200,200,200)";
+
+// List of files that can be plotted.
+var mediaInfo =
+  [
+      { url:"resources/media/original.wav", info: "br-jam-loop original" },
+//      { url:"resources/media/128kbps-44khz.mp3", info: "br-jam-loop MP3 128kbps (FFmpeg)" },
+//      { url:"resources/media/vbr-128kbps-44khz.m4a", info: "br-jam-loop AAC VBR 128kbps" },
+//      { url:"resources/media/square3.wav", info: "square wave original" },
+//      { url:"resources/media/square3.mp3", info: "square wave, MP3 128kbps (FFmpeg)" },
+//      { url:"resources/media/square3.m4a", info: "square wave, AAC VBR 128kbps" },
+//      { url:"resources/media/square3.ogg", info: "square wave, Ogg Vorbis" },
+//      { url:"resources/media/square3-itunes.mp3", info: "square wave, MP3 VBR 128kbps (iTunes)" },
+//      { url:"resources/media/vbr-128kbps-44khz-square3.mp3", info: "square wave, MP3 VBR ~128kbps (FFmpeg)" },
+  ];
+
+// Decoded audio samples      
+var bufferList = 0;
+// The index of the buffer that will be plotted.
+var bufferIndex = 0;
+
+window.onload = init;
+
+function nSamplesHandler(event, ui) {
+  nSamples = Math.floor(Math.max(1000, ui.value));
+  graphSample(bufferList[bufferIndex]);
+}
+
+function finishedLoading(buffers)
+{
+    // Save the list of buffers
+    bufferList = buffers;
+
+    addSlider("nSamplesToPlot");
+    configureSlider("nSamplesToPlot", nSamples, 1000, maxSamplesToPlot, nSamplesHandler);
+
+    // Create radio button form
+    var formElement = document.getElementById("form");
+    var form = '<form>';
+    form += '<input type="radio" name="mediatype"';
+    form += 'value="' + mediaInfo[0].info + '"';
+    form += 'checked="checked" onClick="setSource(0);">';
+    form += mediaInfo[0].info + "<br/>";
+    
+    for (var k = 1; k < bufferList.length; ++k) {
+        form += '<input type="radio" name="mediatype"';
+        form += ' value="' + mediaInfo[0].info + '"';
+        form += ' onClick="setSource(' + k + ');">';
+        form += mediaInfo[k].info + "<br/>";
+    }
+    form += "</form>";
+
+    formElement.innerHTML = form;
+    
+    graphSample(bufferList[0]);
+}
+
+function xToXPixel(x)
+{
+    return x * (canvas.width / nSamples);
+}
+
+function yToYPixel(y)
+{
+    // The .9 is so we can see square waves of full amplitude.
+    return canvas.height / 2 * (1 + .9*y);
+}
+
+function graphSample(buffer)
+{
+    var width = canvas.width;
+    var height = canvas.height;
+
+    canvasContext.fillStyle = backgroundColor;
+    canvasContext.fillRect(0, 0, width, height);
+
+    // Draw x axis
+    canvasContext.strokeStyle = gridColor;
+    canvasContext.lineWidth = 1;
+    canvasContext.beginPath();
+    canvasContext.moveTo(xToXPixel(0), yToYPixel(0));
+    canvasContext.lineTo(xToXPixel(nSamples), yToYPixel(0));
+    canvasContext.stroke();
+
+    var data = buffer.getChannelData(0);
+    var plotLength = Math.min(nSamples, data.length);
+      
+    // Draw some y grid lines
+    for (var k = 0; k < plotLength; k += xTickSpacing) {
+        canvasContext.beginPath();
+        canvasContext.moveTo(xToXPixel(k), 0);
+        canvasContext.lineTo(xToXPixel(k), height);
+        canvasContext.stroke();
+    }
+
+    // Draw the curve
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+    for (var k = 0; k < plotLength; ++k) {
+        x = xToXPixel(k);
+        y = yToYPixel(data[k]);
+        //console.log("k = " + k + " data[k] = " + data[k] + " y = " + y);
+        canvasContext.lineTo(x, y);
+    }
+    canvasContext.stroke();
+    var info = document.getElementById("info");
+    var message = "Plotting " + plotLength + " of " + data.length + " samples (nominal total 44100).";
+    message += "  Grid spacing " + xTickSpacing + " samples";
+    info.innerHTML = message;
+}
+
+function setSource(index)
+{
+    bufferIndex = index;
+    graphSample(bufferList[index]);
+}
+
+function init()
+{
+    canvas = document.getElementById('canvasId');
+    canvasContext = canvas.getContext('2d');
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);    
+
+    // Create offline audio context.
+    context = new webkitAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
+    
+    bufferLoader = new BufferLoader(
+        context,
+        mediaInfo.map(function (value) { return value.url; }),
+        finishedLoading
+    );
+    
+    bufferLoader.load();
+}
+</script>
+  </head>
+
+  <body>
+    <h1>Waveform</h1>
+
+    <div id="media">
+      <h2>Audio Source to Plot</h2>
+      <!-- List of audio samples we can plot -->
+      <div id="form"> </div>
+    </div>
+
+    <!-- Sliders and other controls will be added here -->
+    <div id="controls"> </div>
+
+    <div id="graphContainer">
+      <div id="info">0</div>
+
+      <canvas id="canvasId" width="800" height="600" style="border: 2px inset blue;"></canvas>
+    </div>
+
+  </body>
+</html>

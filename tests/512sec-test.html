@@ -1,0 +1,31 @@
+<html>
+<body>
+<h1>512 seconds issue test</h1>
+<div id="time"></div>
+</body>
+<script>
+a=new webkitAudioContext();
+r=a.sampleRate;
+b=a.createBuffer(1,r,r);
+d=b.getChannelData(0);
+for(t=0;t<r;t++){
+  d[t]=Math.sin(2*Math.PI*t/r);
+}
+function play() {
+  time.innerHTML = parseFloat(a.currentTime).toFixed(3);
+  s=a.createBufferSource();
+  s.connect(a.destination);
+  s.buffer=b;
+  s.loop=true;
+  t=a.currentTime;
+  console.log("Time = " + t + " current = " + a.currentTime);
+  s.playbackRate.setValueAtTime(220,t);
+  s.gain.setValueAtTime(1,t);
+  //s.gain.setValueAtTime(1,t+.3);
+  //s.gain.exponentialRampToValueAtTime(1e-9,t+.600);
+  s.noteOn(t);
+  s.noteOff(t+1);
+}
+setInterval(play,1000);
+</script>
+</html>
