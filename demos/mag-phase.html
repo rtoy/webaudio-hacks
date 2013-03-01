@@ -107,14 +107,17 @@
         }
         return ticks;
       }
-      
+
       function drawCurve() {
         var width = 500;
 
         var freq = new Float32Array(width);
         var magResponse = new Float32Array(width);
         var phaseResponse = new Float32Array(width);
-       
+        var magmin;
+        var magmax;
+        var phasemin;
+        var phasemax;
 
         for (var k = 0; k < width; ++k) {
           var f = k / width;
@@ -358,7 +361,7 @@
 	<hr>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Mon Feb 25 14:41:54 PST 2013
+Last modified: Fri Mar  1 15:38:44 PST 2013
 <!-- hhmts end -->
       </div>
     </div>
