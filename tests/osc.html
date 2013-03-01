@@ -6,13 +6,13 @@
 var context = new webkitAudioContext(),
 oscillator = context.createOscillator(); // Oscillator defaults to sine wave
 
-document.write(context.sampleRate);
+document.write("<h2>Simple Oscillator Demo</h2>");      
+document.write("<p>Context sample rate = " + context.sampleRate + " kHz</p>");
 
 oscillator.connect(context.destination);
 oscillator.noteOn(0);
 </script>
   </head>
-
   <body>
     <h1></h1>
 
@@ -21,7 +21,7 @@ oscillator.noteOn(0);
     <hr>
 <!-- Created: Fri Aug  3 14:50:20 PDT 2012 -->
 <!-- hhmts start -->
-Last modified: Fri Mar  1 13:03:58 PST 2013
+Last modified: Fri Mar  1 15:14:24 PST 2013
 <!-- hhmts end -->
   </body>
 </html>
