@@ -67,6 +67,9 @@ function runTest() {
     bufferSource.connect(convolver);
     convolver.connect(context.destination);
 
+    drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
+    drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
+
     bufferSource.noteOn(0);
     
     context.oncomplete = checkConvolvedResult(trianglePulse);
@@ -76,6 +79,8 @@ function runTest() {
 runTest();
 
 </script>
+
+<script src="../fast/js/resources/js-test-post.js"></script>
 
 </body>
 </html>
