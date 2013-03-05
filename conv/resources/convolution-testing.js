@@ -52,7 +52,7 @@ function checkConvolvedResult(trianglePulse) {
 //        drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
 //        drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
 
-//        drawCurve("#conv", renderedData, 0, renderLengthSeconds * sampleRate);
+        drawCurve("#conv", renderedData, 0, renderLengthSeconds * sampleRate);
 
         var n = renderedBuffer.length;
 
