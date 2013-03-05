@@ -6,6 +6,7 @@ var pulseLengthFrames = pulseLengthSeconds * sampleRate;
 
 var referenceData;
 var renderedData;
+var signalDiff;
 
 function createSquarePulseBuffer(context, sampleFrameLength) {
     var audioBuffer = context.createBuffer(1, sampleFrameLength, context.sampleRate);
@@ -49,17 +50,17 @@ function checkConvolvedResult(trianglePulse) {
     
         var success = true;
     
-//        drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
-//        drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
-
         drawCurve("#conv", renderedData, 0, renderLengthSeconds * sampleRate);
+        drawCurve("#expected", referenceData, 0, renderLengthSeconds * sampleRate);
 
         var n = renderedBuffer.length;
 
         var maxDelta = 0;
         var valueAtMaxDelta = 0;
+        signalDiff = new Array();
         for (var i = 0; i < referenceData.length; ++i) {
-            var diff = renderedData[i + 128] - referenceData[i];
+            var diff = renderedData[i] - referenceData[i];
+            signalDiff[i] = diff;
             var x = Math.abs(diff);
             if (x > maxDelta) {
                 maxDelta = x;
@@ -67,7 +68,9 @@ function checkConvolvedResult(trianglePulse) {
                 maxDeltaIndex = i;
             }
         }
-        
+
+        drawCurve("#diff", signalDiff, 0, renderLengthSeconds * sampleRate);
+
         // Make sure that portion after convolved portion is totally silent.
         var isFinalPortionSilent = true;
         for (var i = referenceData.length + 128; i < renderedBuffer.length; ++i) {
