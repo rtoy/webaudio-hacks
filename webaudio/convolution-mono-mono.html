@@ -16,6 +16,10 @@
 <script>
 description("Tests ConvolverNode processing a mono channel with mono impulse response.");
 
+var renderLengthSeconds = 8;
+var pulseLengthSeconds = 1;
+var pulseLengthFrames = pulseLengthSeconds * sampleRate;
+
 // To test the convolver, we convolve two square pulses together to
 // produce a triangular pulse.  To verify the result is correct we
 // check several parts of the result.  First, we make sure the initial
