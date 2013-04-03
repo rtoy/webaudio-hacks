@@ -1,5 +1,9 @@
 var sampleRate = 44100.0;
 
+var renderLengthSeconds = 8;
+var pulseLengthSeconds = 1;
+var pulseLengthFrames = pulseLengthSeconds * sampleRate;
+
 function createSquarePulseBuffer(context, sampleFrameLength) {
     var audioBuffer = context.createBuffer(1, sampleFrameLength, context.sampleRate);
 
