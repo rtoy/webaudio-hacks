@@ -1,9 +1,5 @@
 var sampleRate = 48000.0;
 
-var renderLengthSeconds = 1;
-var pulseLengthSeconds = .1;
-var pulseLengthFrames = pulseLengthSeconds * sampleRate;
-
 var referenceData;
 var renderedData;
 var signalDiff;
