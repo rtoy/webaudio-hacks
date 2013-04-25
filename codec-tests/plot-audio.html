@@ -20,6 +20,7 @@ var maxSamplesToPlot = 60000;
 
 var context;
 var bufferLoader;
+var source;
 
 var canvas;
 var canvasContext;
@@ -83,6 +84,8 @@ function finishedLoading(buffers)
     formElement.innerHTML = form;
     
     graphSample(bufferList[0]);
+    source.buffer = bufferList[0];
+    source.noteOn(0);
 }
 
 function xToXPixel(x)
@@ -144,6 +147,10 @@ function setSource(index)
 {
     bufferIndex = index;
     graphSample(bufferList[index]);
+    source.buffer = bufferList[index];
+    source.connect(context.destination);
+    source.loop = true;
+//    source.noteOn(0);
 }
 
 function init()
@@ -155,10 +162,14 @@ function init()
 
     // Create offline audio context.
     if (typeof webkitOfflineAudioContext == 'function') {
-      context = new webkitOfflineAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
+//      context = new webkitOfflineAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
     } else {
-      context = new webkitAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
+//      context = new webkitAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
     }
+    context = new webkitAudioContext();
+    source = context.createBufferSource();
+    source.connect(context.destination);
+    source.loop = true;
     bufferLoader = new BufferLoader(
         context,
         mediaInfo.map(function (value) { return value.url; }),
