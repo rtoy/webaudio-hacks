@@ -7,6 +7,7 @@ var drumSoundBuffer = 0;
 var voiceSoundBuffer = 0;
 var buttonCall = 0;
 var buttonHangUp = 0;
+var buttonDrum = 0;
 
 var pauseTime = 0;
 
@@ -20,6 +21,8 @@ function trace(text) {
 function call() {
   buttonCall.disabled = true;
   buttonHangUp.disabled = false;
+  buttonDrum.disabled = false;
+
   trace("Starting call");
 
   var servers = null;
@@ -72,6 +75,7 @@ function hangup() {
   pc2 = null;
   buttonCall.disabled = true;
   buttonHangUp.disabled = true; // enabled when XHR completes
+  buttonDrum.disabled = true;
 
   voiceSound.stop(0);
   document.location.reload(); // hack, but it works!
@@ -112,7 +116,7 @@ function iceCallback2(event){
   }
 }
 
-function playDrumSound() {
+function drum() {
   var drumSound = context.createBufferSource();  // creates an AudioBufferSourceNode.
   drumSound.buffer = drumSoundBuffer;
   if (mediaStreamDestination) {
@@ -125,7 +129,7 @@ function handleKeyDown(event) {
   var keyCode = event.keyCode;
   trace('handleKeyDown()');
   // Play the drum sound to the remote peer.
-  playDrumSound();
+  drum();
 }
 
 function loadAudioBuffer(url) {
@@ -162,6 +166,7 @@ function loadDrumSound(url) {
 function init() {
   buttonCall = document.getElementById("call");
   buttonHangUp = document.getElementById("hangup");
+  buttonDrum = document.getElementById("drum");
 
   context = new webkitAudioContext();
   loadAudioBuffer("audio/human-voice.wav");
