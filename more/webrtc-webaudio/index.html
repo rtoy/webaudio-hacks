@@ -23,7 +23,18 @@ p#gettingAudio {
 
 <h1><a href="../index.html" title="simpl.info home page">simpl.info</a> Web Audio with RTCPeerConnection</h1>
 
+<script>
+if (!((typeof webkitAudioContext === "function")
+      || (typeof AudioContext === "function"))) {
+  alert("Sorry! Web Audio not supported by this browser");
+}
 
+if (!((typeof webkitRTCPeerConnection === "function")
+      || (typeof RTCPeerConnection === "function"))) {
+  alert("Sorry! RTCPeerConnection not supported by this browser");
+}
+</script>
+        
 <audio id="aud" controls autoplay></audio>
 
 <div>
