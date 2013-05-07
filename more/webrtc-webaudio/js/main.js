@@ -112,16 +112,20 @@ function iceCallback2(event){
   }
 }
 
-function handleKeyDown(event) {
-  var keyCode = event.keyCode;
-  trace('handleKeyDown()');
-  // Play the drum sound to the remote peer.
+function playDrumSound() {
   var drumSound = context.createBufferSource();  // creates an AudioBufferSourceNode.
   drumSound.buffer = drumSoundBuffer;
   if (mediaStreamDestination) {
     drumSound.connect(mediaStreamDestination);
     drumSound.start(0);
   }
+}
+    
+function handleKeyDown(event) {
+  var keyCode = event.keyCode;
+  trace('handleKeyDown()');
+  // Play the drum sound to the remote peer.
+  playDrumSound();
 }
 
 function loadAudioBuffer(url) {
