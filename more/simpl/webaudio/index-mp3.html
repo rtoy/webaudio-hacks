@@ -8,6 +8,11 @@
 <base target="_blank">
 <title>Web Audio</title>
 <link rel="stylesheet" href="../css/main.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="../../../demos/lib/events.js">
+</script>
+                
 </head>
 <body>
 <div id="container">
@@ -21,9 +26,101 @@
 
 <p>For more information about Web Audio see <a href="http://www.html5rocks.com/en/tutorials/webaudio/intro/" title="HTML5 Rocks tutorial: Getting started with the Web Audio API">Getting started with the Web Audio API</a>.</p>
 
-<script src="js/main.js"></script>
-
 <a href="https://github.com/samdutton/simpl/blob/master/webaudio/index.html" title="View source for this page on github" id="viewSource">View source on github</a>
 </div>
+
+<script src="js/main.js"></script>
+
+<p>The audio is processed using WebAudio.  The audio source passes through a biquad filter and a
+gain stage.  You can adjust the filter parameters (cutof, Q, and gain) and the overall gain
+(mainGain) here:</p>
+
+<div id="slider-container">
+    <!-- Sliders and other controls will be added here -->
+    <div id="controls"> </div>
+
+<div id="filtertypes" style="width:25%;float:left;">
+  <h2>Filter type</h2>
+  <form>
+    <input type="radio" name="filtertype" value="Lowpass"
+            checked="checked" onClick="setFilterType(0);">Lowpass<br/>
+    <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType(1);">Highpass<br/>
+    <input type="radio" name="filtertype" value="Bandpass" onClick="setFilterType(2);">Bandpass<br/>
+    <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType(3);">Lowshelf<br/>
+    <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType(4);">Highshelf<br/>
+    <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType(5);">Peaking<br/>
+    <input type="radio" name="filtertype" value="Notch" onClick="setFilterType(6);">Notch<br/>
+    <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType(7);">Allpass<br/>
+  </form>
+</div>
+</div>        
+    
+      
+<script>
+var mainGain = 0.5;
+var cutoff = .5;
+var q = 10.0; // in dB
+var gain = 0.0; // in dB
+var noctaves = 8;
+var cutoffOctaves = 10;
+var sampleRate = 44100.0;
+var nyquist = 0.5 * sampleRate;
+
+function normalizedCutoffToHz(normalizedFreq, noctaves) {
+  var f = new Number(normalizedFreq);
+  f = nyquist * Math.pow(2.0, noctaves * (f - 1.0));
+  return f;
+}
+      
+
+function cutoffHandler(event, ui) {
+  var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
+  filterNode.frequency.value = cutoff;
+  
+  //setTimeout("drawCurve()", 50);
+  //drawCurve();
+  var info = document.getElementById("cutoff-value");
+  info.innerHTML = "cutoff = " + cutoff.toFixed(1) + "Hz";
+}
+
+function qHandler(event, ui) {
+  var q = new Number(ui.value);
+  filterNode.Q.value = q;
+  //setTimeout("drawCurve()", 50);
+  var info = document.getElementById("Q-value");
+  info.innerHTML = "Q = " + q.toFixed(3);
+}
+
+function gainHandler(event, ui) {
+  var gain = new Number(ui.value);
+  filterNode.gain.value = gain;
+  //setTimeout("drawCurve()", 100);
+  var info = document.getElementById("gain-value");
+  info.innerHTML = "gain = " + gain.toFixed(3) + "dB";
+}
+
+function setFilterType(filterNodeType) {
+  filterNode.type = filterNodeType;
+}
+
+function mainGainHandler(event, ui) {
+  var gain = new Number(ui.value);
+  gainNode.gain.value = gain;
+  //setTimeout("drawCurve()", 100);
+  var info = document.getElementById("mainGain-value");
+  info.innerHTML = "gainGain = " + gain.toFixed(3);
+}
+      
+addSlider("mainGain");
+addSlider("cutoff");
+addSlider("Q");
+addSlider("gain");
+configureSlider("mainGain", mainGain, 0.0, 2.0, mainGainHandler);
+configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
+configureSlider("Q", q, -20.0, 100.0, qHandler);
+configureSlider("gain", gain, -10.0, 10.0, gainHandler);
+
+</script>
+    
 </body>
 </html>
