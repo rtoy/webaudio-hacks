@@ -17,8 +17,12 @@
       <li> The following are two modifications of <a href="http://simpl.info/webaudio">a WebAudio
       demo using an audio tag</a>:
         <ul>
-         <li><a href="simpl/webaudio/index.html">Audio tag using ogg and mp3 file</a></li>
-         <li><a href="simpl/webaudio/index-mp3.html">Audio tag using just mp3 file</a></li>
+         <li><a href="simpl/webaudio/index.html">Audio tag using ogg and mp3 file</a>.  This appears
+         not to work on Android because it can't decode the ogv file.</li>
+         <li><a href="simpl/webaudio/index-mp3.html">Audio tag using just mp3 file</a>.  This seems
+         to work on Android, with a new ogg file.  Also, sliders are added to control the filter so
+         you can tell if webaudio is affecting the audio.  On Android (as of 2013-05-13), the audio
+         output is not affected by the sliders.  This is a bug.</li>
         </ul>
     </ul>
 
@@ -26,7 +30,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue May  7 13:52:51 PDT 2013 -->
 <!-- hhmts start -->
-Last modified: Fri May 10 14:56:57 PDT 2013
+Last modified: Mon May 13 13:16:06 PDT 2013
 <!-- hhmts end -->
   </body>
 </html>
