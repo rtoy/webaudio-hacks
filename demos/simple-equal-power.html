@@ -297,9 +297,13 @@ function setSourceBuffer(buffer) {
      cn.y = 0.0;
      gFrontProjection.drawDotNormalized(cn);
 
+     startAudio();
+ }
+
+function startAudio() {
      var currentTime = context.currentTime;
      source.noteOn(currentTime + 0.020);
- }
+}
 
 var gIsMouseDown = false;
 
@@ -416,7 +420,7 @@ function handleElevationMouseMove(event) {
 
 
 <p>
-<span ontouchstart="init();">
+<span ontouchstart="startAudio();">
 Touch to start
 </span>
 </p>
