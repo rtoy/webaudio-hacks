@@ -25,7 +25,9 @@ p#gettingAudio {
 
 <script>
 if (!((typeof webkitAudioContext === "function")
-      || (typeof AudioContext === "function"))) {
+      || (typeof AudioContext === "function")
+      || (typeof webkitAudioContext === "object")
+      || (typeof AudioContext === "object"))) {
   alert("Sorry! Web Audio not supported by this browser");
 }
 
