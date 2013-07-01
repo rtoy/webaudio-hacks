@@ -31,7 +31,9 @@ function init() {
 }
 
 function showTime(start) {
-  time.innerHTML = "Start time = " + start + "  Context time = " + parseFloat(context.currentTime).toFixed(3);
+  var currentTime = context.currentTime;
+  time.innerHTML = "Start time = " + start + "  Context time = " + parseFloat(currentTime).toFixed(3);
+  console.log("Context time = " + currentTime);     
 }
 
 function displayTime(start) {
