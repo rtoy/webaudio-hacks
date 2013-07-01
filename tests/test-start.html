@@ -30,22 +30,27 @@ function init() {
   bufferLoader.load();
 }
 
+function showTime(start) {
+  time.innerHTML = "Start time = " + start + "  Context time = " + parseFloat(context.currentTime).toFixed(3);
+}
+
+function displayTime(start) {
+  showTime(start);
+  setInterval(function () { showTime(start) },1000);
+}
+      
 function finishedLoading(bufferList) {
-  // Create two sources and play them both together.
+  // Create source and play it.
   var source1 = context.createBufferSource();
-  var source2 = context.createBufferSource();
   source1.buffer = bufferList[0];
 
   source1.connect(context.destination);
   var t = context.currentTime;
   console.log("Time = " + t);
+  displayTime(t);
   source1.start(t+10);
 }
 
-function showTime() {
-  time.innerHTML = "Context time = " + parseFloat(context.currentTime).toFixed(3);
-}
-setInterval(showTime,1000);
 
 </script>
   </head>
@@ -53,6 +58,6 @@ setInterval(showTime,1000);
   <body>
     <h1>Test start</h1>
     Sound should start playing in 10 sec...
-    <div id="time"></div>
+    <p><div id="time"></div></p>
   </body>
 </html>
