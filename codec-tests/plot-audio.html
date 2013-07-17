@@ -67,6 +67,10 @@ function finishedLoading(buffers)
     addSlider("nSamplesToPlot");
     configureSlider("nSamplesToPlot", nSamples, 1000, maxSamplesToPlot, nSamplesHandler);
 
+    // Display sample rate
+    var rateElement = document.getElementById("rate");
+    rateElement.innerHTML = "Sample rate = " + context.sampleRate;
+      
     // Create radio button form
     var formElement = document.getElementById("form");
     var form = '<form>';
@@ -188,6 +192,7 @@ function init()
 
     <div id="media">
       <h2>Audio Source to Plot</h2>
+      <div id="rate"> </div>
       <!-- List of audio samples we can plot -->
       <div id="form"> </div>
     </div>
