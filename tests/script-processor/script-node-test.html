@@ -1,0 +1,108 @@
+<html>
+<head>
+<script type="text/javascript">
+  var mAudioContext;
+  var scriptNode;
+  var mPhase = 0;
+
+  var generateTimeSlice = function (leftBuf, rightBuf, step) {
+    var bufLen = leftBuf.length;
+    for (var k = 0; k < bufLen; k++) {
+      leftBuf[k] = Math.sin(mPhase);
+      rightBuf[k] = Math.sin(mPhase * 1.01);
+      mPhase += step;
+    }
+  };
+
+  var initFunction = function () {
+    // Create an audio context.
+    if (window.AudioContext) {
+      mAudioContext = new AudioContext();
+    } else if (window.webkitAudioContext) {
+      mAudioContext = new webkitAudioContext();
+      if (!mAudioContext.createScriptProcessor) {
+        mAudioContext.createScriptProcessor = mAudioContext.createJavaScriptNode;
+      }
+    } else {
+      mAudioContext = undefined;
+      return;
+    }
+
+    // Create a script processor node with no inputs and one stereo output.
+    scriptNode = mAudioContext.createScriptProcessor(4096, 0, 2);
+    scriptNode.onaudioprocess = function (event) {
+      var leftBuf = event.outputBuffer.getChannelData(0);
+      var rightBuf = event.outputBuffer.getChannelData(1);
+      generateTimeSlice(leftBuf, rightBuf, .02);
+    };
+
+    // Connect the script node to the output.
+    scriptNode.connect(mAudioContext.destination);
+  };
+
+window.onload = initFunction;
+
+function clearAudioprocess()
+{
+   scriptNode.onaudioprocess = 0;
+}
+
+function newGenerator(event) {
+  var leftBuf = event.outputBuffer.getChannelData(0);
+  var rightBuf = event.outputBuffer.getChannelData(1);
+  generateTimeSlice(leftBuf, rightBuf, .04);
+}
+
+function newAudioProcess()
+{
+    scriptNode.onaudioprocess = newGenerator;
+}
+
+function newLocalAudioProcess()
+{
+    scriptNode.onaudioprocess = function (event) {
+      var leftBuf = event.outputBuffer.getChannelData(0);
+      var rightBuf = event.outputBuffer.getChannelData(1);
+      generateTimeSlice(leftBuf, rightBuf, .06);
+    };;
+}
+
+function dropRef()
+{
+   scriptNode = 0;
+}
+
+function dropAndClear()
+{
+  clearAudioprocess();
+  dropRef();
+}
+</script>
+<body>
+<h2>This ScriptProcessorNode doesn't get shut down!</h2>
+
+A tone should be playing.    
+<form>
+<input type="radio" value=0 onClick="clearAudioprocess()">
+Click here to clear audioprocess. Audio should stop.
+</input>      
+<br>
+<input type="radio" value=1 onClick="newAudioProcess()">
+Click here to set new (global) audioprocess. Audio should start (high pitch).
+</input>      
+<br>
+<input type="radio" value=1 onClick="newLocalAudioProcess()">
+Click here to set new (local) audioprocess. Audio should start (higher pitch).
+</input>      
+<br>
+<input type="radio" value=2 onClick="dropRef()">
+Click here to drop reference to node. Audio should continue playing. (Reload page to change sounds.)
+</input>
+<br>      
+<input type="radio" value=3 onClick="dropAndClear()">
+Click here to clear audioprocess and drop reference to node. Audio should stop playing (Reload
+page to change sounds.)
+</input>      
+</form>      
+</body>
+</html>
