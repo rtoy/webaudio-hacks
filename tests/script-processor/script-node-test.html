@@ -77,6 +77,16 @@ function dropAndClear()
   clearAudioprocess();
   dropRef();
 }
+
+function multiSetAudioProcess()
+{
+  // Set audioprocess many times
+  newLocalAudioProcess();
+  clearAudioProcess();
+  newAudioProcess();
+  clearAudioProcess();
+  newAudioProcess();
+}
 </script>
 <body>
 <h2>This ScriptProcessorNode doesn't get shut down!</h2>
@@ -102,6 +112,9 @@ Click here to drop reference to node. Audio should continue playing. (Reload pag
 <input type="radio" value=3 onClick="dropAndClear()">
 Click here to clear audioprocess and drop reference to node. Audio should stop playing (Reload
 page to change sounds.)
+</input>      
+<input type="radio" value=3 onClick="multiSetAudioProcess()">
+Set and clear onaudioprocess several times, back to back.
 </input>      
 </form>      
 </body>
