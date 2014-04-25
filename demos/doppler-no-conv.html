@@ -155,8 +155,15 @@ function setReverbImpulseResponse(url) {
   var request = new XMLHttpRequest();
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
-  request.onload = function() { 
-    convolver.buffer = context.createBuffer(request.response, false);
+  request.onload = function() {
+    context.decodeAudioData(
+      request.response,
+      function (decodedAudio) {
+        convolver.buffer = decodedAudio;
+      },
+      function () {
+        alert("Cannot open reverb impulse response: " + url);
+      })
   }
   
   request.send();
@@ -168,9 +175,17 @@ function loadBufferAndPlay(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
 
-  request.onload = function() { 
-    source.buffer = context.createBuffer(request.response, true);
-    source.noteOn(0);
+  request.onload = function() {
+    context.decodeAudioData(
+      request.response,
+      function (decodedAudio) {
+        source.buffer = decodedAudio;
+        source.start();
+      },
+      function () {
+        alert("Cannot load buffer: " + url);
+      });
+   };
 
     // get rid of loading animation
     var loading = document.getElementById("loading");
