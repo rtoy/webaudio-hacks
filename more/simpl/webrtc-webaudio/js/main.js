@@ -142,7 +142,13 @@ function loadAudioBuffer(url) {
 
   request.onload = function() {
     // source = context.createBufferSource();  // creates an AudioBufferSourceNode.
-    voiceSoundBuffer = context.createBuffer(request.response, false);
+    context.decodeAudioData(request.response,
+                            function (decodedAudio) {
+                                voiceSoundBuffer = decodedAudio;
+                            },
+                            function () {
+                                alert('error decoding file data: ' + url);
+                            });
     buttonCall.disabled = false;
     document.querySelector("#gettingAudio").innerHTML = "";
   }
@@ -159,7 +165,13 @@ function loadDrumSound(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() {
-      drumSoundBuffer = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response,
+                            function (decodedAudio) {
+                                drumSoundBuffer = decodedAudio;
+                            },
+                            function () {
+                                alert('error decoding file data: ' + url);
+                            });
     }
 
     request.send();
