@@ -2,10 +2,9 @@
 <html>
   <head>
     <title></title>
+<script src="../resources/compatibility.js"></script>
 <script>
-var context = new webkitAudioContext(),
-if (!context)
-  alert("AudioContext not supported in this browser");
+var context = new AudioContext(),
       
 oscillator = context.createOscillator(); // Oscillator defaults to sine wave
 
@@ -24,7 +23,7 @@ oscillator.noteOn(0);
     <hr>
 <!-- Created: Fri Aug  3 14:50:20 PDT 2012 -->
 <!-- hhmts start -->
-Last modified: Fri Mar 21 15:38:20 PDT 2014
+Last modified: Fri Apr 25 14:40:59 PDT 2014
 <!-- hhmts end -->
   </body>
 </html>

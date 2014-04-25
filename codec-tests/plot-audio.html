@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
+    <script src="../resources/compatibility.js"></script>
     <script type="text/javascript" src="resources/buffer-loader.js"></script>
     <!-- Slider stuff -->
     <script type="text/javascript" src="resources/events.js"></script>
@@ -166,13 +167,8 @@ function init()
     canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
     canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);    
 
-    // Create offline audio context.
-    if (typeof webkitOfflineAudioContext == 'function') {
-//      context = new webkitOfflineAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
-    } else {
-//      context = new webkitAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
-    }
-    context = new webkitAudioContext();
+    // Create audio context.
+    context = new AudioContext();
     source = context.createBufferSource();
     source.connect(context.destination);
     source.loop = true;

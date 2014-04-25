@@ -17,6 +17,7 @@ p#gettingAudio {
 }
 </style>
 
+<script src="../../../resources/compatibility.js"></script>
 </head>
 <body>
 <div id="container">
@@ -24,12 +25,6 @@ p#gettingAudio {
 <h1><a href="../index.html" title="simpl.info home page">simpl.info</a> Web Audio with RTCPeerConnection</h1>
 
 <script>
-if (!((typeof webkitAudioContext === "function")
-      || (typeof AudioContext === "function")
-      || (typeof webkitAudioContext === "object")
-      || (typeof AudioContext === "object"))) {
-  alert("Sorry! Web Audio not supported by this browser");
-}
 
 if (!((typeof webkitRTCPeerConnection === "function")
       || (typeof RTCPeerConnection === "function"))) {

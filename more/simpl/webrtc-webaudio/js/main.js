@@ -170,7 +170,7 @@ function init() {
   buttonHangUp = document.getElementById("hangup");
   buttonDrum = document.getElementById("drum");
 
-  context = new webkitAudioContext();
+  context = new AudioContext();
   loadAudioBuffer("audio/human-voice.wav");
   loadDrumSound("audio/snare.wav");
   document.addEventListener("keydown", handleKeyDown, false);
