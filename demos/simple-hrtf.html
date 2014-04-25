@@ -248,8 +248,8 @@ function setSourceBuffer(buffer) {
      context = new webkitAudioContext();
 
      source = context.createBufferSource();
-     dryGainNode = context.createGainNode();
-     wetGainNode = context.createGainNode();
+     dryGainNode = context.createGain();
+     wetGainNode = context.createGain();
      panner = context.createPanner();
 
      lowFilter = context.createBiquadFilter();
