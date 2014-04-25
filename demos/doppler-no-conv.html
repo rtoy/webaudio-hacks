@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 </title>
 
 
+<script src="../resources/compatibility.js"></script>
 <!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 
@@ -348,7 +349,7 @@ function addSliders() {
  * Start doppler demo
  */
  function init() {
-     context = new webkitAudioContext();
+     context = new AudioContext();
      
      source = context.createBufferSource();
 
