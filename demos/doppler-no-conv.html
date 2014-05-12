@@ -38,7 +38,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 </title>
 
 
-<script src="../resources/compatibility.js"></script>
 <!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 
@@ -51,7 +50,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!-- Our javascript code -->
 <script type="text/javascript">
 
-// Events
+// Temporary patch until all browsers support unprefixed context.
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -155,18 +157,34 @@ function setReverbImpulseResponse(url) {
   var request = new XMLHttpRequest();
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
-  request.onload = function() {
-    context.decodeAudioData(
-      request.response,
-      function (decodedAudio) {
-        convolver.buffer = decodedAudio;
-      },
-      function () {
-        alert("Cannot open reverb impulse response: " + url);
-      })
+  request.onload = function() { 
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              convolver.buffer = buffer;
+          },
+
+          function(buffer) {
+              console.log("Error decoding impulse response!");
+          }
+      );
   }
   
   request.send();
+}
+
+function mixToMono(buffer) {
+    if (buffer.numberOfChannels == 2) {
+        var pL = buffer.getChannelData(0);
+        var pR = buffer.getChannelData(1);
+        var length = buffer.length;
+        
+        for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+        }
+    }
 }
 
 function loadBufferAndPlay(url) {
@@ -175,24 +193,45 @@ function loadBufferAndPlay(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
 
-  request.onload = function() {
-    context.decodeAudioData(
-      request.response,
-      function (decodedAudio) {
-        source.buffer = decodedAudio;
-        source.start();
-      },
-      function () {
-        alert("Cannot load buffer: " + url);
-      });
-   };
+  request.onload = function() { 
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              if (source) {
+                source.stop(0);
+                source.disconnect();
+              }
+              source = context.createBufferSource();
 
-    // get rid of loading animation
-    var loading = document.getElementById("loading");
-    loading.innerHTML = "";
+              source.connect(panner);
+              mixToMono(buffer);
+              source.buffer = buffer;
+              source.loop = true;
+              source.start(0);
+
+              // get rid of loading animation
+              var loading = document.getElementById("loading");
+              loading.innerHTML = "";
+          },
+
+          function(buffer) {
+              console.log("Error decoding source!");
+          }
+      );
   }
 
   request.send();
+}
+
+function useOscillator() {
+  if (source) {
+    source.stop(0);
+    source.disconnect();
+  }
+  source = context.createOscillator();
+  source.frequency.value = 110;
+  source.connect(panner);
+  source.start(0);
 }
 
 var kWhite = "rgb(255,255,255)";
@@ -283,6 +322,7 @@ function schedule() {
    gLastZ = z;
    
    panner.setVelocity(deltaX, deltaY, deltaZ);
+//   console.log( "setVelocity( " + deltaX + ", " + deltaY + ", " + deltaZ + ")");
    context.listener.dopplerFactor = dopplerFactor;
    
    draw(x, y, z);
@@ -364,10 +404,8 @@ function addSliders() {
  * Start doppler demo
  */
  function init() {
-     context = new AudioContext();
+     context = new webkitAudioContext();
      
-     source = context.createBufferSource();
-
      masterGainNode = context.createGain();
      dryGainNode = context.createGain();
      wetGainNode = context.createGain();
@@ -375,7 +413,7 @@ function addSliders() {
      panner = context.createPanner();
      convolver = context.createConvolver();
      cgain = context.createGain();
-     cgain.gain.value = .3;
+     cgain.gain.value = 0.3;
 
      // Setup initial gains
      masterGainNode.gain.value = 2.0;
@@ -383,7 +421,6 @@ function addSliders() {
      wetGainNode.gain.value = kAmbientGain;
 
      // Connect dry mix
-     source.connect(panner);
      panner.connect(dryGainNode);
      dryGainNode.connect(masterGainNode);
      
@@ -401,7 +438,7 @@ function addSliders() {
      // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.wav');
      setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
 
-     source.playbackRate.value = 0.75;
+//     source.playbackRate.value = 0.75;
 
      x = 0;
      y = 0;
@@ -409,10 +446,8 @@ function addSliders() {
 
      panner.setPosition(x, y, z);
 
-     source.looping = true;
-
      // Load up initial buffer
-     loadBufferAndPlay("sounds/hyper-reality/white-noise.wav");  
+     loadBufferAndPlay("sounds/hyper-reality/white-noise-mono.wav");
 
      lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
      slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
@@ -433,7 +468,7 @@ function addSliders() {
 
 <body>
 
-<h1> Doppler Shift (without convolver)</h1>
+<h1> Doppler Shift </h1>
 
 <div id="info">
 </div>
@@ -480,6 +515,18 @@ Cauldron
 
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched-up-paper.wav'); highlightElement(this);">
 Crunched up Paper
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/siren.wav'); highlightElement(this);">
+Siren
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/sine.ogg'); highlightElement(this);">
+Sine Wave (buffer-based)
+</div>
+
+<div class='bigList' onmousedown="useOscillator(); highlightElement(this);">
+OscillatorNode (not buffer-based)
 </div>
 
 </div>
