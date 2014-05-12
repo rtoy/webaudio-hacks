@@ -50,6 +50,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+// Temporary patch until all browsers support unprefixed context.
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -57,7 +61,7 @@ var context;
 var buffer;
 var convolver;
 var panner;
-var source;
+var source = null;
 var dryGainNode;
 var wetGainNode;
 
@@ -71,7 +75,6 @@ var y = 0;
 var z = 0;
 var hilightedElement = 0;
 var bufferList;
-var hihatShort;
 
 var fileCount = 8;
 var fileList = [
@@ -94,10 +97,44 @@ function setReverbImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        convolver.buffer = context.createBuffer(request.response, false);
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                convolver.buffer = buffer;
+            },
+
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
 
     request.send();
+}
+
+function mixToMono(buffer) {
+    if (buffer.numberOfChannels == 2) {
+        var pL = buffer.getChannelData(0);
+        var pR = buffer.getChannelData(1);
+        var length = buffer.length;
+        
+        for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+        }
+    }
+}
+
+function startPlaying(i) {
+    if (source)
+        source.stop();
+     source = context.createBufferSource();
+     source.buffer = bufferList[i];
+     source.connect(lowFilter);
+     source.playbackRate.value = 1.0;
+     source.loop = true;
+     source.start();
 }
 
 function setAudioSource(i) {
@@ -115,28 +152,22 @@ function setAudioSource(i) {
         request.responseType = "arraybuffer";
 
         request.onload = function() { 
-            var buffer = context.createBuffer(request.response, true);
-            
-            source.buffer = buffer;
-            bufferList[i] = buffer;  // cache it
+            context.decodeAudioData(
+                request.response,
+                function(buffer) {
+                    mixToMono(buffer);
+                    bufferList[i] = buffer;  // cache it
+                    startPlaying(i);
+                },
+
+                function(buffer) {
+                    console.log("Error decoding audio source data!");
+                }
+            );
         }
 
         request.send();
     }
-}
-
-function loadHihat(url) {
-    // Load asynchronously
-
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    request.onload = function() { 
-        hihatShort = context.createBuffer(request.response, true);
-    }
-
-    request.send();
 }
 
 function highlightElement(object) {
@@ -247,7 +278,6 @@ function setSourceBuffer(buffer) {
      // Initialize audio
      context = new webkitAudioContext();
 
-     source = context.createBufferSource();
      dryGainNode = context.createGain();
      wetGainNode = context.createGain();
      panner = context.createPanner();
@@ -259,7 +289,6 @@ function setSourceBuffer(buffer) {
      convolver = context.createConvolver();
 
      // Connect audio processing graph
-     source.connect(lowFilter);
      lowFilter.connect(panner);
 
      // Connect dry mix
@@ -267,9 +296,8 @@ function setSourceBuffer(buffer) {
      dryGainNode.connect(context.destination);
      
      // Connect wet mix
-     //panner.connect(convolver);
-     //convolver.connect(wetGainNode);
-     panner.connect(wetGainNode);
+     panner.connect(convolver);
+     convolver.connect(wetGainNode);
      wetGainNode.connect(context.destination);
      wetGainNode.gain.value = kInitialReverbLevel;
      
@@ -278,14 +306,9 @@ function setSourceBuffer(buffer) {
          bufferList[i] = 0;
      }
 
-     loadHihat("sounds/drum-samples/hihat-short.wav");
-
      setReverbImpulseResponse('impulse-responses/spatialized3.wav');
 
-     source.playbackRate.value = 1.0;
-
      panner.setPosition(0, 0, -4.0);
-     source.looping = true;
 
      // Load up initial sound
      setAudioSource(0);
@@ -295,9 +318,6 @@ function setSourceBuffer(buffer) {
      
      cn.y = 0.0;
      gFrontProjection.drawDotNormalized(cn);
-
-     var currentTime = context.currentTime;
-     source.noteOn(currentTime + 0.020);
  }
 
 var gIsMouseDown = false;
