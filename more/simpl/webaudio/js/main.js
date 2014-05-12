@@ -21,12 +21,12 @@ var sourceNode = context.createMediaElementSource(audioElement);
 // connect the source node to a filter node
 var filterNode = context.createBiquadFilter();
 // see https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section
-filterNode.type = 1; // HIGHPASS
+filterNode.type = 'highpass'; // HIGHPASS
 // cutoff frequency: for HIGHPASS, audio is attenuated below this frequency
 sourceNode.connect(filterNode);
 
 // connect the filter node to a gain node (to change audio volume)
-var gainNode = context.createGainNode();
+var gainNode = context.createGain();
 // default is 1 (no change); less than 1 means audio is attenuated, and vice versa
 gainNode.gain.value = 0.5;
 filterNode.connect(gainNode);
