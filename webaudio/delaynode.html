@@ -2,6 +2,7 @@
 
 <html>
 <head>
+<script src="../resources/compatibility.js"></script>
 <script src="../fast/js/resources/js-test-pre.js"></script>
 <script src="resources/audio-testing.js"></script>
 <script src="resources/delay-testing.js"></script>
@@ -45,7 +46,7 @@ function runTest() {
 
     bufferSource.connect(delay);
     delay.connect(context.destination);
-    bufferSource.noteOn(0);
+    bufferSource.start(0);
     
     context.oncomplete = checkDelayedResult(toneBuffer);
     context.startRendering();

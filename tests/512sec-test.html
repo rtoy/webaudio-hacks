@@ -4,7 +4,7 @@
 <div id="time"></div>
 </body>
 <script>
-a=new webkitAudioContext();
+a=new AudioContext();
 r=a.sampleRate;
 b=a.createBuffer(1,r,r);
 d=b.getChannelData(0);
@@ -23,8 +23,8 @@ function play() {
   s.gain.setValueAtTime(1,t);
   //s.gain.setValueAtTime(1,t+.3);
   //s.gain.exponentialRampToValueAtTime(1e-9,t+.600);
-  s.noteOn(t);
-  s.noteOff(t+1);
+  s.start(t);
+  s.stop(t+1);
 }
 setInterval(play,1000);
 </script>

@@ -4,7 +4,7 @@
 <div id="time"></div>
 </body>
 <script>
-a=new webkitAudioContext();
+a=new AudioContext();
 r=a.sampleRate;
 b=a.createBuffer(1,r,r);
 d=b.getChannelData(0);
@@ -16,7 +16,7 @@ function play() {
   s.connect(a.destination);
   s.buffer=b;
   s.loop=true;
-  s.noteOn(0);
+  s.start(0);
 }
 
 window.onload = play;      

@@ -10,6 +10,7 @@
       left: 1000em;
     }
 </style>
+<script src="../resources/compatibility.js"></script>
 <script src="../fast/js/resources/js-test-pre.js"></script>
 <script src="resources/convolution-testing.js"></script>
 <script type="text/javascript" src="../flot/jquery.js"></script>
@@ -78,7 +79,7 @@ function runTest() {
     drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
     drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
 
-    bufferSource.noteOn(0);
+    bufferSource.start(0);
     
     context.oncomplete = checkConvolvedResult(trianglePulse);
     context.startRendering();
