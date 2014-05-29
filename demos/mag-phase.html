@@ -6,9 +6,9 @@
     <!-- Slider stuff -->
     <script type="text/javascript" src="lib/events.js">
     </script>
-    <script type="text/javascript" src="../flot/jquery.js"></script>
-    <script type="text/javascript" src="../flot/jquery.flot.js"></script>
-    <script type="text/javascript" src="../flot/jquery.flot.resize.js"></script>
+    <script type="text/javascript" src="flot/jquery.js"></script>
+    <script type="text/javascript" src="flot/jquery.flot.js"></script>
+    <script type="text/javascript" src="flot/jquery.flot.resize.js"></script>
     <style type="text/css">
       #slider { margin: 10px; }
     </style>
@@ -21,7 +21,7 @@
       var cutoff = .5;
       var q = 10.0; // in dB
       var gain = 0.0; // in dB
-      var source;
+      var source = null;
       var noctaves = 8;
       var cutoffOctaves = 10;
 
@@ -36,7 +36,6 @@
       var noteColor = "rgb(200,60,20)";
       var gridColor = "rgb(200,200,200)";
 
-      // Some suitable defaults.  We'll update these once the audio context is established.
       var sampleRate = 44100.0;
       var nyquist = 0.5 * sampleRate;
 
@@ -107,17 +106,14 @@
         }
         return ticks;
       }
-
+      
       function drawCurve() {
         var width = 500;
 
         var freq = new Float32Array(width);
         var magResponse = new Float32Array(width);
         var phaseResponse = new Float32Array(width);
-        var magmin;
-        var magmax;
-        var phasemin;
-        var phasemax;
+       
 
         for (var k = 0; k < width; ++k) {
           var f = k / width;
@@ -139,57 +135,51 @@
         }
 
         // Figure out the y axis range based on the filter type.
-        switch (filter.type)
-        {
-          case 0:
-            magmin = -80;
-            magmax = 0;
-            phasemin = -90;
-            phasemax = 90;
-            break;
-          case 1:
+
+        var type = filter.type;
+
+        if (type == "lowpass") {
             magmin = -80;
             magmax = 40;
+            phasemin = -200;
+            phasemax = 0;
+        } else if (type == "highpass") {
+            magmin = -80;
+            magmax = 20;
             phasemin = 0;
             phasemax = 180;
-            break;
-          case 2:
-            magmin = -40;
-            magmax = 40;
-            phasemin = -90;
-            phasemax = 90;
-            break;
-          case 3:
+        } else if (type == "bandpass") {
+            magmin = -80;
+            magmax = 0;
+            phasemin = -180;
+            phasemax = 180;
+        } else if (type == "lowshelf") {
             magmin = -15;
             magmax = 15;
             phasemin = -50;
             phasemax = 50;
-            break;
-          case 4:
+        } else if (type == "highshelf") {
             magmin = -15;
             magmax = 15;
             phasemin = -60;
             phasemax = 60;
-            break;
-          case 5:
+        } else if (type == "peaking") {
             magmin = -10;
             magmax = 10;
             phasemin = -45;
             phasemax = 45;
-            break;
-          case 6:
+        } else if (type == "notch") {
             magmin = -60;
             magmax = 0;
             phasemin = -100;
             phasemax = 100;
-            break;
-          case 7:
+        } else if (type == "allpass") {
             magmin = -1;
             magmax = 1;
             phasemin = -180;
             phasemax = 180;
-            break;
         }
+
         $.plot($("#graph"),
           [ { data : magData, label: "Mag (dB)" },
             { data : phaseData, label: "Phase (deg)", yaxis: 2 }],
@@ -220,10 +210,22 @@
         var request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.responseType = "arraybuffer";
-        request.onload = function() {
-          sound = context.createBuffer(request.response, true);
-          source.buffer = sound;
-        }
+        request.onload = function() { 
+          context.decodeAudioData(request.response, function(buffer) {
+            sound = buffer;
+            if (source) {
+              source.stop(0);
+              source = null;
+            }
+            source = context.createBufferSource();
+            source.connect(filter);
+            source.loop = true;
+            source.buffer = buffer;
+            source.start(0);
+
+          }, function(){console.log("error decoding file.")});
+        };
+
 
         request.send();
       }
@@ -269,14 +271,13 @@
 
       function animateCurve() {
         drawCurve();
-        webkitRequestAnimationFrame(animateCurve);
+        requestAnimationFrame(animateCurve);
       }
       
       function init () {
+        AudioContext=AudioContext||webkitAudioContext;
         // Setup biquad and other audio stuff
-        context = new webkitAudioContext();
-        sampleRate = context.sampleRate;
-        nyquist = 0.5 * sampleRate;
+        context = new AudioContext();
         filter = context.createBiquadFilter();
         filter.type = 2; // Bandpass
         filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
@@ -291,12 +292,8 @@
 //	}
       
       
-        source = context.createBufferSource();
-        source.connect(filter);
         filter.connect(context.destination);
-        loadSound("audio/sounds/tones/pinkgood.wav");
-        source.loop = true;
-        source.noteOn(0);
+        loadSound("sounds/tones/pinkgood.wav");
 
 
 	addSlider("cutoff");
@@ -334,34 +331,35 @@
       <div id="filtertypes" style="width:25%;float:left;">
 	<h2>Filter type</h2>
 	<form>
-	  <input type="radio" name="filtertype" value="Lowpass" onClick="setFilterType(0);">Lowpass<br/>
-	  <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType(1);">Highpass<br/>
+	  <input type="radio" name="filtertype" value="Lowpass" onClick="setFilterType('lowpass');">Lowpass<br/>
+	  <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType('highpass');">Highpass<br/>
 	  <input type="radio" name="filtertype" value="Bandpass"
-	    checked="checked" onClick="setFilterType(2);">Bandpass<br/>
-	  <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType(3);">Lowshelf<br/>
-	  <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType(4);">Highshelf<br/>
-	  <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType(5);">Peaking<br/>
-	  <input type="radio" name="filtertype" value="Notch" onClick="setFilterType(6);">Notch<br/>
-	  <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType(7);">Allpass<br/>
+	    checked="checked" onClick="setFilterType('bandpass');">Bandpass<br/>
+	  <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType('lowshelf');">Lowshelf<br/>
+	  <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType('highshelf');">Highshelf<br/>
+	  <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType('peaking');">Peaking<br/>
+	  <input type="radio" name="filtertype" value="Notch" onClick="setFilterType('notch');">Notch<br/>
+	  <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType('allpass');">Allpass<br/>
 	</form>
       </div>
     
       <div id="sources" style="width:25%;float:left;">
 	<h2>Source</h2>
 	<form>
-	  <input type="radio" checked="checked" name="source" onClick="loadSound('audio/sounds/tones/pinkgood.wav');">Noise<br/>
-	  <input type="radio" name="source" onClick="loadSound('audio/sounds/effects/cauldron.wav');">Cauldron<br/>
-	  <input type="radio" name="source" onClick="loadSound('audio/sounds/effects/waves.wav');">Waves<br/>
+	  <input type="radio" checked="checked" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
+	  <input type="radio" name="source" onClick="loadSound('sounds/effects/cauldron.wav');">Cauldron<br/>
+	  <input type="radio" name="source" onClick="loadSound('sounds/effects/waves.wav');">Waves<br/>
 	  <input type="radio" name="source"
-	    onClick="loadSound('audio/sounds/effects/ticking.wav');">Ticking clock<br/>
+	    onClick="loadSound('sounds/effects/ticking.wav');">Ticking clock<br/>
 	</form>
       </div>
 
       <div id="footer" style="clear:both;text-align:left;">
 	<hr>
+	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Fri Mar  1 15:38:44 PST 2013
+Last modified: Mon Nov  7 12:36:55 PST 2011
 <!-- hhmts end -->
       </div>
     </div>

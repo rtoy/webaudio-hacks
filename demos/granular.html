@@ -50,6 +50,9 @@ Granular Effects
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+// Temporary patch until all browsers support unprefixed context.
+AudioContext = AudioContext || webkitAudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -186,7 +189,8 @@ function scheduleGrain() {
     y *= distance;
     z *= distance * scaleXZ;
 
-//    panner.panningModel = webkitAudioPannerNode.HRTF;
+    //panner.panningModel = "HRTF";
+    panner.panningModel = "equalpower";
     panner.setPosition(x, y, z);
 
     var dryGainNode = context.createGain();
@@ -211,7 +215,7 @@ function scheduleGrain() {
     var randomGrainOffset = r2 * timeRandomization;
 
     // Schedule sound grain
-    source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
+    source.start(realTime, grainTime + randomGrainOffset, grainDuration);
 
     // Schedule the grain window.
     // This applies a time-varying gain change for smooth fade-in / fade-out.
@@ -241,7 +245,7 @@ function schedule() {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     // This check is a hack and will only be needed temporarily.
     // The reason is that the noteGrainOn() method used to (in older builds) apply a hard-coded amplitude window.
@@ -320,7 +324,7 @@ function init() {
 function load() {
     // loadImpulseResponse('impulse-responses/spatialized4.wav');
     loadImpulseResponse('impulse-responses/matrix-reverb5.wav');
-    loadHumanVoice("sounds/hyper-reality/human-voice.mp4");
+    loadHumanVoice("sounds/hyper-reality/human-voice.mp3");
 }
 
 function loadImpulseResponse(url) {
@@ -331,9 +335,18 @@ function loadImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        convolver.buffer = context.createBuffer(request.response, false);
-        isImpulseResponseLoaded = true;
-        finishLoading();
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                convolver.buffer = buffer;
+                isImpulseResponseLoaded = true;
+                finishLoading();
+            },
+            
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
     request.onerror = function() { 
         alert("error loading reverb");
@@ -350,10 +363,19 @@ function loadHumanVoice(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() {
-        buffer = context.createBuffer(request.response, false /*true*/);
-        bufferDuration = buffer.duration - 0.050;
-        isSourceLoaded = true;
-        finishLoading();  // we have the voice, put up sliders and start playing...
+        context.decodeAudioData(
+            request.response,
+            function(b) {
+                buffer = b;
+                bufferDuration = buffer.duration - 0.050;
+                isSourceLoaded = true;
+                finishLoading();  // we have the voice, put up sliders and start playing...
+            },
+            
+            function(buffer) {
+                console.log("Error decoding human voice!");
+            }
+        );
     };
 
     request.onerror = function() {
