@@ -430,7 +430,7 @@ function createAudioGraphAndTest(numberOfTests, initialValue, setValueFunction, 
                                  initialValue,
                                  setValueFunction,
                                  automationFunction);
-    bufferSource.noteOn(0);
+    bufferSource.start(0);
       
     context.oncomplete = checkResultFunction(testName,
                                              maxError,
