@@ -412,7 +412,7 @@ function createAudioGraphAndTest(numberOfTests, initialValue, setValueFunction, 
     // automation, since it's easy to pass a constant value through the node, automate the
     // .gain attribute and observe the resulting values.
 
-    gainNode = context.createGainNode();
+    gainNode = context.createGain();
 
     var bufferSource = context.createBufferSource();
     bufferSource.buffer = constantBuffer;
