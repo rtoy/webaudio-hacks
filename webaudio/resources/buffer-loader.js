@@ -23,7 +23,7 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
                     if (++loader.loadCount == loader.urlList.length)
                         loader.onload(loader.bufferList);
                 } catch(e) {
-                    alert('BufferLoader: unable to load buffer: ' + index);
+                    alert('BufferLoader: unable to load buffer' + index);
                 }
             },
             function () {
