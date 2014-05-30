@@ -472,11 +472,14 @@ Touch to start
 </form>
 </div>
 
-<div id="panner-properites" style="width:25%; border:2px inset blue;">
+<div style="position:absolute; top:0; left:280px width:25%; border:2px inset blue;">
+<h1>Panner Settings</h1>
+<h2>Panning model</h2>          
 <form>
   <input type="radio" checked="checked" onClick='panner.panningModel = "equalpower";'>equalpower</br>
   <input type="radio" onClick='panner.panningModel = "HRTF";'>HRTF</br>
 </form>          
+<h2>Distance model</h2>          
 <form>
   <input type="radio" onClick='panner.distanceModel = "linear";'>linear</br>
   <input type="radio" checked="checked" onClick='panner.distanceModel = "inverse";'>inverse</br>
