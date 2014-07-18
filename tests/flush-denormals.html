@@ -3,8 +3,7 @@
   <head>
     <script src="resources/compatibility.js"></script>
     <script src="resources/audio-testing.js"></script>
-    <script src="../resources/js-test.js"></script>
-    <script src="resources/biquad-testing.js"></script>
+    <script src="resources/js-test.js"></script>
     <title>Test that denormal floats are flushed to zero</title>
   </head>
 
@@ -22,6 +21,10 @@
       // experimentally determined and depends on the impulseAmplitude and the particular filter
       // used.
       var indexExpectedZeroSamples = 0;
+
+      var sampleRate = 44100.0;
+      var pulseLengthFrames = .1 * sampleRate;
+      var renderLengthSeconds = .6;
 
       // Filter a very low amplitude impulse through a lowpass filter and check that after a certain
       // point that the output is exactly zero. If this is true, that means that denormals are being
