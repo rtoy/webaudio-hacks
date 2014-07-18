@@ -18,7 +18,7 @@
 function doTest ()
 {
   var sr = 44100;
-  var ctx = new webkitOfflineAudioContext(1, sr * 100, sr);
+  var ctx = new webkitOfflineAudioContext(1, sr * 500, sr);
   var osc = ctx.createOscillator();
   osc.start(0);
   var convolver = ctx.createConvolver();
@@ -50,7 +50,7 @@ function doTest ()
     <hr>
 <!-- Created: Tue Dec 17 14:33:48 PST 2013 -->
 <!-- hhmts start -->
-Last modified: Fri Jul 18 09:11:33 PDT 2014
+Last modified: Fri Jul 18 09:16:28 PDT 2014
 <!-- hhmts end -->
   </body>
 </html>
