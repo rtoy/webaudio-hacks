@@ -23,6 +23,14 @@
       <li><a href="time-convolver-short.html">Time the speed of the convolver node (128-frame kernel)</a></li>
     </ul>
 
+    <h2>Miscellaneous Tests</h2>
+    <ul>
+      <li><a href="flush-denormals.html">Test to see if denormals are flushed to zero</a>. Currently
+      the test is set so that it always fails so that the last non-zero value is printed. For chrome
+      with denormals flushed to zero, the last non-zero value should be at index 139.  When
+      denormals are not flushed, the last index is larger, possibly up to 200 or more.
+      </li>
+    </ul>
     <h2>ScriptProcessorNode Tests</h2>
     <ul>
       <li><a href="script-processor/leak-nodes.html">Simple test to see if ScriptProcessorNodes leak
@@ -33,7 +41,7 @@
     <hr>
 <!-- Created: Thu Feb 28 15:49:18 PST 2013 -->
 <!-- hhmts start -->
-Last modified: Fri Jul 18 09:13:59 PDT 2014
+Last modified: Fri Jul 18 14:01:13 PDT 2014
 <!-- hhmts end -->
   </body>
 </html>
