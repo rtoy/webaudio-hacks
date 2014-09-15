@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    Test Ogg file decoding (for Android)
+  </head>
+
+  <body>
+    <script>
+      var context = new AudioContext();
+      var request = new XMLHttpRequest();
+      request.open('GET', 'test.ogg', true);
+      request.responseType = 'arraybuffer';
+      request.onload = function() {
+          console.log("Got data of " + request.response.lengthInBytes + " bytes");
+          var start = new Date().getTime();
+          context.decodeAudioData(request.response, function(buffer) {
+            var end = new Date().getTime();
+            console.log("Decoded duration is " + buffer.duration + "s");
+          }, function(error) {
+            console.log("Failed to decode", error);
+           });
+      }
+      request.send();
+    </script>
+  </body>
+</html>
