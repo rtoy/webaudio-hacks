@@ -5,6 +5,10 @@
   </head>
 
   <body>
+    <p id="duration">
+    </p>
+    <p id="time">
+    </p>
     <script>
       var context = new AudioContext();
       var request = new XMLHttpRequest();
@@ -16,6 +20,9 @@
           context.decodeAudioData(request.response, function(buffer) {
             var end = new Date().getTime();
             console.log("Decoded duration is " + buffer.duration + "s");
+            document.getElementById("duration").innerHTML = "Decoded duration is " + buffer.duration +
+            " s.";
+            document.getElementById("time").innerHTML = "Time to decode: " + (end - start) + " ms.";
           }, function(error) {
             console.log("Failed to decode", error);
            });
