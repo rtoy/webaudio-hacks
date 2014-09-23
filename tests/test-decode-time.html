@@ -7,6 +7,10 @@
   <body>
     <h1>Test decode time</h1>
 
+    <p id="duration">
+    </p>
+    <p id="time">
+    </p>
 
     <script>
       // Test file from crbug.com/414312.
@@ -24,7 +28,9 @@
             endTime = new Date().getTime();
             console.log("Decoded duration is " + buffer.duration + "s");
             console.log("Time to decode in ms: " + (endTime - startTime) + ".");
-            document.body.innerHTML = "Time to decode in ms: " + (endTime - startTime) + ".";
+            document.getElementById("duration").innerHTML = "Decoded duration is " + buffer.duration +
+            " s.";
+            document.getElementById("time").innerHTML = "Time to decode: " + (endTime - startTime) + " ms.";
           }, function(error) {
             console.log("Failed to decode", error);
            });
@@ -36,7 +42,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue Sep 23 10:04:17 PDT 2014 -->
 <!-- hhmts start -->
-Last modified: Tue Sep 23 10:05:53 PDT 2014
+Last modified: Tue Sep 23 13:43:42 PDT 2014
 <!-- hhmts end -->
   </body>
 </html>
