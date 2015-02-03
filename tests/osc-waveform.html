@@ -13,6 +13,7 @@
       var context;
       var osc;
       var waveform;
+      var wavetable;
       var sampleRate = 48000;
 
       function plotWaveform(oscType) {
@@ -24,7 +25,19 @@
         context.oncomplete = plotResult;
 
         osc = context.createOscillator();
-        osc.type = oscType;
+        if (oscType == 'custom1') {
+          // Two sine waves
+          var realpart = new Float32Array(2);
+          var imagpart = new Float32Array(2);
+          realpart[0] = 1;
+          realpart[1] = 0.5;
+          imagpart[0] = 0;
+          imagpart[1] = 0.5;
+          wavetable = context.createPeriodicWave(realpart, imagpart);
+          osc.setPeriodicWave(wavetable);
+        } else {
+          osc.type = oscType;
+        }
         osc.connect(context.destination);
         osc.start();
 
@@ -62,6 +75,8 @@
           <input type="radio" name="oscType" value="square" onClick="plotWaveform('square');">Square<br/>
           <input type="radio" name="oscType" value="sawtooth" onClick="plotWaveform('sawtooth');">Sawtooth<br/>
           <input type="radio" name="oscType" value="triangle" onClick="plotWaveform('triangle');">Triangle<br/>
+          <input type="radio" name="oscType" value="triangle" onClick="plotWaveform('custom1');">Custom1<br/>
+                          
         </form>
       </div>
       <br/>
@@ -72,7 +87,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue Feb  3 13:55:03 PST 2015 -->
 <!-- hhmts start -->
-Last modified: Tue Feb  3 14:24:49 PST 2015
+Last modified: Tue Feb  3 14:36:17 PST 2015
 <!-- hhmts end -->
   </body>
 </html>
