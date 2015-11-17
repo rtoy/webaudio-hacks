@@ -154,10 +154,15 @@ function setSource(index)
 {
     bufferIndex = index;
     graphSample(bufferList[index]);
+    if (source) {
+      source.stop();
+      source.disconnect(context.destination);
+      source = context.createBufferSource();
+    }
     source.buffer = bufferList[index];
     source.connect(context.destination);
     source.loop = true;
-//    source.noteOn(0);
+    source.start();
 }
 
 function init()
