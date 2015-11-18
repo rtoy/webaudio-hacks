@@ -15,8 +15,6 @@
     <title></title>
 <script>
 
-var sampleRate = 48000;
-var lengthInSeconds = 1;
 // Nominal number of samples to plot.
 var nSamples = 5000;
 // Spacing between grid lines.
@@ -61,7 +59,6 @@ window.onload = init;
 
 function nSamplesHandler(event, ui) {
   nSamples = Math.floor(Math.max(1000, ui.value));
-  //graphSample(bufferList[bufferIndex]);
   plotSample(bufferList[bufferIndex]);
 }
 
@@ -69,9 +66,6 @@ function finishedLoading(buffers)
 {
     // Save the list of buffers
     bufferList = buffers;
-
-//    addSlider("nSamplesToPlot");
-//    configureSlider("nSamplesToPlot", nSamples, 1000, maxSamplesToPlot, nSamplesHandler);
 
     // Display sample rate
     var rateElement = document.getElementById("rate");
@@ -95,7 +89,6 @@ function finishedLoading(buffers)
 
     formElement.innerHTML = form;
     
-    //graphSample(bufferList[0]);
     plotSample(bufferList[0]);
     source.buffer = bufferList[0];
     source.start(0);
@@ -110,50 +103,6 @@ function yToYPixel(y)
 {
     // The .9 is so we can see square waves of full amplitude.
     return canvas.height / 2 * (1 + .9*y);
-}
-
-function graphSample(buffer)
-{
-    var width = canvas.width;
-    var height = canvas.height;
-
-    canvasContext.fillStyle = backgroundColor;
-    canvasContext.fillRect(0, 0, width, height);
-
-    // Draw x axis
-    canvasContext.strokeStyle = gridColor;
-    canvasContext.lineWidth = 1;
-    canvasContext.beginPath();
-    canvasContext.moveTo(xToXPixel(0), yToYPixel(0));
-    canvasContext.lineTo(xToXPixel(nSamples), yToYPixel(0));
-    canvasContext.stroke();
-
-    var data = buffer.getChannelData(0);
-    var plotLength = Math.min(nSamples, data.length);
-      
-    // Draw some y grid lines
-    for (var k = 0; k < plotLength; k += xTickSpacing) {
-        canvasContext.beginPath();
-        canvasContext.moveTo(xToXPixel(k), 0);
-        canvasContext.lineTo(xToXPixel(k), height);
-        canvasContext.stroke();
-    }
-
-    // Draw the curve
-    canvasContext.strokeStyle = curveColor;
-    canvasContext.beginPath();
-    canvasContext.moveTo(0, 0);
-    for (var k = 0; k < plotLength; ++k) {
-        x = xToXPixel(k);
-        y = yToYPixel(data[k]);
-        //console.log("k = " + k + " data[k] = " + data[k] + " y = " + y);
-        canvasContext.lineTo(x, y);
-    }
-    canvasContext.stroke();
-    var info = document.getElementById("info");
-    var message = "Plotting " + plotLength + " of " + data.length + " samples (nominal total 44100).";
-    message += "  Grid spacing " + xTickSpacing + " samples";
-    info.innerHTML = message;
 }
 
 function plotSample(buffer)
