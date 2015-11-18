@@ -46,11 +46,6 @@ var bufferIndex = 0;
 
 window.onload = init;
 
-function nSamplesHandler(event, ui) {
-  nSamples = Math.floor(Math.max(1000, ui.value));
-  plotSample(bufferList[bufferIndex]);
-}
-
 function finishedLoading(buffers)
 {
     // Save the list of buffers
