@@ -3,6 +3,10 @@
   <head>
     <script src="../resources/compatibility.js"></script>
     <script type="text/javascript" src="resources/buffer-loader.js"></script>
+    <!-- Graphing library -->
+    <script src="../flot/jquery.js"></script>
+    <script src="../flot/jquery.flot.js"></script>
+    <script src="../flot/jquery.flot.selection.js"></script>
     <!-- Slider stuff -->
     <script type="text/javascript" src="resources/events.js"></script>
     <style type="text/css">
@@ -57,7 +61,8 @@ window.onload = init;
 
 function nSamplesHandler(event, ui) {
   nSamples = Math.floor(Math.max(1000, ui.value));
-  graphSample(bufferList[bufferIndex]);
+  //graphSample(bufferList[bufferIndex]);
+  plotSample(bufferList[bufferIndex]);
 }
 
 function finishedLoading(buffers)
@@ -65,8 +70,8 @@ function finishedLoading(buffers)
     // Save the list of buffers
     bufferList = buffers;
 
-    addSlider("nSamplesToPlot");
-    configureSlider("nSamplesToPlot", nSamples, 1000, maxSamplesToPlot, nSamplesHandler);
+//    addSlider("nSamplesToPlot");
+//    configureSlider("nSamplesToPlot", nSamples, 1000, maxSamplesToPlot, nSamplesHandler);
 
     // Display sample rate
     var rateElement = document.getElementById("rate");
@@ -90,7 +95,8 @@ function finishedLoading(buffers)
 
     formElement.innerHTML = form;
     
-    graphSample(bufferList[0]);
+    //graphSample(bufferList[0]);
+    plotSample(bufferList[0]);
     source.buffer = bufferList[0];
     source.start(0);
 }
@@ -150,10 +156,125 @@ function graphSample(buffer)
     info.innerHTML = message;
 }
 
+function plotSample(buffer)
+{
+    plotSampleData(buffer.getChannelData(0));
+}
+
+function plotSampleData(data)
+{
+    var info = document.getElementById("info");
+    var message = "Source has " + data.length + " samples (nominal total 44100)";
+    info.innerHTML = message;
+
+    // Only plot the first few samples
+    var plotData = getData(data, 0, Math.min(data.length, 5000));
+    var overviewData = getData(data, 0, data.length);
+
+    var plot = $.plot($("#graph"), plotData, {
+        series: {
+            lines: {
+                lineWidth: 1
+            }
+         },
+         selection: {
+             mode: "xy"
+         },
+         yaxes: [ {},
+                  { position: "right",
+                    tickFormatter: function(val, axis) {
+                        return val.toPrecision(2);
+                    }
+                  }]
+    });
+
+    // Overview plot
+    var plotOptions = {
+        series: {
+            lines: {
+                show: true,
+                lineWidth: 1
+            }
+        },
+        selection: {
+            mode: "xy"
+        },
+        yaxes: [{}, {
+            position: "right",
+            tickFormatter: function(val, axis) {
+                return val.toPrecision(2);
+            }
+        }],
+    };
+
+    var overview = $.plot("#overview", overviewData, {
+	    legend: {
+	        show: false
+	    },
+	    series: {
+	        lines: {
+	            show: true,
+	            lineWidth: 1
+	        },
+	        shadowSize: 0
+	    },
+	    selection: {
+	        mode: "xy"
+	    },
+            yaxes: [{}, {
+                position: "right",
+                tickFormatter: function(val, axis) {
+                    return val.toPrecision(2);
+                }
+            }],
+	});
+
+	// Now connect the two
+	$("#graph").bind("plotselected", function(event, ranges) {
+	    // Clamp the zooming to prevent eternal zoom
+	    if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
+	        ranges.xaxis.to = ranges.xaxis.from + 0.00001;
+	    }
+	    if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
+	        ranges.yaxis.to = ranges.yaxis.from + 0.00001;
+	    }
+	    // Do the zooming
+	    plot = $.plot("#graph", getData(data, ranges.xaxis.from, ranges.xaxis.to),
+	        $.extend(true, {}, plotOptions, {
+	            xaxis: {
+	                min: ranges.xaxis.from,
+	                max: ranges.xaxis.to
+	            },
+	            yaxes: [{
+	                min: ranges.yaxis.from,
+	                max: ranges.yaxis.to
+	            }]
+	        })
+	    );
+	    // Don't fire event on the overview to prevent eternal loop
+	    overview.setSelection(ranges, true);
+	});
+
+	$("#overview").bind("plotselected", function(event, ranges) {
+	    plot.setSelection(ranges);
+	});
+}
+
+function getData(data, xmin, xmax)
+{
+    var plotActual = [];
+    for (var k = Math.floor(xmin); k < Math.floor(xmax); ++k) {
+        plotActual.push([k, data[k]]);
+    }
+
+    return [ { data: plotActual } ];
+
+}
+
 function setSource(index)
 {
     bufferIndex = index;
-    graphSample(bufferList[index]);
+    //graphSample(bufferList[index]);
     if (source) {
       source.stop();
       source.disconnect(context.destination);
@@ -163,14 +284,17 @@ function setSource(index)
     source.connect(context.destination);
     source.loop = true;
     source.start();
+    plotSample(bufferList[index]);
 }
 
 function init()
 {
+    if (0) {
     canvas = document.getElementById('canvasId');
     canvasContext = canvas.getContext('2d');
     canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
-    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);    
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+    }
 
     // Create audio context.
     context = new AudioContext();
@@ -198,13 +322,11 @@ function init()
       <div id="form"> </div>
     </div>
 
-    <!-- Sliders and other controls will be added here -->
-    <div id="controls"> </div>
+    <div id="info"></div>
 
     <div id="graphContainer">
-      <div id="info">0</div>
-
-      <canvas id="canvasId" width="800" height="600" style="border: 2px inset blue;"></canvas>
+      <div id="graph" style="float:left; width:600px;height:400px"></div>
+      <div id="overview" style="float:right; width:200px; height: 150px;"></div>
     </div>
 
   </body>
