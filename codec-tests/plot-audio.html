@@ -24,20 +24,43 @@ var source;
 
 // List of files that can be plotted.
 var mediaInfo =
-  [
-      { url:"resources/media/original.wav", info: "br-jam-loop original" },
-      { url:"resources/media/128kbps-44khz.mp3", info: "br-jam-loop MP3 128kbps (FFmpeg)" },
-      { url:"resources/media/vbr-128kbps-44khz.m4a", info: "br-jam-loop AAC VBR 128kbps" },
-      { url:"resources/media/square3.wav", info: "square wave original" },
-      { url:"resources/media/square3-24bit.wav", info: "square wave, 24-bit signed WAV" },
-      { url:"resources/media/square3-unsigned-8bit.wav", info: "square wave, unsigned 8-bit wav" },
-      { url:"resources/media/square3.mp3", info: "square wave, MP3 128kbps (FFmpeg)" },
-      { url:"resources/media/square3.m4a", info: "square wave, AAC VBR 128kbps" },
-      { url:"resources/media/square3.ogg", info: "square wave, Ogg Vorbis" },
-      { url:"resources/media/square3-itunes.mp3", info: "square wave, MP3 VBR 128kbps (iTunes)" },
-      { url:"resources/media/vbr-128kbps-44khz-square3.mp3", info: "square wave, MP3 VBR ~128kbps (FFmpeg)" },
-      { url:"resources/media/24bitsine.wav", info: "sine wave, 24-bit wav" },
-  ];
+    [{
+        url: "resources/media/original.wav",
+        info: "br-jam-loop original"
+    }, {
+        url: "resources/media/128kbps-44khz.mp3",
+        info: "br-jam-loop MP3 128kbps (FFmpeg)"
+    }, {
+        url: "resources/media/vbr-128kbps-44khz.m4a",
+        info: "br-jam-loop AAC VBR 128kbps"
+    }, {
+        url: "resources/media/square3.wav",
+        info: "square wave original"
+    }, {
+        url: "resources/media/square3-24bit.wav",
+        info: "square wave, 24-bit signed WAV"
+    }, {
+        url: "resources/media/square3-unsigned-8bit.wav",
+        info: "square wave, unsigned 8-bit wav"
+    }, {
+        url: "resources/media/square3.mp3",
+        info: "square wave, MP3 128kbps (FFmpeg)"
+    }, {
+        url: "resources/media/square3.m4a",
+        info: "square wave, AAC VBR 128kbps"
+    }, {
+        url: "resources/media/square3.ogg",
+        info: "square wave, Ogg Vorbis"
+    }, {
+        url: "resources/media/square3-itunes.mp3",
+        info: "square wave, MP3 VBR 128kbps (iTunes)"
+    }, {
+        url: "resources/media/vbr-128kbps-44khz-square3.mp3",
+        info: "square wave, MP3 VBR ~128kbps (FFmpeg)"
+    }, {
+        url: "resources/media/24bitsine.wav",
+        info: "sine wave, 24-bit wav"
+    }, ];
 
 // Decoded audio samples      
 var bufferList = 0;
@@ -46,15 +69,14 @@ var bufferIndex = 0;
 
 window.onload = init;
 
-function finishedLoading(buffers)
-{
+function finishedLoading(buffers) {
     // Save the list of buffers
     bufferList = buffers;
 
     // Display sample rate
     var rateElement = document.getElementById("rate");
     rateElement.innerHTML = "Sample rate = " + context.sampleRate;
-      
+
     // Create radio button form
     var formElement = document.getElementById("form");
     var form = '<form>';
@@ -62,7 +84,7 @@ function finishedLoading(buffers)
     form += 'value="' + mediaInfo[0].info + '"';
     form += 'checked="checked" onClick="setSource(0);">';
     form += mediaInfo[0].info + "<br/>";
-    
+
     for (var k = 1; k < bufferList.length; ++k) {
         form += '<input type="radio" name="mediatype"';
         form += ' value="' + mediaInfo[0].info + '"';
@@ -72,7 +94,7 @@ function finishedLoading(buffers)
     form += "</form>";
 
     formElement.innerHTML = form;
-    
+
     plotSample(bufferList[0]);
     source.buffer = bufferList[0];
     source.start(0);
@@ -83,8 +105,7 @@ function plotSample(buffer)
     plotSampleData(buffer.getChannelData(0));
 }
 
-function plotSampleData(data)
-{
+function plotSampleData(data) {
     var info = document.getElementById("info");
     var message = "Source has " + data.length + " samples (nominal total 44100)";
     info.innerHTML = message;
@@ -98,16 +119,16 @@ function plotSampleData(data)
             lines: {
                 lineWidth: 1
             }
-         },
-         selection: {
-             mode: "xy"
-         },
-         yaxes: [ {},
-                  { position: "right",
-                    tickFormatter: function(val, axis) {
-                        return val.toPrecision(2);
-                    }
-                  }]
+        },
+        selection: {
+            mode: "xy"
+        },
+        yaxes: [{}, {
+            position: "right",
+            tickFormatter: function(val, axis) {
+                return val.toPrecision(2);
+            }
+        }]
     });
 
     // Overview plot
@@ -130,77 +151,76 @@ function plotSampleData(data)
     };
 
     var overview = $.plot("#overview", overviewData, {
-	    legend: {
-	        show: false
-	    },
-	    series: {
-	        lines: {
-	            show: true,
-	            lineWidth: 1
-	        },
-	        shadowSize: 0
-	    },
-	    selection: {
-	        mode: "xy"
-	    },
-            yaxes: [{}, {
-                position: "right",
-                tickFormatter: function(val, axis) {
-                    return val.toPrecision(2);
-                }
-            }],
-	});
+        legend: {
+            show: false
+        },
+        series: {
+            lines: {
+                show: true,
+                lineWidth: 1
+            },
+            shadowSize: 0
+        },
+        selection: {
+            mode: "xy"
+        },
+        yaxes: [{}, {
+            position: "right",
+            tickFormatter: function(val, axis) {
+                return val.toPrecision(2);
+            }
+        }],
+    });
 
-	// Now connect the two
-	$("#graph").bind("plotselected", function(event, ranges) {
-	    // Clamp the zooming to prevent eternal zoom
-	    if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
-	        ranges.xaxis.to = ranges.xaxis.from + 0.00001;
-	    }
-	    if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
-	        ranges.yaxis.to = ranges.yaxis.from + 0.00001;
-	    }
-	    // Do the zooming
-	    plot = $.plot("#graph", getData(data, ranges.xaxis.from, ranges.xaxis.to),
-	        $.extend(true, {}, plotOptions, {
-	            xaxis: {
-	                min: ranges.xaxis.from,
-	                max: ranges.xaxis.to
-	            },
-	            yaxes: [{
-	                min: ranges.yaxis.from,
-	                max: ranges.yaxis.to
-	            }]
-	        })
-	    );
-	    // Don't fire event on the overview to prevent eternal loop
-	    overview.setSelection(ranges, true);
-	});
+    // Now connect the two
+    $("#graph").bind("plotselected", function(event, ranges) {
+        // Clamp the zooming to prevent eternal zoom
+        if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
+            ranges.xaxis.to = ranges.xaxis.from + 0.00001;
+        }
+        if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
+            ranges.yaxis.to = ranges.yaxis.from + 0.00001;
+        }
+        // Do the zooming
+        plot = $.plot("#graph", getData(data, ranges.xaxis.from, ranges.xaxis.to),
+            $.extend(true, {}, plotOptions, {
+                xaxis: {
+                    min: ranges.xaxis.from,
+                    max: ranges.xaxis.to
+                },
+                yaxes: [{
+                    min: ranges.yaxis.from,
+                    max: ranges.yaxis.to
+                }]
+            })
+        );
+        // Don't fire event on the overview to prevent eternal loop
+        overview.setSelection(ranges, true);
+    });
 
-	$("#overview").bind("plotselected", function(event, ranges) {
-	    plot.setSelection(ranges);
-	});
+    $("#overview").bind("plotselected", function(event, ranges) {
+        plot.setSelection(ranges);
+    });
 }
 
-function getData(data, xmin, xmax)
-{
+function getData(data, xmin, xmax) {
     var plotActual = [];
     for (var k = Math.floor(xmin); k < Math.floor(xmax); ++k) {
         plotActual.push([k, data[k]]);
     }
 
-    return [ { data: plotActual } ];
-
+    return [{
+        data: plotActual
+    }];
 }
 
-function setSource(index)
-{
+function setSource(index) {
     bufferIndex = index;
     //graphSample(bufferList[index]);
     if (source) {
-      source.stop();
-      source.disconnect(context.destination);
-      source = context.createBufferSource();
+        source.stop();
+        source.disconnect(context.destination);
+        source = context.createBufferSource();
     }
     source.buffer = bufferList[index];
     source.connect(context.destination);
@@ -209,8 +229,7 @@ function setSource(index)
     plotSample(bufferList[index]);
 }
 
-function init()
-{
+function init() {
     // Create audio context.
     context = new AudioContext();
     source = context.createBufferSource();
@@ -218,10 +237,12 @@ function init()
     source.loop = true;
     bufferLoader = new BufferLoader(
         context,
-        mediaInfo.map(function (value) { return value.url; }),
+        mediaInfo.map(function(value) {
+            return value.url;
+        }),
         finishedLoading
     );
-    
+
     bufferLoader.load();
 }
 </script>
