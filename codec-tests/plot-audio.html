@@ -9,9 +9,6 @@
     <script src="../flot/jquery.flot.selection.js"></script>
     <!-- Slider stuff -->
     <script type="text/javascript" src="resources/events.js"></script>
-    <style type="text/css">
-      #slider { margin: 10px; }
-    </style>
     <title></title>
 <script>
 
@@ -24,14 +21,6 @@ var maxSamplesToPlot = 60000;
 var context;
 var bufferLoader;
 var source;
-
-var canvas;
-var canvasContext;
-var canvasWidth = 0;
-var canvasHeight = 0;
-var backgroundColor = "rgb(255, 255, 255)";
-var curveColor = "rgb(0, 192,0)";
-var gridColor = "rgb(200,200,200)";
 
 // List of files that can be plotted.
 var mediaInfo =
@@ -92,17 +81,6 @@ function finishedLoading(buffers)
     plotSample(bufferList[0]);
     source.buffer = bufferList[0];
     source.start(0);
-}
-
-function xToXPixel(x)
-{
-    return x * (canvas.width / nSamples);
-}
-
-function yToYPixel(y)
-{
-    // The .9 is so we can see square waves of full amplitude.
-    return canvas.height / 2 * (1 + .9*y);
 }
 
 function plotSample(buffer)
@@ -238,13 +216,6 @@ function setSource(index)
 
 function init()
 {
-    if (0) {
-    canvas = document.getElementById('canvasId');
-    canvasContext = canvas.getContext('2d');
-    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
-    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
-    }
-
     // Create audio context.
     context = new AudioContext();
     source = context.createBufferSource();
