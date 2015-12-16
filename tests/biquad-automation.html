@@ -9,15 +9,13 @@
 
     <p>
       Here's a simple test for automating a Biquad filter.  The main intent is
-      have a fast automation to demonstrate a-rate and k-rate automation.  
-    </p>
-    <p>
+      have a fast automation to demonstrate a-rate automation, if available.
       While we could add a check to see if your browser supports a-rate biquads,
       we haven't done it.  It's not hard, but just needs some work.
     </p>
 
     <p>
-      Press play to start the test.  This is based on the example from <a
+      This is based on the example from <a
       href="https://github.com/WebAudio/web-audio-api/issues/509#issuecomment-94731355">WebAudio
       issue #509</a>.  We have a 440-Hz sine-wave oscillator connected to a
       bandpass filter.  The center frequency of the filter is 264 Hz.  The
@@ -26,19 +24,29 @@
       center frequency of the bandpass filter to oscillate between 116 Hz to 412
       Hz.
     </p>
+    <p>
+      If only k-rate automation is supported, the output should be a little bit
+      buzzy. With a-rate automation, the sound should be smooth.
+    </p>
 
-    <form>
-      <input type="radio" name="test" value="start" onClick="startTest();">Start Test<br/>
-      <input type="radio" name="test" value="stop" onClick="stopTest();">Stop Test<br/>	
-    </form>
+    <button type="Test" onclick="doTest()">Press to start and stop the test</button>
     <script>
       var context = new AudioContext();
       var src;
       var osc;
       var filt = context.createBiquadFilter();
       var gain = context.createGain();
+      var play = true;
+
+      function doTest() {
+        if (play)
+          startTest();
+        else
+          stopTest();
+      }
 
       function startTest() {
+        play = false;
         // Create the audio source oscillator
         src = context.createOscillator();
         src.frequency.value = 440;
@@ -70,6 +78,7 @@
       }
 
       function stopTest() {
+        play = true;
         // Stop!
         src.stop();
         osc.stop();
@@ -80,7 +89,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue Dec 15 21:57:34 PST 2015 -->
 <!-- hhmts start -->
-Last modified: Tue Dec 15 22:34:40 PST 2015
+Last modified: Tue Dec 15 22:41:41 PST 2015
 <!-- hhmts end -->
   </body>
 </html>
