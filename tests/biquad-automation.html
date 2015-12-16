@@ -1,7 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <title>Biquad Automation example</title>
+    <title>Biquad Automation Example</title>
+    <script type="text/javascript" src="../flot/jquery.js"></script>
+    <script type="text/javascript" src="../flot/jquery.flot.js"></script>
   </head>
 
   <body>
@@ -10,8 +12,7 @@
     <p>
       Here's a simple test for automating a Biquad filter.  The main intent is
       have a fast automation to demonstrate a-rate automation, if available.
-      While we could add a check to see if your browser supports a-rate biquads,
-      we haven't done it.  It's not hard, but just needs some work.
+      Check the graph below to see if you have a-rate biquads.
     </p>
 
     <p>
@@ -30,7 +31,21 @@
     </p>
 
     <button type="Test" onclick="doTest()">Press to start and stop the test</button>
+
+    <hr>
+    <p>
+      Graph of the output of a 4400 Hz sine wave through a lowpass biquad filter
+      with a cutoff frequency of 4400 Hz that is linear ramped from 4400 Hz to
+      10 Hz in 0.01 sec.  If a-rate automation for the biquad is supported, the
+      curve is nice and smooth.  If note, you will see a stairstep curve with
+      some possibly odd artifacts
+    </p>
+    <div id="graph" style="width:600px;height:400px">
+    </div>
+
     <script>
+      window.onload = biquadGraph;
+
       var context = new AudioContext();
       var src;
       var osc;
@@ -84,12 +99,47 @@
         osc.stop();
       }
 
+      var sampleRate = 48000;
+
+      function drawGraph(event) {
+        var data = event.renderedBuffer.getChannelData(0);
+
+        var graphData = [];
+        for (var k = 0; k < data.length; ++k) {
+          graphData.push([k / sampleRate, data[k]]);
+        }
+
+        $.plot($("#graph"),
+          [ { data: graphData }]);
+      }
+
+      function biquadGraph() {
+        var renderDuration = 0.25;
+        var renderFrames = Math.floor(renderDuration * sampleRate);
+        var oac = new OfflineAudioContext(1, renderFrames, sampleRate);
+
+        var src = oac.createOscillator();
+        src.frequency.value = 4400;
+
+        var filter = oac.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(4400, 0);
+        filter.frequency.linearRampToValueAtTime(10, 0.01);
+
+        src.connect(filter);
+        filter.connect(oac.destination);
+
+        src.start();
+        oac.oncomplete = drawGraph;
+
+        oac.startRendering();
+      }
     </script>
     <hr>
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue Dec 15 21:57:34 PST 2015 -->
 <!-- hhmts start -->
-Last modified: Tue Dec 15 22:41:41 PST 2015
+Last modified: Wed Dec 16 11:54:36 PST 2015
 <!-- hhmts end -->
   </body>
 </html>
