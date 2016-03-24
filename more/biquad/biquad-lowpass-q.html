@@ -1,0 +1,426 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Compare Biquad Lowpass Filters</title>
+  <script type="text/javascript" src="../../flot/jquery.js"></script>
+  <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
+  <script type="text/javascript">
+    // Events
+    window.onload = init;
+    var context;
+    var filter;
+    var gain;
+    var filterNew;
+    var gainNew;
+    var sound;
+    var cutoff = .5;
+    var q = 10.0; // in dB
+    var gain = 0.0; // in dB
+    var source = null;
+    var noctaves = 8;
+    var cutoffOctaves = 10;
+
+    // canvas stuff
+    var canvas;
+    var canvasContext;
+    var canvasWidth = 0;
+    var canvasHeight = 0;
+
+    var curveColor = "rgb(192,192,192)";
+    var playheadColor = "rgb(80, 100, 80)";
+    var noteColor = "rgb(200,60,20)";
+    var gridColor = "rgb(200,200,200)";
+
+    var sampleRate = 44100.0;
+    var nyquist = 0.5 * sampleRate;
+
+    function computeEquivalentQ(Qnew) {
+      // For the current biquads
+      //  alpha_b = sin(w0)/2*sqrt((4-sqrt(16-16/Qlin^2))/2)
+      // For the new biquad
+      //  alpha_b = sin(w0)/(2*Qnew).
+      //
+      // Thus,
+      //
+      //  1/Qnew = sqrt((4-sqrt(16-16/Qlin^2))/2)
+      //
+      // For a given value of Qnew, compute a new Qlin (from solving the above for Qlin):
+      //
+      //   Qlin = 4/sqrt(16-(4-2/Qnew^2)^2)
+      //
+      // where Q = 20*log10(Qlin)
+
+      var Qlin = 4 / Math.sqrt(16 - Math.pow(4 - 2 / (Qnew * Qnew), 2));
+      console.log("Qnew = " + Qnew + ", Qlin = " + Qlin);
+      return 20 * Math.log10(Qlin);
+    }
+
+    function dBFormatter(v, axis) {
+      return v.toFixed(axis.tickDecimals) + " dB";
+    }
+
+    function degFormatter(v, axis) {
+      return v.toFixed(axis.tickDecimals) + " deg";
+    }
+
+    function toms463(xmin, xmax, n) {
+      // From TOMS 463
+      var sqr = [1.414214, 3.162278, 7.071068];
+      var vint = [1, 2, 5, 10];
+      var del = 0.00002
+        // Arbitrarily use 4 intervals.
+      var a = (xmax - xmin) / 4;
+      var al = Math.log(a) / Math.LN10;
+      var nal = Math.floor(al);
+      if (a < 1) {
+        nal = nal - 1;
+      }
+      var b = a / Math.pow(10, nal);
+      var i = 4;
+      for (i = 0; i < 3; ++i) {
+        if (b < sqr[i]) {
+          break;
+        }
+      }
+      var dist = vint[i] * Math.pow(10, nal);
+      var fm1 = xmin / dist;
+      var m1 = Math.floor(fm1);
+      if (fm1 < 0) {
+        m1 = m1 - 1;
+      }
+      if (Math.abs(m1 + 1 - fm1) < del) {
+        m1 = m1 + 1;
+      }
+      var xminp = dist * m1;
+      var fm2 = xmax / dist;
+      var m2 = Math.floor(fm2 + 1);
+      if (fm2 < -1) {
+        m2 = m2 - 1;
+      }
+      if (Math.abs(fm2 + 1 - m2) < del) {
+        m2 = m2 - 1;
+      }
+      var xmaxp = dist * m2;
+      if (xminp > xmin) {
+        xminp = xmin;
+      }
+      if (xmaxp < xmax) {
+        xmaxp = xmax;
+      }
+      return [xminp, xmaxp, dist];
+    }
+
+    function tickScale(axis) {
+      // Compute scale
+      var tickInfo = toms463(axis.min, axis.max, 4);
+
+      // Generate ticks now.
+      var ticks = [];
+      var val = tickInfo[0];
+      while (val <= tickInfo[1]) {
+        ticks.push(val);
+        val = val + tickInfo[2];
+      }
+      return ticks;
+    }
+
+    function drawCurve() {
+      // Update the equivalent Q box
+      var element = document.getElementById("equivQ");
+      element.innerHTML = "Equivalent Q = " + filterNew.Q.value;
+      var width = 500;
+
+      var freq = new Float32Array(width);
+      magResponse = new Float32Array(width);
+      var phaseResponse = new Float32Array(width);
+
+      magResponseNew = new Float32Array(width);
+      var phaseResponseNew = new Float32Array(width);
+
+
+      for (var k = 0; k < width; ++k) {
+        var f = k / width;
+        // Convert to log frequency scale (octaves).
+        f = Math.pow(2.0, noctaves * (f - 1.0));
+        freq[k] = f * nyquist;
+      }
+
+      filter.getFrequencyResponse(freq, magResponse, phaseResponse);
+      filterNew.getFrequencyResponse(freq, magResponseNew, phaseResponseNew);
+      var magData = [];
+      var phaseData = [];
+      var magDataNew = [];
+      var phaseDataNew = [];
+      var magDiff = [];
+
+      for (var k = 0; k < width; ++k) {
+        var db = 20.0 * Math.log10(magResponse[k]);
+        var dbNew = 20.0 * Math.log10(magResponseNew[k]);
+        var phaseDeg = 180 / Math.PI * phaseResponse[k];
+        var phaseDegNew = 180 / Math.PI * phaseResponseNew[k];
+
+        magData.push([freq[k], db]);
+        phaseData.push([freq[k], phaseDeg]);
+        magDataNew.push([freq[k], dbNew]);
+        phaseDataNew.push([freq[k], phaseDegNew]);
+        magDiff.push([freq[k], db - dbNew]);
+
+      }
+
+      console.log("New curve");
+      console.log("filter.Q = " + filter.Q.value);
+      console.log(magResponse);
+      console.log("filterNew.Q = " + filterNew.Q.value);
+      console.log(magResponseNew);
+
+      // Figure out the y axis range based on the filter type.
+
+      var magmin = -40;
+      var magmax = 40;
+      var phasemin = -200;
+      var phasemax = 0;
+      $.plot($("#graph"), [
+        {
+          data: magData,
+          label: "Orig Mag (dB)"
+        },
+        { data : phaseData, label: "Phase (deg)", yaxis: 2 },
+        {
+          data: magDataNew,
+          label: "New Mag (dB)"
+        },
+        { data : phaseDataNew, label: "New Phase (deg)", yaxis: 2}
+      ], {
+        //xaxes: [ { ticks : tickScale } ],
+        yaxes: [{
+          tickFormatter: dBFormatter,
+          min: magmin,
+        }, {
+          // align if we are to the right
+          alignTicksWithAxis: position = "right" ? 1 : null,
+          position: position,
+          tickFormatter: degFormatter,
+          //min: phasemin,
+          //max: phasemax,
+          //ticks : tickScale
+        }],
+        legend: {
+          position: 'ne'
+        }
+      });
+    }
+
+    function loadSound(url) {
+      // Load asynchronously
+      var request = new XMLHttpRequest();
+      request.open("GET", "../../demos/audio/sounds/" + url, true);
+      request.responseType = "arraybuffer";
+      request.onload = function() {
+        context.decodeAudioData(request.response, function(buffer) {
+          sound = buffer;
+          if (source) {
+            source.stop(0);
+            source = null;
+          }
+          source = context.createBufferSource();
+          source.connect(filter);
+          source.connect(filterNew);
+          source.loop = true;
+          source.buffer = buffer;
+          source.start(0);
+
+        }, function() {
+          console.log("error decoding file.")
+        });
+      };
+
+
+      request.send();
+    }
+
+    function normalizedCutoffToHz(normalizedFreq, noctaves) {
+      var f = new Number(normalizedFreq);
+      f = nyquist * Math.pow(2.0, noctaves * (f - 1.0));
+      return f;
+    }
+
+    /*
+          function cutoffHandler(event, ui) {
+            var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
+            filter.frequency.value = cutoff;
+            
+            //setTimeout("drawCurve()", 50);
+            drawCurve();
+            var info = document.getElementById("cutoff-value");
+            info.innerHTML = "cutoff = " + cutoff.toFixed(1) + "Hz";
+          }
+          
+          function qHandler(event, ui) {
+            var q = new Number(ui.value);
+            filter.Q.value = q;
+            //setTimeout("drawCurve()", 50);
+            drawCurve();
+            var info = document.getElementById("Q-value");
+            info.innerHTML = "Q = " + q.toFixed(3);
+          }
+
+          function gainHandler(event, ui) {
+            var gain = new Number(ui.value);
+            filter.gain.value = gain;
+            //setTimeout("drawCurve()", 100);
+            drawCurve();
+            var info = document.getElementById("gain-value");
+            info.innerHTML = "gain = " + gain.toFixed(3) + "dB";
+          }
+          
+          function animateCurve() {
+            drawCurve();
+            requestAnimationFrame(animateCurve);
+          }
+    */
+    function init() {
+      AudioContext = AudioContext || webkitAudioContext;
+      // Setup biquad and other audio stuff
+      context = new AudioContext();
+      filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
+      filter.Q.value = q;
+      filter.frequency.value = 2500;
+      gain = context.createGain();
+      gain.gain.value = 1;
+
+      filterNew = context.createBiquadFilter();
+      filterNew.type = "lowpass";
+      filterNew.frequency.value = filter.frequency.value;
+      filterNew.Q.value = computeEquivalentQ(filter.Q.value);
+      console.log("filterNew Q = " + filterNew.Q.value);
+      filterNew.gain.value = filter.gain.value;
+      filterNew.frequency.value = 2500;
+      gainNew = context.createGain();
+      gainNew.gain.value = 0;
+
+      var period = 2;
+      var startTime = context.currentTime;
+
+      filter.connect(gain);
+      gain.connect(context.destination);
+
+      filterNew.connect(gainNew);
+      gainNew.connect(context.destination);
+      loadSound("tones/pinkgood.wav");
+
+      var element = document.getElementById("Qvalue");
+      element.value = filter.Q.value;
+      element = document.getElementById("cutoff");
+      element.value = filter.frequency.value;
+
+      /*
+      	addSlider("cutoff");
+      	addSlider("Q");
+              addSlider("gain");
+      	configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
+      	configureSlider("Q", q, 0.0, 1000.0, qHandler);
+              configureSlider("gain", gain, -40.0, 40.0, gainHandler);
+      */
+      // Give audio process some time initialize itself.
+      drawCurve();
+      //animateCurve();
+    }
+
+    function updateFilters() {
+      var qElement = document.getElementById("Qvalue");
+      console.log("Q value = " + qElement.value);
+      filter.Q.value = qElement.value;
+      filterNew.Q.value = computeEquivalentQ(filter.Q.value);
+      console.log("filter.Q = " + filter.Q.value);
+      console.log("filterNew.Q = " + filterNew.Q.value);
+
+      var freq = document.getElementById("cutoff");
+      console.log("cutoff = " + freq.value);
+      filter.frequency.value = freq.value;
+      filterNew.frequency.value = freq.value;
+
+      drawCurve();
+    }
+
+    function selectFilter(x) {
+      console.log("selectFilter(" + x + ")");
+      gain.gain.value = 1 - x;
+      gainNew.gain.value = x;
+    }
+
+    function setFilterType(type) {
+      filter.type = type;
+      filterNew.type = type;
+      drawCurve();
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Compare Biquad Lowpass Filters</h1>
+
+  <div id="graph" style="width:80%;height:400px;"></div>
+
+  <div id="fields">
+    <div>
+      <div>
+    <p>Enter a Q value </p>
+    <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateFilters();"
+    />
+      </div>
+      <div id="equivQ">
+      </div>
+    </div>
+    <p>Enter a cutoff frequency (Hz)</p>
+    <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff" onchange="updateFilters();"
+    />
+  </div>
+
+  <div id="container">
+    <div id="filterselect" style="width:25%;float:left;">
+      <h2>Select Filter</h2>
+      <form>
+        <input type="radio" name="biquad" checked onClick="selectFilter(0);">Original Biquad
+        <br/>
+        <input type="radio" name="biquad" onClick="selectFilter(1);">New Biquad
+        <br>
+      </form>
+    </div>
+    <div id="sources" style="width:25%;float:left;">
+      <h2>Source</h2>
+      <form>
+        <input type="radio" checked="checked" name="source" onClick="loadSound('tones/pinkgood.wav');"/> Noise
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/cauldron.wav');"> Cauldron
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/waves.wav');"> Waves
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/ticking.wav');"> Ticking clock
+        <br/>
+      </form>
+    </div>
+    <div id="filterTypes" style="width:25%;float:left;">
+      <h2>Filter Type</h2>
+      <form>
+        <input type="radio" name="type" checked onClick="setFilterType('lowpass');"> Lowpass
+        <br/>
+        <input type="radio" name="type" onClick="setFilterType('highpass');"> Highpass
+        <br>
+      </form>
+
+    </div>
+  </div>
+  <div id="footer" style="clear:both;text-align:left;">
+
+    <hr>
+    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
+    <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
+    <!-- hhmts start -->
+Last modified: Thu Mar 24 15:35:39 PDT 2016
+<!-- hhmts end -->
+  </div>
+</body>
+</html>
