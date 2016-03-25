@@ -39,11 +39,11 @@
       // For a given value of Qnew, compute a new Qlin (from solving the above for Qlin):
       //
       //   Qlin = 4/sqrt(16-(4-2/Qnew^2)^2)
+      //        = 2*Qnew^2/sqrt(4*Qnew^2-1)
       //
       // where Q = 20*log10(Qlin)
 
-      var Qlin = 4 / Math.sqrt(16 - Math.pow(4 - 2 / (Qnew * Qnew), 2));
-      console.log("Qnew = " + Qnew + ", Qlin = " + Qlin);
+      var Qlin = 2*Math.pow(Qnew, 2) / Math.sqrt(4*Math.pow(Qnew, 2) - 1);
       return 20 * Math.log10(Qlin);
     }
 
@@ -156,12 +156,13 @@
 
       }
 
+/*
       console.log("New curve");
       console.log("filter.Q = " + filter.Q.value);
       console.log(magResponse);
       console.log("filterNew.Q = " + filterNew.Q.value);
       console.log(magResponseNew);
-
+*/
       // Figure out the y axis range based on the filter type.
 
       var magmin = -40;
@@ -252,7 +253,6 @@
       filterNew.type = "lowpass";
       filterNew.frequency.value = filter.frequency.value;
       filterNew.Q.value = computeEquivalentQ(filter.Q.value);
-      console.log("filterNew Q = " + filterNew.Q.value);
       filterNew.gain.value = filter.gain.value;
       filterNew.frequency.value = 2500;
       gainNew = context.createGain();
@@ -279,14 +279,10 @@
 
     function updateFilters() {
       var qElement = document.getElementById("Qvalue");
-      console.log("Q value = " + qElement.value);
       filter.Q.value = qElement.value;
       filterNew.Q.value = computeEquivalentQ(filter.Q.value);
-      console.log("filter.Q = " + filter.Q.value);
-      console.log("filterNew.Q = " + filterNew.Q.value);
 
       var freq = document.getElementById("cutoff");
-      console.log("cutoff = " + freq.value);
       filter.frequency.value = freq.value;
       filterNew.frequency.value = freq.value;
 
@@ -294,7 +290,6 @@
     }
 
     function selectFilter(x) {
-      console.log("selectFilter(" + x + ")");
       // x = 1 means route the new filter to the output.  0 means the old (original) filter.
       gain.gain.value = 1 - x;
       gainNew.gain.value = x;
@@ -458,7 +453,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 08:43:35 PDT 2016
+Last modified: Fri Mar 25 08:49:37 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
