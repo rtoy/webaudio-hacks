@@ -43,8 +43,13 @@
       //
       // where Q = 20*log10(Qlin)
 
-      var Qlin = 2*Math.pow(Qnew, 2) / Math.sqrt(4*Math.pow(Qnew, 2) - 1);
-      return 20 * Math.log10(Qlin);
+      var Qlin;
+      if (Qnew > 0.5) {
+        Qlin = 2*Math.pow(Qnew, 2) / Math.sqrt(4*Math.pow(Qnew, 2) - 1);
+        return 20 * Math.log10(Qlin);
+      } else {
+        return undefined;
+      }
     }
 
     function dBFormatter(v, axis) {
@@ -279,8 +284,15 @@
 
     function updateFilters() {
       var qElement = document.getElementById("Qvalue");
-      filter.Q.value = qElement.value;
-      filterNew.Q.value = computeEquivalentQ(filter.Q.value);
+      var Qnew = computeEquivalentQ(qElement.value);
+
+      if (Qnew) {
+        filter.Q.value = qElement.value;
+        filterNew.Q.value = Qnew;
+      } else {
+        var element = document.getElementById("equivQ");
+        element.innerHTML = "No equivalent filter possible for Q = " + qElement.value;
+      }
 
       var freq = document.getElementById("cutoff");
       filter.frequency.value = freq.value;
@@ -295,12 +307,16 @@
       gainNew.gain.value = x;
       // Update the equivalent Q box, if the selected filter is the new one.
       var element = document.getElementById("equivQ");
+      var title = document.getElementById("QTitle");
       if (x === 1) {
         element.innerHTML = "Equivalent Q = " + filterNew.Q.value;
+        title.innerHTML = "Enter Qnew value (linear)";
       } else {
         element.innerHTML = "Original filter";
+        title.innerHTML = "Enter Q (orig) value in dB";
       }
 
+      
     }
 
     function setFilterType(type) {
@@ -332,21 +348,21 @@
   </p>
   <div id="graph" style="width:80%;height:300px;"></div>
 
-  <div id="fields">
-    <div style="width:40%;float:left;">
-    <p>Enter a Q value </p>
+<br/>
+<div id="fields">
+  <div style="width:40%;float:left;">
+    <div id="QTitle">Enter a Q value </div>
     <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateFilters();"
     />
     <div id="equivQ">
     </div>
-    </div>
-    <div style="width:30%;float:left;">
-    <p>Enter a cutoff frequency (Hz)</p>
+  </div>
+  <div style="width:30%;float:left;">
+    <div>Enter a cutoff frequency (Hz)</div>
     <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff" onchange="updateFilters();"
     />
-    </div>
   </div>
-
+</div>
   <div id="container" style="clear:both;">
     <div id="filterselect" style="width:25%;float:left;">
       <h3>Select Filter</h3>
@@ -453,7 +469,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 08:49:37 PDT 2016
+Last modified: Fri Mar 25 09:10:18 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
