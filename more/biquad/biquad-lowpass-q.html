@@ -14,6 +14,7 @@
     var gain;
     var filterNew;
     var gainNew;
+    var masterGain;
     var sound;
     var cutoff = .5;
     var q = 10.0; // in dB
@@ -263,14 +264,18 @@
       gainNew = context.createGain();
       gainNew.gain.value = 0;
 
+      masterGain = context.createGain();
+      masterGain.gain.value = 0.5;
+      masterGain.connect(context.destination);
+
       var period = 2;
       var startTime = context.currentTime;
 
       filter.connect(gain);
-      gain.connect(context.destination);
+      gain.connect(masterGain);
 
       filterNew.connect(gainNew);
-      gainNew.connect(context.destination);
+      gainNew.connect(masterGain);
       loadSound("tones/pinkgood.wav");
       selectFilter(0);
 
@@ -279,21 +284,48 @@
       element = document.getElementById("cutoff");
       element.value = filter.frequency.value;
 
+      updateQvalue();
+    }
+
+    function convertQToQnew(QdB) {
+      var Qlin = Math.pow(10, QdB / 20);
+      var Qnew = Math.sqrt((4 - Math.sqrt(16 - 16 / (Qlin * Qlin))) / 2);
+      return 1 / Qnew;
+    }
+
+    function convertQnewToQ(Qnew) {
+      if (Qnew > 0.5) {
+        var q2 = Math.pow(Qnew, 2);
+        var Qlin = 2 * q2 / Math.sqrt(4 * q2 - 1);
+        return 20 * Math.log10(Qlin);
+      } else {
+        return undefined;
+      }
+    }
+      
+    function updateQvalue() {
+      var qElement = document.getElementById("Qvalue");
+      var Qnew = convertQToQnew(qElement.value);
+      var qNewElement = document.getElementById("Qnew");
+      qNewElement.value = Qnew;
+      filter.Q.value = qElement.value;
+      filterNew.Q.value = Qnew;
+      drawCurve();
+    }
+
+    function updateQnewValue() {
+      var qElement = document.getElementById("Qvalue");
+      var qNewElement = document.getElementById("Qnew");
+      var Q = convertQnewToQ(qNewElement.value);
+      qElement.value = Q;
+      if (Q) {
+        filter.Q.value = Q;
+        filterNew.Q.value = qNewElement.value;
+      }
       drawCurve();
     }
 
     function updateFilters() {
-      var qElement = document.getElementById("Qvalue");
-      var Qnew = computeEquivalentQ(qElement.value);
-
-      if (Qnew) {
-        filter.Q.value = qElement.value;
-        filterNew.Q.value = Qnew;
-      } else {
-        var element = document.getElementById("equivQ");
-        element.innerHTML = "No equivalent filter possible for Q = " + qElement.value;
-      }
-
       var freq = document.getElementById("cutoff");
       filter.frequency.value = freq.value;
       filterNew.frequency.value = freq.value;
@@ -305,18 +337,6 @@
       // x = 1 means route the new filter to the output.  0 means the old (original) filter.
       gain.gain.value = 1 - x;
       gainNew.gain.value = x;
-      // Update the equivalent Q box, if the selected filter is the new one.
-      var element = document.getElementById("equivQ");
-      var title = document.getElementById("QTitle");
-      if (x === 1) {
-        element.innerHTML = "Equivalent Q = " + filterNew.Q.value;
-        title.innerHTML = "Enter Qnew value (linear)";
-      } else {
-        element.innerHTML = "Original filter";
-        title.innerHTML = "Enter Q (orig) value in dB";
-      }
-
-      
     }
 
     function setFilterType(type) {
@@ -336,6 +356,11 @@
       source.connect(filterNew);
       source.start();
     }
+
+    function updateGain() {
+      var element = document.getElementById("masterGain");
+      masterGain.gain.value = element.value;
+    }
   </script>
 </head>
 
@@ -343,25 +368,29 @@
   <h1>Compare Biquad Lowpass Filters</h1>
 
   <p>
-    Simple demo to compare the original Biquad lowpass or highpass filter with a new
-    Biquad filters using the Audio EQ Cookbook formula.
+    Simple demo to compare the <a
+    href="http://webaudio.github.io/web-audio-api/#filters-characteristics">original WebAudio
+    Biquad</a> lowpass or highpass filter with a new Biquad filters using the <a
+    href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt">Audio EQ Cookbook</a> formula.
   </p>
   <div id="graph" style="width:80%;height:300px;"></div>
 
 <br/>
 <div id="fields">
-  <div style="width:40%;float:left;">
-    <div id="QTitle">Enter a Q value </div>
-    <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateFilters();"
+    <form>
+      \(Q\) dB, original<br>
+      <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateQvalue();"
     />
-    <div id="equivQ">
-    </div>
-  </div>
-  <div style="width:30%;float:left;">
-    <div>Enter a cutoff frequency (Hz)</div>
-    <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff" onchange="updateFilters();"
-    />
-  </div>
+      <br>\(Q_{new}\) linear<br>
+      <input id="Qnew" type="number" step="any" min="0" value="10" name="Q (dB)"
+      onchange="updateQnewValue();"/>
+      <br>Cutoff (Hz)<br>
+      <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff"
+    onchange="updateFilters();"/>
+      <br>
+      <br>Master Gain<br>
+      <input id="masterGain" type="range" name="masterGain" min="0" max="1" step=".05" onchange="updateGain()">
+    </form>
 </div>
   <div id="container" style="clear:both;">
     <div id="filterselect" style="width:25%;float:left;">
@@ -377,13 +406,13 @@
       <h3>Source</h3>
       <form>
         <input type="radio" checked="checked" name="source" onClick="loadSound('tones/pinkgood.wav');"
-        /> Noise
+        />Noise
         <br/>
-        <input type="radio" name="source" onClick="loadSound('effects/cauldron.wav');"> Cauldron
+        <input type="radio" name="source" onClick="loadSound('effects/cauldron.wav');">Cauldron
         <br/>
-        <input type="radio" name="source" onClick="loadSound('effects/waves.wav');"> Waves
+        <input type="radio" name="source" onClick="loadSound('effects/waves.wav');">Waves
         <br/>
-        <input type="radio" name="source" onClick="loadSound('effects/ticking.wav');"> Ticking clock
+        <input type="radio" name="source" onClick="loadSound('effects/ticking.wav');">Ticking clock
         <br/>
         <input type="radio" name="source" onClick="loadOsc('sawtooth');">Sawtooth
         <br/>
@@ -469,7 +498,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 09:10:18 PDT 2016
+Last modified: Fri Mar 25 10:18:11 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
