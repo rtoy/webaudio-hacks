@@ -313,6 +313,18 @@
       filterNew.type = type;
       drawCurve();
     }
+
+    function loadOsc(type) {
+      if (source) {
+        source.stop();
+        source = null;
+      }
+      source = context.createOscillator();
+      source.type = type;
+      source.connect(filter);
+      source.connect(filterNew);
+      source.start();
+    }
   </script>
 </head>
 
@@ -323,20 +335,24 @@
     Simple demo to compare the original Biquad lowpass or highpass filter with a new
     Biquad filters using the Audio EQ Cookbook formula.
   </p>
-  <div id="graph" style="width:80%;height:400px;"></div>
+  <div id="graph" style="width:80%;height:300px;"></div>
 
   <div id="fields">
+    <div style="width:40%;float:left;">
     <p>Enter a Q value </p>
     <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateFilters();"
     />
     <div id="equivQ">
     </div>
+    </div>
+    <div style="width:30%;float:left;">
     <p>Enter a cutoff frequency (Hz)</p>
     <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff" onchange="updateFilters();"
     />
+    </div>
   </div>
 
-  <div id="container">
+  <div id="container" style="clear:both;">
     <div id="filterselect" style="width:25%;float:left;">
       <h3>Select Filter</h3>
       <form>
@@ -357,6 +373,8 @@
         <input type="radio" name="source" onClick="loadSound('effects/waves.wav');"> Waves
         <br/>
         <input type="radio" name="source" onClick="loadSound('effects/ticking.wav');"> Ticking clock
+        <br/>
+        <input type="radio" name="source" onClick="loadOsc('sawtooth');">Sawtooth
         <br/>
       </form>
     </div>
@@ -440,7 +458,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 08:35:21 PDT 2016
+Last modified: Fri Mar 25 08:43:35 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
