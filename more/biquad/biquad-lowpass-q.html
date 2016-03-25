@@ -316,11 +316,15 @@
     function updateQnewValue() {
       var qElement = document.getElementById("Qvalue");
       var qNewElement = document.getElementById("Qnew");
+      var warning = document.getElementById("warningBox");
       var Q = convertQnewToQ(qNewElement.value);
       qElement.value = Q;
       if (Q) {
         filter.Q.value = Q;
         filterNew.Q.value = qNewElement.value;
+        warning.innerHTML = "";
+      } else {
+        warning.innerHTML = '<p style="color:red"><strong>No equivalent filter possible for Q = ' + qNewElement.value + '</strong></p>';
       }
       drawCurve();
     }
@@ -378,18 +382,23 @@
 <br/>
 <div id="fields">
     <form>
+      <div style="float:left;">
       \(Q\) dB, original<br>
       <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateQvalue();"
     />
+      </div>
+      <div id="warningBox" style="float:left;"></div>
+      <div style="clear:both">
       <br>\(Q_{new}\) linear<br>
       <input id="Qnew" type="number" step="any" min="0" value="10" name="Q (dB)"
       onchange="updateQnewValue();"/>
-      <br>Cutoff (Hz)<br>
+      <br><br>Cutoff (Hz)<br>
       <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff"
     onchange="updateFilters();"/>
       <br>
       <br>Master Gain<br>
       <input id="masterGain" type="range" name="masterGain" min="0" max="1" step=".05" onchange="updateGain()">
+      </div>
     </form>
 </div>
   <div id="container" style="clear:both;">
@@ -498,7 +507,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 10:18:11 PDT 2016
+Last modified: Fri Mar 25 10:50:53 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
