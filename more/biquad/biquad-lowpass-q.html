@@ -22,9 +22,14 @@
     var source = null;
     var noctaves = 8;
     var cutoffOctaves = 10;
+    var usedB = false;
 
     function nyquist() {
       return context.sampleRate / 2;
+    }
+
+    function getURLParameter(name) {
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
     }
 
     function computeEquivalentQ(Qnew) {
@@ -245,6 +250,15 @@
 
     function init() {
       AudioContext = AudioContext || webkitAudioContext;
+      usedB = getURLParameter("usedB") === "true";
+      if (usedB) {
+        var unitLabel = document.getElementById("qnew-units");
+        unitLabel.innerHTML = "dB, new";
+      } else {
+        var unitLabel = document.getElementById("qnew-units");
+        unitLabel.innerHTML = "linear, new";
+      }
+      
       // Setup biquad and other audio stuff
       context = new AudioContext();
       filter = context.createBiquadFilter();
@@ -287,13 +301,22 @@
       updateQvalue();
     }
 
+    // Convert the old Q parameter to the Qnew parameter so we can simulate the new value.
     function convertQToQnew(QdB) {
       var Qlin = Math.pow(10, QdB / 20);
-      var Qnew = Math.sqrt((4 - Math.sqrt(16 - 16 / (Qlin * Qlin))) / 2);
-      return 1 / Qnew;
+      var Qnew = 1 / Math.sqrt((4 - Math.sqrt(16 - 16 / (Qlin * Qlin))) / 2);
+
+      if (usedB)
+        Qnew = 20 * Math.log10(Qnew)
+      return Qnew;
     }
 
+    // Convert the Qnew parameter to the equivalent old Q parameter so we can simulate it.
     function convertQnewToQ(Qnew) {
+      if (usedB) {
+        Qnew = Math.pow(10, Qnew / 20);
+      }
+
       if (Qnew > 0.5) {
         var q2 = Math.pow(Qnew, 2);
         var Qlin = 2 * q2 / Math.sqrt(4 * q2 - 1);
@@ -389,7 +412,7 @@
       </div>
       <div id="warningBox" style="float:left;"></div>
       <div style="clear:both">
-      <br>\(Q_{new}\) linear<br>
+      <br>\(Q_{new}\) <span id="qnew-units">linear</span><br>
       <input id="Qnew" type="number" step="any" min="0" value="10" name="Q (dB)"
       onchange="updateQnewValue();"/>
       <br><br>Cutoff (Hz)<br>
@@ -507,7 +530,7 @@ $$
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Fri Mar 25 10:58:22 PDT 2016
+Last modified: Thu Mar 31 10:52:30 PDT 2016
 <!-- hhmts end -->
   </div>
 </body>
