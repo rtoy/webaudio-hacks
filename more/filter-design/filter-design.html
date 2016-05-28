@@ -161,7 +161,7 @@
 
         // Convert the analog filter to digital filter using a bilinear transform.
 
-        var dFormula = "\\begin{align*} H_d(z) = & \\,";
+        var dFormula = "\\begin{align*} H_d(z) = &" + Math.pow(wc, N) + " \\\\\n";;
         var waFormula;
 
         if (!newBiquad) {
@@ -169,13 +169,13 @@
         }
 
         waFormula += "<pre>\n";
-        var totalGain = 1;
+        var totalGain = Math.pow(wc,N);;
         filters = new Array(angle.length);
 
         if ((N&1) == 1) {
           var b0 = (1/(wc+2));
           var a1 = ((wc-2)/(wc+2));
-          dFormula += "\\frac{" + b0 + "(1+z^{-1})}";
+          dFormula += " & \\times \\frac{" + b0 + "(1+z^{-1})}";
           dFormula += "{1-" + (- a1) + "z^{-1}}\\\\\n";
           console.log((1/(wc+2)) + "*(1+1/z)/(1+" + ((wc-2)/(wc+2)) + ")");
 
@@ -192,9 +192,8 @@
 
           console.log((1/a0) + "*(1+1/z)^2/(1" + ((2*c-8)/a0) + "/z+" + ((c-2*b+4)/a0) + "/z^2");
 
-          if (k != (N&1) || (N&1) == 1) {
-            dFormula += "& \\times";
-          }
+          dFormula += "& \\times";
+
           dFormula += "\\frac{" + (1/a0) + "(1+z^{-1})^2}";
           dFormula += "{1-" + ((8-2*c)/a0) + "\\,z^{-1}+" + ((c-2*b+4)/a0) + "\\,z^{-2}}";
           dFormula += "\\\\\n";
@@ -280,7 +279,7 @@
       
         for (var k = 0; k < freq.length; ++k) {
           freq[k] = k * context.sampleRate / 2 / freq.length;
-          mag[k] = 1;
+          mag[k] = totalGain;
           phase[k] = 0;
         }
 
@@ -360,7 +359,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 13:53:07 PDT 2016
+Last modified: Sat May 28 14:27:37 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
