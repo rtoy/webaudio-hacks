@@ -159,7 +159,7 @@
 
           console.log((1/a0) + "*(1+1/z)^2/(1" + ((2*c-8)/a0) + "/z+" + ((c-2*b+4)/a0) + "/z^2");
 
-          if ((N&1) != 1 && k != (N&1)) {
+          if (k != (N&1) || (N&1) == 1) {
             dFormula += "& \\times";
           }
           dFormula += "\\frac{" + (1/a0) + "(1+z^{-1})^2}";
@@ -210,7 +210,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 11:20:03 PDT 2016
+Last modified: Sat May 28 11:35:50 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
