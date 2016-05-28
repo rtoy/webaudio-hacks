@@ -17,16 +17,16 @@
       <br>
     </form>
     <form>
-      <div style="float:left">
+      <div >
 	Passband (Hz)
 	<input id="passband" type="number" min="0" value="4800" onchange="updatePassband();"/>
       </div>
-      <div style="float:left">
+      <div >
 	Passband attenuation, dB
 	<input id="passdB" type="number" min="0" value="1" onchange="updatePassdB();"/>
       </div>
       <br>
-      <div style="float;left">
+      <div >
 	Stopband (Hz)
 	<input id="stopband" type="number" min="0" value="7200" onchange="updateStopband();"/>
       </div>
@@ -41,29 +41,33 @@
     <br>
     <hr>
     <div id="analog-eq">
-      Analog Butterworth filter equation (normalized frequency)
+      Analog Butterworth filter of order \({}\) (normalized frequency) 
       \[{}\]
       <br>
       with cutoff frequency of \({}\) Hz.
     </div>
 
+    <br><hr>
     <div id="digital-eq">
-      Digital filter
+      Equivalent digital filter, sample rate \({}\) 
       \[{}\]
     </div>
 
+    <br><hr>
     <div id="webaudio">
     </div>
 
     <br>
     <hr>
     <script>
+      var context = new AudioContext();
+
       function designFilter() {
         var passBand = document.getElementById("passband").value;
         var stopBand = document.getElementById("stopband").value;
         var passdB = document.getElementById("passdB").value;
         var stopdB = document.getElementById("stopdB").value;
-        butterworthCore(passBand, stopBand, passdB, stopdB, 48000);
+        butterworthCore(passBand, stopBand, passdB, stopdB, context.sampleRate);
       }
 
       function butterworthCore(passband, stopband, passdB, stopdB, sampleRate) {
@@ -110,28 +114,30 @@
           console.log((-wc*Math.cos(angle[k])) + " + i*" + (wc*Math.sin(angle[k])));
         }
 
-        var analogFormula = "H_a(s) = \\frac{" + Math.pow(wc, N) + "}{";
+        var analogFormula = "\\begin{align*} H_a(s) = & \\," + Math.pow(wc, N) + "\\\\\n";
         if ((N & 1) == 1) {
-          analogFormula += "(s + " + wc + ")";
+          analogFormula += "& \\frac{1}{(s + " + wc + ")} \\\\\n";
           console.log("s + " + wc);
         }
 
         for (var k = (N & 1); k < angle.length; ++k) {
-          analogFormula += "(s^2 + ";
+          analogFormula += "& \\times \\frac{1}{s^2 + ";
           analogFormula += (2*wc*Math.cos(angle[k])) + "\\,s + ";
-          analogFormula += wc*wc + ")";
+          analogFormula += wc*wc + "}";
+          analogFormula += "\\\\\n";
           console.log("s^2 + " + (2*wc*Math.cos(angle[k])) + "*s + " + (wc*wc));
         }
-        analogFormula += "}";
+        analogFormula += "\n\\end{align*}\n";
 
         console.log(analogFormula);
         var math = MathJax.Hub.getAllJax("analog-eq");
-        MathJax.Hub.Queue(["Text", math[0], analogFormula]);
-        MathJax.Hub.Queue(["Text", math[1], wc/Math.PI*sampleRate/2]);
+        MathJax.Hub.Queue(["Text", math[0], N]);
+        MathJax.Hub.Queue(["Text", math[1], analogFormula]);
+        MathJax.Hub.Queue(["Text", math[2], wc/Math.PI*sampleRate/2]);
 
         // Convert the analog filter to digital filter using a bilinear transform.
 
-        var dFormula = "H_d(z) =";
+        var dFormula = "\\begin{align*} H_d(z) = & \\,";
         var waFormula = "<pre>\n";
         var totalGain = 1;
 
@@ -139,7 +145,7 @@
           var b0 = (1/(wc+2));
           var a1 = ((wc-2)/(wc+2));
           dFormula += "\\frac{" + b0 + "(1+z^{-1})}";
-          dFormula += "{1-" + (- a1) + "z^{-1}}";
+          dFormula += "{1-" + (- a1) + "z^{-1}}\\\\\n";
           console.log((1/(wc+2)) + "*(1+1/z)/(1+" + ((wc-2)/(wc+2)) + ")");
 
           waFormula += "f0 = context.createIIRFilter([";
@@ -153,8 +159,12 @@
 
           console.log((1/a0) + "*(1+1/z)^2/(1" + ((2*c-8)/a0) + "/z+" + ((c-2*b+4)/a0) + "/z^2");
 
+          if ((N&1) != 1 && k != (N&1)) {
+            dFormula += "& \\times";
+          }
           dFormula += "\\frac{" + (1/a0) + "(1+z^{-1})^2}";
           dFormula += "{1-" + ((8-2*c)/a0) + "\\,z^{-1}+" + ((c-2*b+4)/a0) + "\\,z^{-2}}";
+          dFormula += "\\\\\n";
 
           var f = "f" + k;
           waFormula += f + " = context.createBiquadFilter();\n";
@@ -167,7 +177,7 @@
           var f0 = w0*sampleRate/2/Math.PI;
           var Q = Math.sin(w0)/2/alpha;
       
-          waFormula += f + ".frequency.value = " + f0 + ";\n"
+          waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
           waFormula += f + ".Q.value = " + (Math.log10(Q)/20) + "; // dB\n";
 
           var gain = (1-Math.cos(w0))/2*a0;
@@ -177,9 +187,11 @@
           //waFormula += "\n";
         }
 
+        dFormula += "\\end{align*}";
         console.log(dFormula);
         math = MathJax.Hub.getAllJax("digital-eq");
-        MathJax.Hub.Queue(["Text", math[0], dFormula]);
+        MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
+        MathJax.Hub.Queue(["Text", math[1], dFormula]);
 
         for (var k = 1; k < angle.length; ++k) {
           waFormula += "f" + (k-1) + ".connect(f" + k + ");\n";
@@ -198,7 +210,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 10:48:48 PDT 2016
+Last modified: Sat May 28 11:20:03 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
