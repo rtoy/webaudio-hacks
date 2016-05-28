@@ -218,6 +218,11 @@
 	    //waFormula += "g" + k + " = context.createGain();\n";
 	    //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
 	    //waFormula += "\n";
+
+            filters[k] = context.createBiquadFilter();
+            filters[k].type = "lowpass";
+            filters[k].frequency.value = f0;
+            filters[k].Q.value = Math.log10(Q)/20;
           } else {
             waFormula += f + " = context.createIIRFilter(\n";
             waFormula += "        [";
@@ -354,12 +359,12 @@
           newBiquad = flag;
         })
       }
-      window.init = init;
+      window.onload = init;
     </script>
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 14:27:37 PDT 2016
+Last modified: Sat May 28 14:39:42 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
