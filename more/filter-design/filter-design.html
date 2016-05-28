@@ -211,9 +211,10 @@
 	    var Q = Math.sin(w0)/2/alpha;
 
 	    waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
-	    waFormula += f + ".Q.value = " + (Math.log10(Q)/20) + "; // dB\n";
+	    waFormula += f + ".Q.value = " + (20*Math.log10(Q)) + "; // dB\n";
 
-	    var gain = (1-Math.cos(w0))/2*a0;
+	    //var gain = (1-Math.cos(w0))/2*a0;
+            var gain = 2/(1-Math.cos(w0))*(1+alpha)/a0;
 	    totalGain *= gain;
 	    //waFormula += "g" + k + " = context.createGain();\n";
 	    //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
@@ -222,7 +223,7 @@
             filters[k] = context.createBiquadFilter();
             filters[k].type = "lowpass";
             filters[k].frequency.value = f0;
-            filters[k].Q.value = Math.log10(Q)/20;
+            filters[k].Q.value = 20*Math.log10(Q);
           } else {
             waFormula += f + " = context.createIIRFilter(\n";
             waFormula += "        [";
@@ -364,7 +365,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 14:39:42 PDT 2016
+Last modified: Sat May 28 16:43:15 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
