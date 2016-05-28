@@ -3,6 +3,8 @@
   <head>
     <title>Digital Filter Design</title>
     <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+  <script type="text/javascript" src="../../flot/jquery.js"></script>
+  <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
   </head>
 
   <body>
@@ -59,8 +61,30 @@
 
     <br>
     <hr>
+
+    <p>
+      Response for analog filter
+    </p>
+    <br>
+    <div id="graph-analog" style="width:80%;height:400px;"></div>
+    <p>
+      Response for digital filter
+    </p>
+    </br>
+    <div id="graph-digital" style="width:80%;height:400px;"></div>
+
     <script>
       var context = new AudioContext();
+      var newBiquad = false;
+      var filters;
+      var freq;
+      var mag;
+      var phase;
+      
+      var gain;
+      var osc;
+      var modGain;
+      var mod;
 
       function designFilter() {
         var passBand = document.getElementById("passband").value;
@@ -138,8 +162,15 @@
         // Convert the analog filter to digital filter using a bilinear transform.
 
         var dFormula = "\\begin{align*} H_d(z) = & \\,";
-        var waFormula = "<pre>\n";
+        var waFormula;
+
+        if (!newBiquad) {
+          waFormula = "<p>New biquad filters noe implemented; using IIRFilter instead.</p>";
+        }
+
+        waFormula += "<pre>\n";
         var totalGain = 1;
+        filters = new Array(angle.length);
 
         if ((N&1) == 1) {
           var b0 = (1/(wc+2));
@@ -151,6 +182,8 @@
           waFormula += "f0 = context.createIIRFilter([";
           waFormula += "[" + b0 + ", " + b0 + "], ";
           waFormula += "[" + 1 + ", " + a1 + "]);\n\n";
+
+          filters[0] = context.createIIRFilter([b0, b0], [1, a1]);
         }
         for (var k = (N&1); k < angle.length; ++k) {
           var b = (2*wc*Math.cos(angle[k]));
@@ -167,24 +200,37 @@
           dFormula += "\\\\\n";
 
           var f = "f" + k;
-          waFormula += f + " = context.createBiquadFilter();\n";
-          waFormula += f + '.type = "lowpass";\n';
+          if (newBiquad) {
+	    waFormula += f + " = context.createBiquadFilter();\n";
+	    waFormula += f + '.type = "lowpass";\n';
 
-          var a1 = ((8-2*c)/a0);
-          var a2 = ((c-2*b+4)/a0);
-          var alpha = (1-a2)/(1+a2);
-          var w0 = Math.acos((1+alpha)*a1/2);
-          var f0 = w0*sampleRate/2/Math.PI;
-          var Q = Math.sin(w0)/2/alpha;
-      
-          waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
-          waFormula += f + ".Q.value = " + (Math.log10(Q)/20) + "; // dB\n";
+	    var a1 = ((8-2*c)/a0);
+	    var a2 = ((c-2*b+4)/a0);
+	    var alpha = (1-a2)/(1+a2);
+	    var w0 = Math.acos((1+alpha)*a1/2);
+	    var f0 = w0*sampleRate/2/Math.PI;
+	    var Q = Math.sin(w0)/2/alpha;
 
-          var gain = (1-Math.cos(w0))/2*a0;
-          totalGain *= gain;
-          //waFormula += "g" + k + " = context.createGain();\n";
-          //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
-          //waFormula += "\n";
+	    waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
+	    waFormula += f + ".Q.value = " + (Math.log10(Q)/20) + "; // dB\n";
+
+	    var gain = (1-Math.cos(w0))/2*a0;
+	    totalGain *= gain;
+	    //waFormula += "g" + k + " = context.createGain();\n";
+	    //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
+	    //waFormula += "\n";
+          } else {
+            waFormula += f + " = context.createIIRFilter(\n";
+            waFormula += "        [";
+            waFormula += (1/a0) + ", " + (2/a0) + ", " + (1/a0) + "],\n";
+            waFormula += "        ";
+            waFormula += "[1, " + (-(8-2*c)/a0) + ", " + ((c-2*b+4)/a0) + "]);\n";
+
+            filters[k] = context.createIIRFilter(
+              [1/a0, 2/a0, 1/a0],
+              [1, -(8-2*c)/a0, (c-2*b+4)/a0]);
+             
+          }
         }
 
         dFormula += "\\end{align*}";
@@ -195,22 +241,126 @@
 
         for (var k = 1; k < angle.length; ++k) {
           waFormula += "f" + (k-1) + ".connect(f" + k + ");\n";
+          filters[k - 1].connect(filters[k]);
         }
         waFormula += "g = context.createGain();\n";
         waFormula += "g.gain.value = " + totalGain + ";\n";
         waFormula += "f" + (angle.length-1) + ".connect(g);\n\n";
         waFormula += "g.connect(context.destination);\n";
 
+        gain = context.createGain();
+        gain.gain.value = totalGain;
+        filters[angle.length - 1].connect(gain);
+        gain.connect(context.destination);
+
+        osc = context.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = context.sampleRate / 4;;
+        osc.connect(filters[0]);
+
+        mod = context.createOscillator();
+        mod.type = "sine";
+        mod.frequency.value = 100;
+        modGain = context.createGain();
+        modGain.gain.value = context.sampleRate / 4;
+        mod.connect(modGain);
+        modGain.connect(osc.detune);
+        if (0) {
+	  mod.start();
+	  osc.start();
+        }
+
         waFormula += "</pre>";
         console.log(waFormula);
         document.getElementById("webaudio").innerHTML = waFormula;
-      }
+
+        freq = new Float32Array(1000);
+        mag = new Float32Array(freq.length);
+        phase = new Float32Array(freq.length);
       
+        for (var k = 0; k < freq.length; ++k) {
+          freq[k] = k * context.sampleRate / 2 / freq.length;
+          mag[k] = 1;
+          phase[k] = 0;
+        }
+
+        var dataAnalog = [];
+
+        var cutoff = wc/Math.PI*sampleRate/2;
+
+        for (var k = 0; k < freq.length; ++k) {
+          var r = 10*Math.log10(1 / (1 + Math.pow(freq[k] / cutoff, 2*N)));
+          dataAnalog.push([freq[k], r]);
+        }
+
+        $.plot($("#graph-analog"), [{
+          data: dataAnalog,
+          label: "Magnitude response"
+        }]);
+
+        var dataDigital = [];
+        for (var k = 0; k < filters.length; ++k) {
+          var m = new Float32Array(freq.length);
+          var p = new Float32Array(freq,length);
+          filters[k].getFrequencyResponse(freq, m, p);
+
+          for (var n = 0; n < freq.length; ++n) {
+            mag[n] *= m[n];
+            phase[n] += p[n];
+          }
+        }
+
+        // Plot the response
+
+        for (var k = 0; k < freq.length; ++k) {
+          dataDigital.push([freq[k], 20*Math.log10(mag[k])]);
+        }
+
+        $.plot($("#graph-digital"), [{
+          data: dataDigital,
+          label: "Magnitude response"
+        }], {
+          yaxes: [{ min: -80 }]
+        });
+      }
+
+      // Check the Q implementation and return a promise.
+      function checkBiquadFilterQ () {
+	'use strict';
+	var context = new OfflineAudioContext(1, 128, 48000);
+	var osc = context.createOscillator();
+	var filter1 = context.createBiquadFilter();
+	var filter2 = context.createBiquadFilter();
+	var inverter = context.createGain();
+	osc.type = 'sawtooth';
+	osc.frequency.value = 8 * 440;
+	inverter.gain.value = -1;
+	// each filter should get a different Q value
+	filter1.Q.value = -1; 
+	filter2.Q.value = -20;
+	osc.connect(filter1);
+	osc.connect(filter2);
+	filter1.connect(context.destination);
+	filter2.connect(inverter);
+	inverter.connect(context.destination);
+	osc.start();
+
+	return context.startRendering().then(function (buffer) {
+	  return Math.max(...buffer.getChannelData(0)) !== 0;
+	});
+      }
+
+      function init () {
+        checkBiquadFilterQ().then(function (flag) {
+          newBiquad = flag;
+        })
+      }
+      window.init = init;
     </script>
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 11:35:50 PDT 2016
+Last modified: Sat May 28 13:53:07 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
