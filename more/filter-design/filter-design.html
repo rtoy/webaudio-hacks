@@ -11,30 +11,30 @@
     <h1>Digital Filter Design</h1>
 
     <form>
-      <input type="radio" name="type" checked onClick="selectFilter(0);"> Butterworth
+      <input type="radio" name="type" checked onClick="selectFilter('butterworth');"> Butterworth
       <br/>
-      <input type="radio" name="type" onClick="selectFilter(1);"> Chebychev
+      <input type="radio" name="type" onClick="selectFilter('chebyshev');"> Chebyshev
       <br/>
-      <input type="radio" name="type" onClick="selectFilter(1);"> Elliptic
+      <input type="radio" name="type" onClick="selectFilter('elliptic');"> Elliptic
       <br>
     </form>
     <form>
       <div >
 	Passband (Hz)
-	<input id="passband" type="number" min="0" value="4800" onchange="updatePassband();"/>
+	<input id="passband" type="number" min="0" value="4800"/>
       </div>
       <div >
 	Passband attenuation, dB
-	<input id="passdB" type="number" min="0" value="1" onchange="updatePassdB();"/>
+	<input id="passdB" type="number" min="0" value="1"/>
       </div>
       <br>
       <div >
 	Stopband (Hz)
-	<input id="stopband" type="number" min="0" value="7200" onchange="updateStopband();"/>
+	<input id="stopband" type="number" min="0" value="7200"/>
       </div>
       <div style="float:left">
 	Stopband attenuation, dB
-	<input id="stopdB" type="number" min="0" value="15" onchange="updateStopdB();"/>
+	<input id="stopdB" type="number" min="0" value="15"/>
       </div>
     </form>
     <br>
@@ -74,6 +74,7 @@
     <div id="graph-digital" style="width:80%;height:400px;"></div>
 
     <script>
+      var filterType = "butterworth";
       var context = new AudioContext();
       var newBiquad = false;
       var filters;
@@ -85,6 +86,10 @@
       var osc;
       var modGain;
       var mod;
+
+      function selectFilter(type) {
+        filterType = type;
+      }
 
       function designFilter() {
         var passBand = document.getElementById("passband").value;
@@ -367,7 +372,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 17:07:01 PDT 2016
+Last modified: Sat May 28 17:15:13 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
