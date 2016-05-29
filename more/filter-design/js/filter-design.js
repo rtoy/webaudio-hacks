@@ -21,7 +21,10 @@ function designFilter() {
   var stopBand = document.getElementById("stopband").value;
   var passdB = document.getElementById("passdB").value;
   var stopdB = document.getElementById("stopdB").value;
-  butterworthCore(passBand, stopBand, passdB, stopdB, context.sampleRate);
+
+  if (filterType == "butterworth") {
+    butterworthCore(passBand, stopBand, passdB, stopdB, context.sampleRate);
+  }
 }
 
 function butterworthPoles(passband, stopband, passdB, stopdB, sampleRate) {
@@ -257,13 +260,19 @@ function createFilterGraph(N, wc, terms) {
       filters[k].frequency.value = f0;
       filters[k].Q.value = 20 * Math.log10(Q);
     } else {
-      var b = terms[k][1];
-      var c = terms[k][2];;
-      var a0 = c + 2 * b + 4;
+      if (terms[k].length == 3) {
+        var b = terms[k][1];
+        var c = terms[k][2];
+        var a0 = c + 2 * b + 4;
 
-      filters[k] = context.createIIRFilter(
-        [1 / a0, 2 / a0, 1 / a0], [1, -(8 - 2 * c) / a0, (c - 2 * b + 4) / a0]);
+        filters[k] = context.createIIRFilter(
+          [1 / a0, 2 / a0, 1 / a0], [1, -(8 - 2 * c) / a0, (c - 2 * b + 4) / a0]);
+      } else {
+        var b0 = (1 / (wc + 2));
+        var a1 = ((wc - 2) / (wc + 2));
 
+        filters[k] = context.createIIRFilter([b0, b0], [1, a1]);
+      }
     }
   }
   gain = context.createGain();
