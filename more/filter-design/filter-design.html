@@ -75,8 +75,9 @@
 
     <script>
       var filterType = "butterworth";
-      var context = new AudioContext();
-      var newBiquad = false;
+      var context;
+      var hasNewBiquadFilter;
+      var hasIIRFilter;
       var filters;
       var freq;
       var mag;
@@ -99,7 +100,7 @@
         butterworthCore(passBand, stopBand, passdB, stopdB, context.sampleRate);
       }
 
-      function butterworthCore(passband, stopband, passdB, stopdB, sampleRate) {
+      function butterworthPoles(passband, stopband, passdB, stopdB, sampleRate) {
         var f0 = 2*Math.PI*passband / sampleRate;
         var f1 = 2*Math.PI*stopband / sampleRate;
         var d0 = Math.pow(10, passdB/10);
@@ -128,7 +129,11 @@
           }
         }
 
-        // The poles of the filter are then given by
+        return {N: N, wc: wc, f0: f0, f1: f1, d0: d0, d1: d1, poleAngles: angle};
+      }
+
+      function computeButterworthFilter(N, wc, angle) {
+        // From the angles for the poles, the actual poles of the filter are then given by
         //
         //    wc*(-cos(a) +/- i*sin(a))
         //
@@ -138,63 +143,78 @@
         //
         // However, when N is odd, the first pole is real at -wc, so instead of a quadratic we have
         // a linear term (s + wc).
-
+        //
+        // Return an array consisting of the formula for each factor.
+        //
+        var terms = new Array(angle.length);
         for (var k = 0; k < angle.length; ++k) {
-          console.log((-wc*Math.cos(angle[k])) + " + i*" + (wc*Math.sin(angle[k])));
+          if (k == 0 && (N&1) == 1) {
+            terms[k] = [1, wc];
+          } else {
+            terms[k] = [1, 2*wc*Math.cos(angle[k]), wc*wc]
+          }
         }
 
-        var analogFormula = "\\begin{align*} H_a(s) = & \\," + Math.pow(wc, N) + "\\\\\n";
+        return terms;
+      }
+
+      function applyBilinearTransform(N, wc, terms) {
+        var xfrm = new Array(terms.length);
+        console.log("applyBilinear to ");
+        console.log(terms);
+
+        for (var k = 0; k < terms.length; ++k) {
+          var term = terms[k];
+
+          if (term.length == 2) {
+            // Linear 
+            var b0 = (1/(wc+2));
+            var a1 = ((wc-2)/(wc+2));
+            xfrm[k] = [b0, [1, a1]];
+          } else {
+            // Quadratic
+	    var b = term[1];
+	    var c = term[2];
+	    var a0 = c+2*b+4;
+
+            xfrm[k] = [1/a0, [1, (2*c-8)/a0, (c-2*b+4)/a0]];
+          }
+        }
+
+        return xfrm;
+      }
+
+      function analogTeX(N, wc, terms) {
+        var formula = "\\begin{align*} H_a(s) = & \\, " + Math.pow(wc, N) + "\\\\\n";
+
         if ((N & 1) == 1) {
-          analogFormula += "& \\frac{1}{(s + " + wc + ")} \\\\\n";
+          formula += "& \\frac{1}{(s + " + terms[0] + ")} \\\\\n";
           console.log("s + " + wc);
         }
 
-        for (var k = (N & 1); k < angle.length; ++k) {
-          analogFormula += "& \\times \\frac{1}{s^2 + ";
-          analogFormula += (2*wc*Math.cos(angle[k])) + "\\,s + ";
-          analogFormula += wc*wc + "}";
-          analogFormula += "\\\\\n";
-          console.log("s^2 + " + (2*wc*Math.cos(angle[k])) + "*s + " + (wc*wc));
+        for (var k = (N & 1); k < terms.length; ++k) {
+          formula += "& \\times \\frac{1}{s^2 + ";
+          formula += terms[k][1] + "\\,s + ";
+          formula += terms[k][2] + "}";
+          formula += "\\\\\n";
         }
-        analogFormula += "\n\\end{align*}\n";
 
-        console.log(analogFormula);
-        var math = MathJax.Hub.getAllJax("analog-eq");
-        MathJax.Hub.Queue(["Text", math[0], N]);
-        MathJax.Hub.Queue(["Text", math[1], analogFormula]);
-        MathJax.Hub.Queue(["Text", math[2], wc/Math.PI*sampleRate/2]);
+        formula += "\n\\end{align*}\n";
 
-        // Convert the analog filter to digital filter using a bilinear transform.
+        return formula;
+      }
 
+      function digitalTeX(N, wc, terms) {
         var dFormula = "\\begin{align*} H_d(z) = &" + Math.pow(wc, N) + " \\\\\n";;
-        var waFormula;
-
-        if (newBiquad) {
-          waFormula = "<p>New biquad filters implemented; using BiquadFilter.</p>";
-        } else {
-          waFormula = "<p>New biquad filters not implemented; using IIRFilter instead.</p>";
-        }
-
-        waFormula += "<pre>\n";
-        var totalGain = Math.pow(wc,N);;
-        filters = new Array(angle.length);
-
         if ((N&1) == 1) {
           var b0 = (1/(wc+2));
           var a1 = ((wc-2)/(wc+2));
           dFormula += " & \\times \\frac{" + b0 + "(1+z^{-1})}";
           dFormula += "{1-" + (- a1) + "z^{-1}}\\\\\n";
-          console.log((1/(wc+2)) + "*(1+1/z)/(1+" + ((wc-2)/(wc+2)) + ")");
-
-          waFormula += "f0 = context.createIIRFilter([";
-          waFormula += "[" + b0 + ", " + b0 + "], ";
-          waFormula += "[" + 1 + ", " + a1 + "]);\n\n";
-
-          filters[0] = context.createIIRFilter([b0, b0], [1, a1]);
         }
-        for (var k = (N&1); k < angle.length; ++k) {
-          var b = (2*wc*Math.cos(angle[k]));
-          var c = wc*wc;
+        for (var k = (N&1); k < terms.length; ++k) {
+          var b = terms[k][1];
+          var c = terms[k][2];;
           var a0 = c+2*b+4;
 
           console.log((1/a0) + "*(1+1/z)^2/(1" + ((2*c-8)/a0) + "/z+" + ((c-2*b+4)/a0) + "/z^2");
@@ -204,9 +224,40 @@
           dFormula += "\\frac{" + (1/a0) + "(1+z^{-1})^2}";
           dFormula += "{1-" + ((8-2*c)/a0) + "\\,z^{-1}+" + ((c-2*b+4)/a0) + "\\,z^{-2}}";
           dFormula += "\\\\\n";
+        }
+        dFormula += "\\end{align*}";
 
+        return dFormula;
+      }
+
+      function webAudioFormula(N, wc, terms) {
+        var waFormula;
+
+        if (hasNewBiquadFilter) {
+          waFormula = "<p>New biquad filters implemented; using BiquadFilter.</p>";
+        } else {
+          waFormula = "<p>New biquad filters not implemented; using IIRFilter instead.</p>";
+        }
+
+        waFormula += "<pre>\n";
+        var totalGain = Math.pow(wc,N);;
+
+        if ((N&1) == 1) {
+          var b0 = (1/(wc+2));
+          var a1 = ((wc-2)/(wc+2));
+
+          waFormula += "f0 = context.createIIRFilter([";
+          waFormula += "[" + b0 + ", " + b0 + "], ";
+          waFormula += "[" + 1 + ", " + a1 + "]);\n\n";
+        }
+
+        for (var k = (N&1); k < terms.length; ++k) {
+          var b = terms[k][1];
+          var c = terms[k][2];;
+          var a0 = c+2*b+4;
           var f = "f" + k;
-          if (newBiquad) {
+
+          if (hasNewBiquadFilter) {
 	    waFormula += f + " = context.createBiquadFilter();\n";
 	    waFormula += f + '.type = "lowpass";\n';
 
@@ -227,78 +278,80 @@
 	    //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
 	    //waFormula += "\n";
 
-            filters[k] = context.createBiquadFilter();
-            filters[k].type = "lowpass";
-            filters[k].frequency.value = f0;
-            filters[k].Q.value = 20*Math.log10(Q);
           } else {
             waFormula += f + " = context.createIIRFilter(\n";
             waFormula += "        [";
             waFormula += (1/a0) + ", " + (2/a0) + ", " + (1/a0) + "],\n";
             waFormula += "        ";
             waFormula += "[1, " + (-(8-2*c)/a0) + ", " + ((c-2*b+4)/a0) + "]);\n";
-
-            filters[k] = context.createIIRFilter(
-              [1/a0, 2/a0, 1/a0],
-              [1, -(8-2*c)/a0, (c-2*b+4)/a0]);
-             
           }
         }
 
-        dFormula += "\\end{align*}";
-        console.log(dFormula);
-        math = MathJax.Hub.getAllJax("digital-eq");
-        MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
-        MathJax.Hub.Queue(["Text", math[1], dFormula]);
-
-        for (var k = 1; k < angle.length; ++k) {
+        for (var k = 1; k < terms.length; ++k) {
           waFormula += "f" + (k-1) + ".connect(f" + k + ");\n";
           filters[k - 1].connect(filters[k]);
         }
+
         waFormula += "g = context.createGain();\n";
         waFormula += "g.gain.value = " + totalGain + ";\n";
-        waFormula += "f" + (angle.length-1) + ".connect(g);\n\n";
+        waFormula += "f" + (terms.length-1) + ".connect(g);\n\n";
         waFormula += "g.connect(context.destination);\n";
+        waFormula += "</pre>\n";
+        return waFormula;
+      }
 
+      function createFilterGraph(N, wc, terms) {
+        filters = new Array(terms.length);
+
+        var totalGain = Math.pow(wc,N);;
+
+        for (var k = 0; k < terms.length; ++k) {
+	  if (hasNewBiquadFilter) {
+	    var a1 = ((8-2*c)/a0);
+	    var a2 = ((c-2*b+4)/a0);
+	    var alpha = (1-a2)/(1+a2);
+	    var w0 = Math.acos((1+alpha)*a1/2);
+	    var f0 = w0*sampleRate/2/Math.PI;
+	    var Q = Math.sin(w0)/2/alpha;
+
+	    //var gain = (1-Math.cos(w0))/2*a0;
+	    var gain = 2/(1-Math.cos(w0))*(1+alpha)/a0;
+	    totalGain *= gain;
+
+	    filters[k] = context.createBiquadFilter();
+	    filters[k].type = "lowpass";
+	    filters[k].frequency.value = f0;
+	    filters[k].Q.value = 20*Math.log10(Q);
+	  } else {
+            var b = terms[k][1];
+            var c = terms[k][2];;
+            var a0 = c+2*b+4;
+
+	    filters[k] = context.createIIRFilter(
+	      [1/a0, 2/a0, 1/a0],
+	      [1, -(8-2*c)/a0, (c-2*b+4)/a0]);
+
+	  }
+        }
         gain = context.createGain();
         gain.gain.value = totalGain;
-        filters[angle.length - 1].connect(gain);
+        filters[terms.length - 1].connect(gain);
         gain.connect(context.destination);
+      }
 
-        osc = context.createOscillator();
-        osc.type = "sine";
-        osc.frequency.value = context.sampleRate / 4;;
-        osc.connect(filters[0]);
-
-        mod = context.createOscillator();
-        mod.type = "sine";
-        mod.frequency.value = 100;
-        modGain = context.createGain();
-        modGain.gain.value = context.sampleRate / 4;
-        mod.connect(modGain);
-        modGain.connect(osc.detune);
-        if (0) {
-	  mod.start();
-	  osc.start();
-        }
-
-        waFormula += "</pre>";
-        console.log(waFormula);
-        document.getElementById("webaudio").innerHTML = waFormula;
-
-        freq = new Float32Array(1000);
-        mag = new Float32Array(freq.length);
-        phase = new Float32Array(freq.length);
+      function plotAnalogResponse(N, wc) {
+        var freq = new Float32Array(1000);
+        var mag = new Float32Array(freq.length);
+        var gain = Math.pow(wc, N);
       
         for (var k = 0; k < freq.length; ++k) {
           freq[k] = k * context.sampleRate / 2 / freq.length;
-          mag[k] = totalGain;
-          phase[k] = 0;
+          mag[k] = gain;
         }
 
         var dataAnalog = [];
 
-        var cutoff = wc/Math.PI*sampleRate/2;
+        var cutoff = wc/Math.PI*context.sampleRate/2;
 
         for (var k = 0; k < freq.length; ++k) {
           var r = 10*Math.log10(1 / (1 + Math.pow(freq[k] / cutoff, 2*N)));
@@ -309,8 +362,22 @@
           data: dataAnalog,
           label: "Magnitude response"
         }]);
+      }
 
+      function plotDigitalResponse(N, wc) {
+        var freq = new Float32Array(1000);
+        var mag = new Float32Array(freq.length);
+        var phase = new Float32Array(freq.length);
+
+        var gain = Math.pow(wc, N);
         var dataDigital = [];
+
+        for (var k = 0; k < freq.length; ++k) {
+          freq[k] = k * context.sampleRate / 2 / freq.length;
+          mag[k] = gain;
+          phase[k] = 0;
+        }
+
         for (var k = 0; k < filters.length; ++k) {
           var m = new Float32Array(freq.length);
           var p = new Float32Array(freq,length);
@@ -334,6 +401,63 @@
         }], {
           yaxes: [{ min: -80 }]
         });
+      }
+
+      function butterworthCore(passband, stopband, passdB, stopdB, sampleRate) {
+        var result = butterworthPoles(passband, stopband, passdB, stopdB, sampleRate);
+        var f0 = result.f0;
+        var f1 = result.f1;
+        var d0 = result.d0;
+        var d1 = result.d1;
+        var angle = result.poleAngles;
+        var wc = result.wc;
+        var N = result.N;
+      
+        var filterTerms = computeButterworthFilter(N, wc, angle);
+        var analogTeXFormula = analogTeX(N, wc, filterTerms);
+
+        console.log(analogTeXFormula);
+
+        var math = MathJax.Hub.getAllJax("analog-eq");
+        MathJax.Hub.Queue(["Text", math[0], N]);
+        MathJax.Hub.Queue(["Text", math[1], analogTeXFormula]);
+        MathJax.Hub.Queue(["Text", math[2], wc/Math.PI*sampleRate/2]);
+
+        // Convert the analog filter to digital filter using a bilinear transform.
+
+        var digitalTeXFormula = digitalTeX(N, wc, filterTerms);
+        console.log(digitalTeXFormula);
+
+        math = MathJax.Hub.getAllJax("digital-eq");
+        MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
+        MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
+
+        if (hasNewBiquadFilter || hasIIRFilter) {
+	  createFilterGraph(N, wc, filterTerms);
+
+	  osc = context.createOscillator();
+	  osc.type = "sine";
+	  osc.frequency.value = context.sampleRate / 4;;
+	  osc.connect(filters[0]);
+
+	  mod = context.createOscillator();
+	  mod.type = "sine";
+	  mod.frequency.value = 100;
+	  modGain = context.createGain();
+	  modGain.gain.value = context.sampleRate / 4;
+	  mod.connect(modGain);
+	  modGain.connect(osc.detune);
+	  if (0) {
+	    mod.start();
+	    osc.start();
+	  }
+        }
+        var webaudioFormula = webAudioFormula(N, wc, filterTerms);
+        document.getElementById("webaudio").innerHTML = webaudioFormula;
+
+        plotAnalogResponse(N, wc);
+
+        plotDigitalResponse(N, wc);
       }
 
       // Check the Q implementation and return a promise.
@@ -364,7 +488,9 @@
 
       function init () {
         checkBiquadFilterQ().then(function (flag) {
-          newBiquad = flag;
+          hasNewBiquadFilter = flag;
+          context = new AudioContext();
+          hasIIRFilter = context["createIIRFilter"] ? true : false;
         })
       }
       window.onload = init;
@@ -372,7 +498,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 17:15:13 PDT 2016
+Last modified: Sun May 29 08:37:22 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
