@@ -23,16 +23,24 @@ function designFilter() {
   var stopdB = document.getElementById("stopdB").value;
 
   if (filterType == "butterworth") {
-    butterworthCore(passBand, stopBand, passdB, stopdB, context.sampleRate);
+    designButterworthFilter(passBand, stopBand, passdB, stopdB, context.sampleRate);
   }
 }
 
+// Find the poles of a Butterworth filter, returning the order, the
+// (normalized cutoff frequency), the angles of the poles.  All the
+// poles of a Butterworth filter lie on a circle, so only the angle
+// and the radius is needed.  The radius is given by the cutoff
+// frequency.
 function butterworthPoles(passband, stopband, passdB, stopdB, sampleRate) {
   var f0 = 2 * Math.PI * passband / sampleRate;
   var f1 = 2 * Math.PI * stopband / sampleRate;
   var d0 = Math.pow(10, passdB / 10);
   var d1 = Math.pow(10, stopdB / 10);
 
+  // Since we're using a bilinear transformation to determine design
+  // the digital filter, we need to prewarp the frequencies to
+  // determine the order and cutoff frequency.
   var N = 0.5 * Math.log((d1 - 1) / (d0 - 1)) / Math.log(Math.tan(f1 / 2) / Math.tan(f0 / 2));
   console.log("N = ", N);
 
@@ -347,7 +355,7 @@ function plotDigitalResponse(N, wc) {
   });
 }
 
-function butterworthCore(passband, stopband, passdB, stopdB, sampleRate) {
+function designButterworthFilter(passband, stopband, passdB, stopdB, sampleRate) {
   var result = butterworthPoles(passband, stopband, passdB, stopdB, sampleRate);
   var f0 = result.f0;
   var f1 = result.f1;
@@ -430,6 +438,9 @@ function checkBiquadFilterQ() {
   });
 }
 
+// Initialization.  Determine if this browser supports the biquad
+// filter with the new Q interpretation and if the browser supports
+// IIRFilters.
 function init() {
   checkBiquadFilterQ().then(function (flag) {
     hasNewBiquadFilter = flag;
