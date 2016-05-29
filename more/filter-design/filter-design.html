@@ -7,6 +7,25 @@
     <script type="text/javascript" src="../../flot/jquery.js"></script>
     <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
     <script src="js/filter-design.js"></script>
+    <style type="text/css">
+.flexbox {
+    display: -ms-flex;
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+}
+
+.left {
+    background: #a0ffa0;
+    min-width: 75px;
+    flex-grow: 1;
+}
+
+.right {
+    background: #a0a0ff;
+    flex-grow: 0;
+}
+    </style>
   </head>
 
   <body>
@@ -44,35 +63,31 @@
 
     <br>
     <hr>
-    <div id="analog-eq">
-      Analog Butterworth filter of order \({}\) (normalized frequency) \[{}\]
-      <br> with cutoff frequency of \({}\) Hz.
+    <div style="display: flex">
+      <div id="analog-eq"  class="left">
+	Analog Butterworth filter of order \({}\) (normalized frequency) \[{}\]
+	<br> with cutoff frequency of \({}\) Hz.
+      </div>
+      <div id="graph-analog" class="right" style="width:50%;height:400px;"></div>
     </div>
 
     <br>
     <hr>
-    <div id="digital-eq">
+    
+    <div style="display: flex">
+      <div id="digital-eq" class="left">
       Equivalent digital filter, sample rate \({}\) \[{}\]
+      </div>
+      <div id="graph-digital" class="right" style="width:50%;height:400px;"></div>
     </div>
-
     <br>
     <hr>
     <div id="webaudio">
     </div>
 
     <br>
-    <hr>
 
-    <p>
-      Response for analog filter
-    </p>
-    <br>
-    <div id="graph-analog" style="width:80%;height:400px;"></div>
-    <p>
-      Response for digital filter
-    </p>
-    </br>
-    <div id="graph-digital" style="width:80%;height:400px;"></div>
+    <hr>
 
     <script>
       window.onload = init;
@@ -80,7 +95,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sun May 29 09:34:55 PDT 2016
+Last modified: Sun May 29 09:53:12 PDT 2016
 <!-- hhmts end -->
   </body>
 
