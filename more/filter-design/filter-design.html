@@ -1,10 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
+
   <head>
     <title>Digital Filter Design</title>
     <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
-  <script type="text/javascript" src="../../flot/jquery.js"></script>
-  <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
+    <script type="text/javascript" src="../../flot/jquery.js"></script>
+    <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
     <script src="js/filter-design.js"></script>
   </head>
 
@@ -20,22 +21,22 @@
       <br>
     </form>
     <form>
-      <div >
-	Passband (Hz)
-	<input id="passband" type="number" min="0" value="4800"/>
+      <div>
+        Passband (Hz)
+        <input id="passband" type="number" min="0" value="4800" />
       </div>
-      <div >
-	Passband attenuation, dB
-	<input id="passdB" type="number" min="0" value="1"/>
+      <div>
+        Passband attenuation, dB
+        <input id="passdB" type="number" min="0" value="1" />
       </div>
       <br>
-      <div >
-	Stopband (Hz)
-	<input id="stopband" type="number" min="0" value="7200"/>
+      <div>
+        Stopband (Hz)
+        <input id="stopband" type="number" min="0" value="7200" />
       </div>
       <div style="float:left">
-	Stopband attenuation, dB
-	<input id="stopdB" type="number" min="0" value="15"/>
+        Stopband attenuation, dB
+        <input id="stopdB" type="number" min="0" value="15" />
       </div>
     </form>
     <br>
@@ -44,19 +45,18 @@
     <br>
     <hr>
     <div id="analog-eq">
-      Analog Butterworth filter of order \({}\) (normalized frequency) 
-      \[{}\]
-      <br>
-      with cutoff frequency of \({}\) Hz.
+      Analog Butterworth filter of order \({}\) (normalized frequency) \[{}\]
+      <br> with cutoff frequency of \({}\) Hz.
     </div>
 
-    <br><hr>
+    <br>
+    <hr>
     <div id="digital-eq">
-      Equivalent digital filter, sample rate \({}\) 
-      \[{}\]
+      Equivalent digital filter, sample rate \({}\) \[{}\]
     </div>
 
-    <br><hr>
+    <br>
+    <hr>
     <div id="webaudio">
     </div>
 
@@ -78,9 +78,10 @@
       window.onload = init;
     </script>
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
-<!-- Created: Sat May 28 08:15:55 PDT 2016 -->
-<!-- hhmts start -->
-Last modified: Sun May 29 09:30:34 PDT 2016
+    <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
+    <!-- hhmts start -->
+Last modified: Sun May 29 09:34:55 PDT 2016
 <!-- hhmts end -->
   </body>
+
 </html>
