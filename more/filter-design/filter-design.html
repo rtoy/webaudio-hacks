@@ -164,8 +164,10 @@
         var dFormula = "\\begin{align*} H_d(z) = &" + Math.pow(wc, N) + " \\\\\n";;
         var waFormula;
 
-        if (!newBiquad) {
-          waFormula = "<p>New biquad filters noe implemented; using IIRFilter instead.</p>";
+        if (newBiquad) {
+          waFormula = "<p>New biquad filters implemented; using BiquadFilter.</p>";
+        } else {
+          waFormula = "<p>New biquad filters not implemented; using IIRFilter instead.</p>";
         }
 
         waFormula += "<pre>\n";
@@ -365,7 +367,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
 <!-- hhmts start -->
-Last modified: Sat May 28 16:43:15 PDT 2016
+Last modified: Sat May 28 17:07:01 PDT 2016
 <!-- hhmts end -->
   </body>
 </html>
