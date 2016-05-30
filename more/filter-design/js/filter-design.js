@@ -147,8 +147,9 @@ function analogTeX(N, wc, terms) {
 function digitalTeX(N, wc, terms) {
   var dFormula = "\\begin{align*} H_d(z) = &" + Math.pow(wc, N) + " \\\\\n";;
   if ((N & 1) == 1) {
-    var b0 = (1 / (wc + 2));
-    var a1 = ((wc - 2) / (wc + 2));
+      var ww = terms[0][1];
+    var b0 = (1 / (ww + 2));
+    var a1 = ((ww - 2) / (ww + 2));
     dFormula += " & \\times \\frac{" + b0 + "(1+z^{-1})}";
     dFormula += "{1-" + (-a1) + "z^{-1}}\\\\\n";
   }
@@ -273,8 +274,9 @@ function createFilterGraph(N, wc, terms) {
         filters[k] = context.createIIRFilter(
           [1 / a0, 2 / a0, 1 / a0], [1, -(8 - 2 * c) / a0, (c - 2 * b + 4) / a0]);
       } else {
-        var b0 = (1 / (wc + 2));
-        var a1 = ((wc - 2) / (wc + 2));
+	  var ww = terms[0][1];
+        var b0 = (1 / (ww + 2));
+        var a1 = ((ww - 2) / (ww + 2));
 
         filters[k] = context.createIIRFilter([b0, b0], [1, a1]);
       }

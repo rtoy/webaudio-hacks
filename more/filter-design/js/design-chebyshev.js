@@ -27,6 +27,9 @@ function designChebyshevFilter(passBand, stopBand, passdB, stopdB, sampleRate) {
   }
 
   plotDigitalResponse(N, Math.pow(filterTerms[0], 1/N));
+
+  var webaudioFormula = webAudioFormula(N, Math.pow(filterTerms[0], 1/N), filterTerms[1]);
+  document.getElementById("webaudio").innerHTML = webaudioFormula;
 }
 
 function chebyshev(n, x) {
@@ -76,7 +79,7 @@ function computeChebyshevFilter(N, f0, eps, angle) {
     var a = Math.sinh(Math.asinh(1/eps)/N);
     var b = Math.cosh(Math.asinh(1/eps)/N);
 
-    var numer = 1;
+    var numer = ((N&1) == 1) ? 1 : 1/Math.sqrt(1+eps*eps);;
     console.log("angles");
     console.log(angle);
     for (var k = 0; k < angle.length; ++k) {
@@ -86,7 +89,8 @@ function computeChebyshevFilter(N, f0, eps, angle) {
 	var x = -a * f0 * Math.cos(angle[k]);
 	if ((N&1) == 1 && (k == 0)) {
 	    // For an odd filter, the first term is linear.
-	    terms[k] = -x;
+	    terms[k] = [1, -x];
+	    numer *= -x;
 	} else {
 	    var y = b * f0 * Math.sin(angle[k]);
 	    var r2 = x*x + y*y;
