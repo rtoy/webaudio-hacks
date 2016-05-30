@@ -33,14 +33,6 @@
     <h1>Digital Filter Design</h1>
 
     <form>
-      <input type="radio" name="type" checked onClick="selectFilter('butterworth');"> Butterworth
-      <br/>
-      <input type="radio" name="type" onClick="selectFilter('chebyshev');"> Chebyshev
-      <br/>
-      <input type="radio" name="type" onClick="selectFilter('elliptic');"> Elliptic
-      <br>
-    </form>
-    <form>
       <div>
         Passband (Hz)
         <input id="passband" type="number" min="0" value="4800" />
@@ -60,7 +52,9 @@
       </div>
     </form>
     <br>
-    <button type="button" onclick="designFilter()">Design filter</button>
+    <button type="button" onclick="designFilter('butterworth')">Design Butterworth Filter</button>
+    <button type="button" onclick="designFilter('chebyshev')">Design Chebyshev Filter</button>
+    <button type="button" onclick="designFilter('elliptic')">Design Elliptic Filter</button>
 
     <br>
     <hr>
@@ -96,7 +90,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sun May 29 10:22:16 PDT 2016
+Last modified: Mon May 30 10:09:17 PDT 2016
 <!-- hhmts end -->
   </body>
 

@@ -1,4 +1,3 @@
-var filterType = "butterworth";
 var context;
 var hasNewBiquadFilter;
 var hasIIRFilter;
@@ -12,11 +11,7 @@ var osc;
 var modGain;
 var mod;
 
-function selectFilter(type) {
-  filterType = type;
-}
-
-function designFilter() {
+function designFilter(filterType) {
   var passBand = document.getElementById("passband").value;
   var stopBand = document.getElementById("stopband").value;
   var passdB = document.getElementById("passdB").value;
