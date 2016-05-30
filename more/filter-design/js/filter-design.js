@@ -24,6 +24,8 @@ function designFilter() {
 
   if (filterType == "butterworth") {
     designButterworthFilter(passBand, stopBand, passdB, stopdB, context.sampleRate);
+  } else {
+    designChebyshevFilter(passBand, stopBand, passdB, stopdB, context.sampleRate);
   }
 }
 
