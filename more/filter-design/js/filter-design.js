@@ -232,7 +232,6 @@ function webAudioFormula(N, wc, terms) {
 
     for (var k = 1; k < terms.length; ++k) {
         waFormula += "f" + (k - 1) + ".connect(f" + k + ");\n";
-        filters[k - 1].connect(filters[k]);
     }
 
     waFormula += "g = context.createGain();\n";
@@ -250,19 +249,24 @@ function createFilterGraph(N, totalGain, terms) {
     for (var k = 0; k < terms.length; ++k) {
         if (hasNewBiquadFilter) {
 	    if (terms[k].length == 3) {
+                console.log(terms[k]);
+                // Apply bilinear transform
 		var b = terms[k][1];
 		var c = terms[k][2];
 		var a0 = c + 2 * b + 4;
 		var a1 = ((8 - 2 * c) / a0);
 		var a2 = ((c - 2 * b + 4) / a0);
+                // The transformed filter is
+                // 1/a0*(1+z1)^2/(1-a1*z1+a2*z1^2)
+                //
+                // Convert this biquad to webaudio's biquad form.
+                console.log((1/a0) + "(1+z1)^2 / (1 - " + a1 + "*z1 + " + a2 + "*z1^2)");
 		var alpha = (1 - a2) / (1 + a2);
 		var w0 = Math.acos((1 + alpha) * a1 / 2);
 		var f0 = w0 * context.sampleRate / 2 / Math.PI;
 		var Q = Math.sin(w0) / 2 / alpha;
 
-		//var gain = (1-Math.cos(w0))/2/(1+alpha)*a0;;
-		//var gain = 2 / (1 - Math.cos(w0)) * (1 + alpha) / a0;
-		var gain = 2/(1-Math.cos(w0))/a0;
+		var gain = (1 + alpha) * 2 / (1 - Math.cos(w0)) / a0;
 		
 		totalGain *= gain;
 		console.log("w0 = " + w0 + "; Q = " + Q);
@@ -301,6 +305,8 @@ function createFilterGraph(N, totalGain, terms) {
     console.log("Final total = " + totalGain);
     filters[terms.length - 1].connect(gain);
     gain.connect(context.destination);
+
+    return totalGain;
 }
 
 function plotAnalogResponse(N, wc) {
@@ -399,8 +405,9 @@ function designButterworthFilter(passband, stopband, passdB, stopdB, sampleRate)
     MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
     MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
 
+    var totalGain = 1;
     if (hasNewBiquadFilter || hasIIRFilter) {
-        createFilterGraph(N, Math.pow(wc, N), filterTerms);
+        totalGain = createFilterGraph(N, Math.pow(wc, N), filterTerms);
 
         osc = context.createOscillator();
         osc.type = "sine";
@@ -424,7 +431,7 @@ function designButterworthFilter(passband, stopband, passdB, stopdB, sampleRate)
 
     plotAnalogResponse(N, wc);
 
-    plotDigitalResponse(N, Math.pow(wc, N));
+    plotDigitalResponse(N, totalGain);
 }
 
 // Check the Q implementation and return a promise.
