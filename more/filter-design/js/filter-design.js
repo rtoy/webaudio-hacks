@@ -145,7 +145,7 @@ function analogTeX(N, wc, terms) {
 }
 
 function digitalTeX(N, wc, terms) {
-    var dFormula = "\\begin{align*} H_d(z) = &" + Math.pow(wc, N) + " \\\\\n";;
+    var dFormula = "\\begin{align*} H_d(z) = & \\," + Math.pow(wc, N) + " \\\\\n";;
     if ((N & 1) == 1) {
         var ww = terms[0][1];
         var b0 = (1 / (ww + 2));
