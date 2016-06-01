@@ -128,7 +128,7 @@ function analogTeX(N, wc, terms) {
     var formula = "\\begin{align*} H_a(s) = & \\, " + Math.pow(wc, N) + "\\\\\n";
 
     if ((N & 1) == 1) {
-        formula += "& \\frac{1}{(s + " + terms[0] + ")} \\\\\n";
+        formula += "& \\times \\frac{1}{(s + " + terms[0][1] + ")} \\\\\n";
         console.log("s + " + wc);
     }
 
@@ -208,14 +208,14 @@ function webAudioFormula(N, wc, terms) {
             var a2 = ((c - 2 * b + 4) / a0);
             var alpha = (1 - a2) / (1 + a2);
             var w0 = Math.acos((1 + alpha) * a1 / 2);
-            var f0 = w0 * sampleRate / 2 / Math.PI;
+            var f0 = w0 * context.sampleRate / 2 / Math.PI;
             var Q = Math.sin(w0) / 2 / alpha;
 
             waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
             waFormula += f + ".Q.value = " + (20 * Math.log10(Q)) + "; // dB\n";
 
             //var gain = (1-Math.cos(w0))/2*a0;
-            var gain = 2 / (1 - Math.cos(w0)) * (1 + alpha) / a0;
+            var gain = 2 / (1 - Math.cos(w0)) / a0;
             totalGain *= gain;
             //waFormula += "g" + k + " = context.createGain();\n";
             //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
@@ -243,28 +243,42 @@ function webAudioFormula(N, wc, terms) {
     return waFormula;
 }
 
-function createFilterGraph(N, wc, terms) {
+function createFilterGraph(N, totalGain, terms) {
     filters = new Array(terms.length);
 
-    var totalGain = Math.pow(wc, N);;
-
+    console.log("totalgain = " + totalGain);
     for (var k = 0; k < terms.length; ++k) {
         if (hasNewBiquadFilter) {
-            var a1 = ((8 - 2 * c) / a0);
-            var a2 = ((c - 2 * b + 4) / a0);
-            var alpha = (1 - a2) / (1 + a2);
-            var w0 = Math.acos((1 + alpha) * a1 / 2);
-            var f0 = w0 * sampleRate / 2 / Math.PI;
-            var Q = Math.sin(w0) / 2 / alpha;
+	    if (terms[k].length == 3) {
+		var b = terms[k][1];
+		var c = terms[k][2];
+		var a0 = c + 2 * b + 4;
+		var a1 = ((8 - 2 * c) / a0);
+		var a2 = ((c - 2 * b + 4) / a0);
+		var alpha = (1 - a2) / (1 + a2);
+		var w0 = Math.acos((1 + alpha) * a1 / 2);
+		var f0 = w0 * context.sampleRate / 2 / Math.PI;
+		var Q = Math.sin(w0) / 2 / alpha;
 
-            //var gain = (1-Math.cos(w0))/2*a0;
-            var gain = 2 / (1 - Math.cos(w0)) * (1 + alpha) / a0;
-            totalGain *= gain;
+		//var gain = (1-Math.cos(w0))/2/(1+alpha)*a0;;
+		//var gain = 2 / (1 - Math.cos(w0)) * (1 + alpha) / a0;
+		var gain = 2/(1-Math.cos(w0))/a0;
+		
+		totalGain *= gain;
+		console.log("w0 = " + w0 + "; Q = " + Q);
+		console.log("gain = " + gain + "; total = " + totalGain);
 
-            filters[k] = context.createBiquadFilter();
-            filters[k].type = "lowpass";
-            filters[k].frequency.value = f0;
-            filters[k].Q.value = 20 * Math.log10(Q);
+		filters[k] = context.createBiquadFilter();
+		filters[k].type = "lowpass";
+		filters[k].frequency.value = f0;
+		filters[k].Q.value = 20 * Math.log10(Q);
+	    } else {
+                var ww = terms[0][1];
+                var b0 = (1 / (ww + 2));
+                var a1 = ((ww - 2) / (ww + 2));
+
+                filters[k] = context.createIIRFilter([b0, b0], [1, a1]);
+	    }
         } else {
             if (terms[k].length == 3) {
                 var b = terms[k][1];
@@ -284,6 +298,7 @@ function createFilterGraph(N, wc, terms) {
     }
     gain = context.createGain();
     gain.gain.value = totalGain;
+    console.log("Final total = " + totalGain);
     filters[terms.length - 1].connect(gain);
     gain.connect(context.destination);
 }
@@ -313,12 +328,13 @@ function plotAnalogResponse(N, wc) {
     }]);
 }
 
-function plotDigitalResponse(N, wc) {
+function plotDigitalResponse(N, totalGain) {
     var freq = new Float32Array(1000);
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
 
-    var gain = Math.pow(wc, N);
+    //var gain = hasNewBiquadFilter ? 1 : totalGain;
+    var gain = totalGain;
     var dataDigital = [];
 
     for (var k = 0; k < freq.length; ++k) {
@@ -384,7 +400,7 @@ function designButterworthFilter(passband, stopband, passdB, stopdB, sampleRate)
     MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
 
     if (hasNewBiquadFilter || hasIIRFilter) {
-        createFilterGraph(N, wc, filterTerms);
+        createFilterGraph(N, Math.pow(wc, N), filterTerms);
 
         osc = context.createOscillator();
         osc.type = "sine";
@@ -408,7 +424,7 @@ function designButterworthFilter(passband, stopband, passdB, stopdB, sampleRate)
 
     plotAnalogResponse(N, wc);
 
-    plotDigitalResponse(N, wc);
+    plotDigitalResponse(N, Math.pow(wc, N));
 }
 
 // Check the Q implementation and return a promise.
