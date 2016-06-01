@@ -23,10 +23,10 @@ function designChebyshevFilter(passBand, stopBand, passdB, stopdB, sampleRate) {
     MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
 
     if (hasNewBiquadFilter || hasIIRFilter) {
-        createFilterGraph(N, Math.pow(filterTerms[0], 1 / N), filterTerms[1]);
+        createFilterGraph(N, filterTerms[0], filterTerms[1]);
     }
 
-    plotDigitalResponse(N, Math.pow(filterTerms[0], 1 / N));
+    plotDigitalResponse(N, filterTerms[0]);
 
     var webaudioFormula = webAudioFormula(N, Math.pow(filterTerms[0], 1 / N), filterTerms[1]);
     document.getElementById("webaudio").innerHTML = webaudioFormula;
