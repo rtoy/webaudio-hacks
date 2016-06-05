@@ -23,16 +23,19 @@ function designFilter(filterType) {
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
 
+    var description = "Analog " + filterType + " design of order " + analogFilter.order;
+    document.getElementById("analog-type").innerHTML = description;
     var math = MathJax.Hub.getAllJax("analog-eq");
-    MathJax.Hub.Queue(["Text", math[0], analogFilter.order]);
-    MathJax.Hub.Queue(["Text", math[1], aFormula]);
+    MathJax.Hub.Queue(["Text", math[0], aFormula]);
     
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
+    description = "Digital " + filterType + " design of order " + digitalFilter.order;
+    description += ", sample rate " + context.sampleRate + " Hz";
+    document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
-    MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
-    MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
+    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
 }
 
 // Find the poles of a Butterworth filter, returning the order, the
