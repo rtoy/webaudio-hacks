@@ -17,11 +17,22 @@ function designFilter(filterType) {
     var passdB = document.getElementById("passdB").value;
     var stopdB = document.getElementById("stopdB").value;
 
-    if (filterType == "butterworth") {
-        designButterworthFilter(passBand, stopBand, passdB, stopdB, context.sampleRate);
-    } else {
-        designChebyshevFilter(passBand, stopBand, passdB, stopdB, context.sampleRate);
-    }
+    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, context.sampleRate, filterType);
+
+    var aFormula = analogTeX(analogFilter);
+    console.log(aFormula);
+
+    var math = MathJax.Hub.getAllJax("analog-eq");
+    MathJax.Hub.Queue(["Text", math[0], analogFilter.order]);
+    MathJax.Hub.Queue(["Text", math[1], aFormula]);
+    
+    var digitalTeXFormula = digitalTeX(digitalFilter);
+    console.log(digitalTeXFormula);
+
+    math = MathJax.Hub.getAllJax("digital-eq");
+    MathJax.Hub.Queue(["Text", math[0], context.sampleRate]);
+    MathJax.Hub.Queue(["Text", math[1], digitalTeXFormula]);
 }
 
 // Find the poles of a Butterworth filter, returning the order, the
@@ -122,191 +133,6 @@ function applyBilinearTransform(N, wc, terms) {
     }
 
     return xfrm;
-}
-
-function analogTeX(N, wc, terms) {
-    var formula = "\\begin{align*} H_a(s) = & \\, " + Math.pow(wc, N) + "\\\\\n";
-
-    if ((N & 1) == 1) {
-        formula += "& \\times \\frac{1}{(s + " + terms[0][1] + ")} \\\\\n";
-        console.log("s + " + wc);
-    }
-
-    for (var k = (N & 1); k < terms.length; ++k) {
-        formula += "& \\times \\frac{1}{s^2 + ";
-        formula += terms[k][1] + "\\,s + ";
-        formula += terms[k][2] + "}";
-        formula += "\\\\\n";
-    }
-
-    formula += "\n\\end{align*}\n";
-
-    return formula;
-}
-
-function digitalTeX(N, wc, terms) {
-    var dFormula = "\\begin{align*} H_d(z) = & \\," + Math.pow(wc, N) + " \\\\\n";;
-    if ((N & 1) == 1) {
-        var ww = terms[0][1];
-        var b0 = (1 / (ww + 2));
-        var a1 = ((ww - 2) / (ww + 2));
-        dFormula += " & \\times \\frac{" + b0 + "(1+z^{-1})}";
-        dFormula += "{1-" + (-a1) + "z^{-1}}\\\\\n";
-    }
-    for (var k = (N & 1); k < terms.length; ++k) {
-        var b = terms[k][1];
-        var c = terms[k][2];;
-        var a0 = c + 2 * b + 4;
-
-        console.log((1 / a0) + "*(1+1/z)^2/(1" + ((2 * c - 8) / a0) + "/z+" + ((c - 2 * b + 4) /
-            a0) + "/z^2");
-
-        dFormula += "& \\times";
-
-        dFormula += "\\frac{" + (1 / a0) + "(1+z^{-1})^2}";
-        dFormula += "{1-" + ((8 - 2 * c) / a0) + "\\,z^{-1}+" + ((c - 2 * b + 4) / a0) +
-            "\\,z^{-2}}";
-        dFormula += "\\\\\n";
-    }
-    dFormula += "\\end{align*}";
-
-    return dFormula;
-}
-
-function webAudioFormula(N, wc, terms) {
-    var waFormula;
-
-    if (hasNewBiquadFilter) {
-        waFormula = "<p>New biquad filters implemented; using BiquadFilter.</p>";
-    } else {
-        waFormula = "<p>New biquad filters not implemented; using IIRFilter instead.</p>";
-    }
-
-    waFormula += "<pre>\n";
-    var totalGain = Math.pow(wc, N);;
-
-    if ((N & 1) == 1) {
-        var b0 = (1 / (wc + 2));
-        var a1 = ((wc - 2) / (wc + 2));
-
-        waFormula += "f0 = context.createIIRFilter([";
-        waFormula += "[" + b0 + ", " + b0 + "], ";
-        waFormula += "[" + 1 + ", " + a1 + "]);\n\n";
-    }
-
-    for (var k = (N & 1); k < terms.length; ++k) {
-        var b = terms[k][1];
-        var c = terms[k][2];;
-        var a0 = c + 2 * b + 4;
-        var f = "f" + k;
-
-        if (hasNewBiquadFilter) {
-            waFormula += f + " = context.createBiquadFilter();\n";
-            waFormula += f + '.type = "lowpass";\n';
-
-            var a1 = ((8 - 2 * c) / a0);
-            var a2 = ((c - 2 * b + 4) / a0);
-            var alpha = (1 - a2) / (1 + a2);
-            var w0 = Math.acos((1 + alpha) * a1 / 2);
-            var f0 = w0 * context.sampleRate / 2 / Math.PI;
-            var Q = Math.sin(w0) / 2 / alpha;
-
-            waFormula += f + ".frequency.value = " + f0 + "; // Hz\n"
-            waFormula += f + ".Q.value = " + (20 * Math.log10(Q)) + "; // dB\n";
-
-            //var gain = (1-Math.cos(w0))/2*a0;
-            var gain = 2 / (1 - Math.cos(w0)) / a0;
-            totalGain *= gain;
-            //waFormula += "g" + k + " = context.createGain();\n";
-            //waFormula += "g" + k + ".gain.value = " + gain + ";\n";
-            //waFormula += "\n";
-
-        } else {
-            waFormula += f + " = context.createIIRFilter(\n";
-            waFormula += "        [";
-            waFormula += (1 / a0) + ", " + (2 / a0) + ", " + (1 / a0) + "],\n";
-            waFormula += "        ";
-            waFormula += "[1, " + (-(8 - 2 * c) / a0) + ", " + ((c - 2 * b + 4) / a0) + "]);\n";
-        }
-    }
-
-    for (var k = 1; k < terms.length; ++k) {
-        waFormula += "f" + (k - 1) + ".connect(f" + k + ");\n";
-    }
-
-    waFormula += "g = context.createGain();\n";
-    waFormula += "g.gain.value = " + totalGain + ";\n";
-    waFormula += "f" + (terms.length - 1) + ".connect(g);\n\n";
-    waFormula += "g.connect(context.destination);\n";
-    waFormula += "</pre>\n";
-    return waFormula;
-}
-
-function createFilterGraph(N, totalGain, terms) {
-    filters = new Array(terms.length);
-
-    console.log("totalgain = " + totalGain);
-    for (var k = 0; k < terms.length; ++k) {
-        if (hasNewBiquadFilter) {
-	    if (terms[k].length == 3) {
-                console.log(terms[k]);
-                // Apply bilinear transform
-		var b = terms[k][1];
-		var c = terms[k][2];
-		var a0 = c + 2 * b + 4;
-		var a1 = ((8 - 2 * c) / a0);
-		var a2 = ((c - 2 * b + 4) / a0);
-                // The transformed filter is
-                // 1/a0*(1+z1)^2/(1-a1*z1+a2*z1^2)
-                //
-                // Convert this biquad to webaudio's biquad form.
-                console.log((1/a0) + "(1+z1)^2 / (1 - " + a1 + "*z1 + " + a2 + "*z1^2)");
-		var alpha = (1 - a2) / (1 + a2);
-		var w0 = Math.acos((1 + alpha) * a1 / 2);
-		var f0 = w0 * context.sampleRate / 2 / Math.PI;
-		var Q = Math.sin(w0) / 2 / alpha;
-
-		var gain = (1 + alpha) * 2 / (1 - Math.cos(w0)) / a0;
-		
-		totalGain *= gain;
-		console.log("w0 = " + w0 + "; Q = " + Q);
-		console.log("gain = " + gain + "; total = " + totalGain);
-
-		filters[k] = context.createBiquadFilter();
-		filters[k].type = "lowpass";
-		filters[k].frequency.value = f0;
-		filters[k].Q.value = 20 * Math.log10(Q);
-	    } else {
-                var ww = terms[0][1];
-                var b0 = (1 / (ww + 2));
-                var a1 = ((ww - 2) / (ww + 2));
-
-                filters[k] = context.createIIRFilter([b0, b0], [1, a1]);
-	    }
-        } else {
-            if (terms[k].length == 3) {
-                var b = terms[k][1];
-                var c = terms[k][2];
-                var a0 = c + 2 * b + 4;
-
-                filters[k] = context.createIIRFilter(
-                    [1 / a0, 2 / a0, 1 / a0], [1, -(8 - 2 * c) / a0, (c - 2 * b + 4) / a0]);
-            } else {
-                var ww = terms[0][1];
-                var b0 = (1 / (ww + 2));
-                var a1 = ((ww - 2) / (ww + 2));
-
-                filters[k] = context.createIIRFilter([b0, b0], [1, a1]);
-            }
-        }
-    }
-    gain = context.createGain();
-    gain.gain.value = totalGain;
-    console.log("Final total = " + totalGain);
-    filters[terms.length - 1].connect(gain);
-    gain.connect(context.destination);
-
-    return totalGain;
 }
 
 function plotAnalogResponse(N, wc) {
