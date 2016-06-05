@@ -63,9 +63,11 @@
     <br>
     <hr>
     <div style="display: flex">
-      <div id="analog-eq" class="left">
-        Analog Butterworth filter of order \({}\) (normalized frequency) \[{}\]
-        <br> with cutoff frequency of \({}\) Hz.
+      <div id="analog-design" class="left">
+	<div id="analog-type"></div>
+	<div id="analog-eq">
+	  \[{}\]
+	</div>
       </div>
       <div id="graph-analog" class="right" style="width:50%;height:400px;"></div>
     </div>
@@ -74,8 +76,11 @@
     <hr>
 
     <div style="display: flex">
-      <div id="digital-eq" class="left">
-        Equivalent digital filter, sample rate \({}\) \[{}\]
+      <div class="left">
+	<div id="digital-type"></div>
+	<div id="digital-eq" class="left">
+	  \[{}\]
+	</div>
       </div>
       <div id="graph-digital" class="right" style="width:50%;height:400px;"></div>
     </div>
@@ -94,7 +99,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sun Jun  5 12:31:44 PDT 2016
+Last modified: Sun Jun  5 13:46:00 PDT 2016
 <!-- hhmts end -->
   </body>
 
