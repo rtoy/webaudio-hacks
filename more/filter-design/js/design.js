@@ -278,6 +278,27 @@ function analogLowpassFilter(fp, fs, Ap, As, type) {
     return {order: N, top: B, bot: A};
 }
 
+function texifyNumber(number, options) {
+    // Convert the number to a string.  If it is in scientific form,
+    // replace with the appropriate teX version.
+    if (options && !options.showUnity && number === 1) {
+	if (options.addSign) {
+	    return Math.sign(number) < 0 ? "-" : "+";
+	}
+	return "";
+    }
+    if (options && options.addSign) {
+	var s = Math.abs(number).toString();
+	s = s.replace(/(e)(.*)/, "\\times 10^{$2}");
+	s = (number < 0) ? "- " + s: "+" + s;
+    } else {
+	var s = number.toString();
+	s = s.replace(/(e)(.*)/, "\\times 10^{$2}");
+    }
+
+    return s;
+}
+
 function analogTermTeX(term) {
     var f = "\\frac{";
     if (term[0].length == 2) {
@@ -285,21 +306,22 @@ function analogTermTeX(term) {
 	if (term[0][1] == 0) {
 	    f += "1";
 	} else {
-	    f += "1 + " + term[0][1] + "s";
+	    f += "1 " + texifyNumber(term[0][1], {addSign: true}) + "s";
 	}
 	f += "}{";
-	f += "1 + " + term[1][1] + "s";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "s";
 	f += "}";
     } else {
-	f += term[0][0];
+	f += texifyNumber(term[0][0], {showUnity: true});
 	if (term[0][1] != 0) {
-	    f += " + " + term[0][1] + "s";
+	    f += texifyNumber(term[0][1], {addSign: true}) + "s";
 	}
 	if (term[0][2] != 0) {
-	    f += " + " + term[0][2] + "s^2";
+	    f += texifyNumber(term[0][2], {addSign: true}) + "s^2";
 	}
 	f += "}{";
-	f += "1 + " + term[1][1] + "s + " + term[1][2] + "s^2";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "s ";
+	f += texifyNumber(term[1][2], {addSign: true}) + "s^2";
 	f += "}";
     }
 
@@ -382,21 +404,22 @@ function digitalTermTeX(term) {
 	if (term[0][1][1] == 0) {
 	    f += "1";
 	} else {
-	    f += "1 + " + term[0][1][1] + "z^{-1}";
+	    f += "1 " + texifyNumber(term[0][1][1], {addSign: true}) + "z^{-1}";
 	}
 	f += "}{";
-	f += "1 + " + term[1][1] + "z^{-1}";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "z^{-1}";
 	f += "}";
     } else {
-	f += term[0][0] + "(1";
+	f += texifyNumber(term[0][0], {showUnity: true}) + "(1";
 	if (term[0][1][0] != 0) {
-	    f += " + " + term[0][1][1] + "z^{-1}";
+	    f += texifyNumber(term[0][1][1], {addSign: true}) + "z^{-1}";
 	}
 	if (term[0][1][2] != 0) {
-	    f += " + " + term[0][1][2] + "z^{-2}";
+	    f += texifyNumber(term[0][1][2], {addSign: true}) + "z^{-2}";
 	}
-	f += "}{";
-	f += "1 + " + term[1][1] + "z^{-1} + " + term[1][2] + "z^{-2}";
+	f += ")}{";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "z^{-1} ";
+	f += texifyNumber(term[1][2], {addSign: true}) + "z^{-2}";
 	f += "}";
     }
 
@@ -404,12 +427,13 @@ function digitalTermTeX(term) {
 }
 function digitalTeX(filter) {
     var f = "\\begin{align*}\n";
-    f += "H(z) = ";
+    f += "H(z) = \\, &";
 
-    if (filter.H0 == 1) {
-	f += filter.H0 + "\\\\\n";
+    if (filter.H0 != 1) {
+	f += texifyNumber(filter.H0) + "\\\\\n";
+	f += "&\\times";
     }
-    f += "& " + digitalTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
+    f +=  digitalTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
     for (var k = 1; k < filter.top.length; ++k) {
 	var term = filter[k];
 	f += "& \\times" + digitalTermTeX([filter.top[k], filter.bot[k]]) + "\\\\\n";
