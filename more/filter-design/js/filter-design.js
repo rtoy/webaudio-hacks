@@ -38,6 +38,8 @@ function designFilter(filterType) {
     document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
     MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+
+    plotDigitalResponse(digitalFilter, context.sampleRate);
 }
 
 // Find the poles of a Butterworth filter, returning the order, the
@@ -164,34 +166,17 @@ function plotAnalogResponse(filter) {
     }]);
 }
 
-function plotDigitalResponse(N, totalGain) {
+function plotDigitalResponse(filter, Fs) {
     var freq = new Float32Array(1000);
-    var mag = new Float32Array(freq.length);
-    var phase = new Float32Array(freq.length);
-
-    //var gain = hasNewBiquadFilter ? 1 : totalGain;
-    var gain = totalGain;
-    var dataDigital = [];
 
     for (var k = 0; k < freq.length; ++k) {
         freq[k] = k * context.sampleRate / 2 / freq.length;
-        mag[k] = gain;
-        phase[k] = 0;
     }
 
-    for (var k = 0; k < filters.length; ++k) {
-        var m = new Float32Array(freq.length);
-        var p = new Float32Array(freq, length);
-        filters[k].getFrequencyResponse(freq, m, p);
-
-        for (var n = 0; n < freq.length; ++n) {
-            mag[n] *= m[n];
-            phase[n] += p[n];
-        }
-    }
+    var mag = digitalResponse(filter, freq, Fs);
 
     // Plot the response
-
+    var dataDigital = [];
     for (var k = 0; k < freq.length; ++k) {
         dataDigital.push([freq[k], 20 * Math.log10(mag[k])]);
     }
