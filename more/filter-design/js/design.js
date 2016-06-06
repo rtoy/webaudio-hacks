@@ -540,7 +540,9 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 		biquadType: "lowpass",
 		gain: gain*a0/b0,
 		f0: w0*Fs/(2*Math.PI),
-		Q: 20*Math.log10(Math.sin(w0)/2/alpha)};
+		Q: 20*Math.log10(Math.sin(w0)/2/alpha),
+		top: zterm,
+		bot: bot};
     }
     if (type === "cheby-2" || type === "elliptic") {
 	var b = bot[1];
@@ -552,7 +554,9 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 		biquadType: "notch",
 		gain: gain*a0,
 		f0: w0*Fs/(2*Math.PI),
-		Q: Math.sin(w0)/2/alpha};
+		Q: Math.sin(w0)/2/alpha,
+		top: zterm,
+		bot: bot};
     }
     throw "Unknown filter type: " + type;
 }
