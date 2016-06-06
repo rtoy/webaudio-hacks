@@ -60,13 +60,14 @@ function displayWebAudio(webaudioDesc) {
 	text += v + " = ";
 	if (filters[k].filterType === "biquad" && hasNewBiquadFilter) {
 	    text += "context.createBiquadFilter();\n";
-	    text += v + ".type = " + filters[k].biquadType + ";\n";
+	    text += v + '.type = "' + filters[k].biquadType + '";\n';
 	    text += v + ".frequency.value = " + filters[k].f0 + ";\n";
 	    text += v + ".Q.value = " + filters[k].Q + ";\n";
 	} else {
+	    var g = filters[k].filterGain;
 	    text += "context.createIIRFilter(\n";
 	    text += "       [";
-	    text += filters[k].top;
+	    text += filters[k].top.map(x => x*g);
 	    text += "],\n";
 	    text += "       [";
 	    text += filters[k].bot;
@@ -82,13 +83,18 @@ function displayWebAudio(webaudioDesc) {
     }
 
     // Create the gain term and conenct it
-    text += "\n";
-    text += "g = context.createGain();\n";
-    text += "g.gain.value = " + webaudioDesc.totalGain + ";\n";
-    text += "f" + (filters.length - 1);
-    text += ".connect(g);\n";
-    text += "g.connect(context.destination);\n";
-    text += "</pre>\n";
+    if (hasNewBiquadFilter) {
+	text += "\n";
+	text += "g = context.createGain();\n";
+	text += "g.gain.value = " + webaudioDesc.totalGain + ";\n";
+	text += "f" + (filters.length - 1);
+	text += ".connect(g);\n";
+	text += "g.connect(context.destination);\n";
+	text += "</pre>\n";
+    } else {
+	text += "f" + (filters.length - 1);
+	text += ".connect(context.destination);\n";
+    }
 
     document.getElementById("webaudio").innerHTML = text;
 }
@@ -104,7 +110,9 @@ function createGraph(webaudioDesc, Fs, filterType) {
 	    filters[k].frequency.value = f[k].f0;
 	    filters[k].Q.value = f[k].Q;
 	} else {
-	    filters[k] = offline.createIIRFilter(f[k].top, f[k].bot);
+	    var g = f[k].filterGain;
+	    filters[k] = offline.createIIRFilter(
+		f[k].top.map(x => x*g), f[k].bot);
 	}
     }
 
@@ -131,7 +139,11 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
 
-    totalMag.fill(gain.gain.value);
+    if (hasNewBiquadFilter) {
+	totalMag.fill(gain.gain.value);
+    } else {
+	totalMag.fill(1);
+    }
     for (var k = 0; k < filters.length; ++k) {
 	filters[k].getFrequencyResponse(freq, mag, phase);
 	for (var m = 0; m < mag.length; ++m) {
