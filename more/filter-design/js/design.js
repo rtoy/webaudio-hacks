@@ -268,8 +268,8 @@ function analogLowpassFilter(fp, fs, Ap, As, type) {
     var B = [];
 
     if (r === 1) {
-	A.push([1, -1/pa0, 0]);
-	B.push([1,0,0]);
+	A.push([1, -1/pa0]);
+	B.push([1,0]);
     }
 
     for (var m = 0; m < L; ++m) {
@@ -374,8 +374,13 @@ function analogResponse(filter, freq) {
     for (var k = 0; k < freq.length; ++k) {
 	var f = freq[k];
 	for (var m = 0 ; m < top.length; ++m) {
-	    mag[k] *= Math.hypot(1-top[m][2]*pi4*f*f, pi2*top[m][1]*f);
-	    mag[k] /= Math.hypot(1-bot[m][2]*pi4*f*f, pi2*bot[m][1]*f);
+	    if (top[m].length == 2) {
+		mag[k] *= Math.hypot(1, top[m][1]*pi2*f);
+		mag[k] /= Math.hypot(1, bot[m][1]*pi2*f);
+	    } else {
+		mag[k] *= Math.hypot(1-top[m][2]*pi4*f*f, pi2*top[m][1]*f);
+		mag[k] /= Math.hypot(1-bot[m][2]*pi4*f*f, pi2*bot[m][1]*f);
+	    }
 	}
     }
 
@@ -526,7 +531,8 @@ function webAudioFilterDesc(top, bot, Fs, type) {
     if (order == 1) {
 	return {filterType: "iir",
 		top: [gain, gain],
-		bot: [1, zterm[0]]};
+		bot: bot,
+		filterGain: 1};
     }
     
     if (type === "butterworth" || type === "cheby-1") {
@@ -542,7 +548,8 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 		f0: w0*Fs/(2*Math.PI),
 		Q: 20*Math.log10(Math.sin(w0)/2/alpha),
 		top: zterm,
-		bot: bot};
+		bot: bot,
+		filterGain: gain};
     }
     if (type === "cheby-2" || type === "elliptic") {
 	var b = bot[1];
@@ -556,7 +563,8 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 		f0: w0*Fs/(2*Math.PI),
 		Q: Math.sin(w0)/2/alpha,
 		top: zterm,
-		bot: bot};
+		bot: bot,
+		filterGain: gain};
     }
     throw "Unknown filter type: " + type;
 }
