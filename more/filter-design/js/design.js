@@ -551,7 +551,21 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 		bot: bot,
 		filterGain: gain};
     }
-    if (type === "cheby-2" || type === "elliptic") {
+    if (type === "cheby-2") {
+	// Superficially, sections for a Chebyshev-2 filters kind of
+	// look like biquad notch filters, but they're not.  The
+	// numerator coefficient of z^(-1) is not consistent with the
+	// denominator coefficient of z^(-1}.  And sometimes the
+	// numerator coefficient is positive, whereas the biquad notch
+	// filter has a negative coefficient.
+	//
+	// Thus, use an IIR filter.
+	return {filterType: "iir",
+		top: zterm.map(x => x*gain),
+		bot: bot,
+		filterGain: 1}
+    }
+    if (type === "elliptic") {
 	var b = bot[1];
 	var c = bot[2];
 	var alpha = (1-c)/(1+c);
