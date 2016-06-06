@@ -341,6 +341,30 @@ function analogTeX(filter) {
     return f;
 }
 
+function analogResponse(filter, freq) {
+    var top = filter.top;
+    var bot = filter.bot;
+    // To compute the response we need to calculate expression of the
+    // form 1+b*s+c*s^2 where s = 2*pi*j*f.
+    //
+    //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
+    var mag = new Float32Array(freq.length);
+    mag.fill(1);
+
+    var pi2 = 2 * Math.PI;
+    var pi4 = pi2 * pi2;
+
+    for (var k = 0; k < freq.length; ++k) {
+	var f = freq[k];
+	for (var m = 0 ; m < top.length; ++m) {
+	    mag[k] *= Math.hypot(1-top[m][2]*pi4*f*f, pi2*top[m][1]*f);
+	    mag[k] /= Math.hypot(1-bot[m][2]*pi4*f*f, pi2*bot[m][1]*f);
+	}
+    }
+
+    return mag;
+}
+
 function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
     var wPass = 2*Math.PI*fp/Fs;
     var wStop = 2*Math.PI*fs/Fs;
@@ -442,6 +466,27 @@ function digitalTeX(filter) {
 
     return f;
 }
+
+/*
+function digitalResponse(filter, freq, Fs) {
+    // To compute the response of the digital filter we need to evaluate terms like
+    // 1 + b*z^(-1)+c*z^(-2) for z = exp(j*w).
+    //
+    //  1+b*z^(-1)+c*z^(-2) = (1+b*cos(w)+c*cos(2*w)) - j*(b*sin(w)+c*sin(2*w)
+    var top = filter.top;
+    var bot = filter.bot;
+    var mag = new Float32Array(freq.length);
+    mag.fill(1);
+
+    for (var k = 0; k < freq.length; ++k) {
+	var w = 2*Math.PI*freq[k]/Fs;
+	for (var m = 0; m < top.length; ++m) {
+	    var g = top[0];
+	    var t = top[1];
+	    for
+	    mag[k] *= Math.hypot(
+}
+*/
 
 function webAudioFilterDesc(top, bot, Fs, type) {
     var order = bot.length - 1;
