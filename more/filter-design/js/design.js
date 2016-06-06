@@ -539,7 +539,7 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 	var b = bot[1];
 	var c = bot[2];
 	var alpha = (1-c)/(1+c);
-	var w0 = Math.acos(b*(1+alpha)/2);
+	var w0 = Math.acos(-b*(1+alpha)/2);
 	var a0 = 1+alpha;
 	var b0 = (1-Math.cos(w0))/2;
 	return {filterType: "biquad",
@@ -555,7 +555,7 @@ function webAudioFilterDesc(top, bot, Fs, type) {
 	var b = bot[1];
 	var c = bot[2];
 	var alpha = (1-c)/(1+c);
-	var w0 = Math.acos(b*(1+alpha)/2);
+	var w0 = Math.acos(-b*(1+alpha)/2);
 	var a0 = 1+alpha;
 	return {filterType: "biquad",
 		biquadType: "notch",
