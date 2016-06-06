@@ -27,7 +27,9 @@ function designFilter(filterType) {
     document.getElementById("analog-type").innerHTML = description;
     var math = MathJax.Hub.getAllJax("analog-eq");
     MathJax.Hub.Queue(["Text", math[0], aFormula]);
-    
+
+    plotAnalogResponse(analogFilter);
+
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
@@ -138,22 +140,21 @@ function applyBilinearTransform(N, wc, terms) {
     return xfrm;
 }
 
-function plotAnalogResponse(N, wc) {
+function plotAnalogResponse(filter) {
     var freq = new Float32Array(1000);
-    var mag = new Float32Array(freq.length);
-    var gain = Math.pow(wc, N);
 
     for (var k = 0; k < freq.length; ++k) {
         freq[k] = k * context.sampleRate / 2 / freq.length;
-        mag[k] = gain;
     }
 
+    var mag = analogResponse(filter, freq);
+
+    console.log(freq);
+    console.log(mag);
+
     var dataAnalog = [];
-
-    var cutoff = wc / Math.PI * context.sampleRate / 2;
-
     for (var k = 0; k < freq.length; ++k) {
-        var r = 10 * Math.log10(1 / (1 + Math.pow(freq[k] / cutoff, 2 * N)));
+        var r = 20 * Math.log10(mag[k]);
         dataAnalog.push([freq[k], r]);
     }
 
