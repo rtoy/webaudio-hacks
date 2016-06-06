@@ -135,7 +135,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     for (var k = 0; k < filters.length; ++k) {
 	filters[k].getFrequencyResponse(freq, mag, phase);
 	for (var m = 0; m < mag.length; ++m) {
-	    totalMag[k] *= mag[k];
+	    totalMag[m] *= mag[m];
 	}
     }
 
