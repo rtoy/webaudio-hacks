@@ -142,8 +142,17 @@ function createGraph(webaudioDesc, Fs, filterType) {
 }
 
 function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
-    createGraph(webaudioDesc, Fs, filterType);
-
+    try {
+	createGraph(webaudioDesc, Fs, filterType);
+    } catch (e) {
+	// If we get here, createGraph couldn't create the graph
+	// because this implementation doesn't support IIRFilterNode.
+	// Display a message where the graph would be.
+	var warning = "This browser does not support IIRFilterNodes so no graph can be shown.";
+	document.getElementById("graph-webaudio").innerHTML = warning;
+	return;
+    }
+    
     var freq = new Float32Array(1000);
 
     for (var k = 0; k < freq.length; ++k) {
