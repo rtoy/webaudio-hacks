@@ -38,7 +38,7 @@
     <form>
       <div>
 	Sample Rate (Hz)
-	<input id="samplerate" type="number" min="3000" max="192000"value="48000">
+	<input id="samplerate" type="number" min="3000" max="192000" value="48000">
       </div>
       <div>
         Passband (Hz)
@@ -90,7 +90,13 @@
     </div>
     <br>
     <hr>
-    <div id="webaudio">
+    <div style="display: flex">
+      <div class="left">
+	<div id="webaudio">
+	</div>
+      </div>
+      <div id="graph-webaudio" class="right" style="width:50%;height:400px">
+      </div>
     </div>
 
     <br>
@@ -103,7 +109,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Mon Jun  6 09:56:33 PDT 2016
+Last modified: Mon Jun  6 11:05:47 PDT 2016
 <!-- hhmts end -->
   </body>
 
