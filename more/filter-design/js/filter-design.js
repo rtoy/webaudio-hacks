@@ -1,4 +1,5 @@
 var context;
+var offline;
 var sampleRate = 48000;
 var hasNewBiquadFilter;
 var hasIIRFilter;
@@ -42,6 +43,116 @@ function designFilter(filterType) {
     MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
 
     plotDigitalResponse(digitalFilter, sampleRate);
+
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterType);
+    console.log(webaudio);
+    displayWebAudio(webaudio);
+
+    plotWebAudioResponse(webaudio, sampleRate, filterType);
+}
+
+function displayWebAudio(webaudioDesc) {
+    // Generate code that implements the filter structure described by webaudioDesc.
+    var text = "<pre>\n";
+    var filters = webaudioDesc.desc;
+    for (var k = 0; k < filters.length; ++k) {
+	var v = "f" + k;
+	text += v + " = ";
+	if (filters[k].filterType === "biquad" && hasNewBiquadFilter) {
+	    text += "context.createBiquadFilter();\n";
+	    text += v + ".type = " + filters[k].biquadType + ";\n";
+	    text += v + ".frequency.value = " + filters[k].f0 + ";\n";
+	    text += v + ".Q.value = " + filters[k].Q + ";\n";
+	} else {
+	    text += "context.createIIRFilter(\n";
+	    text += "       [";
+	    text += filters[k].top;
+	    text += "],\n";
+	    text += "       [";
+	    text += filters[k].bot;
+	    text += "]);\n";
+	}
+    }
+    text += "\n";
+
+    // Connect all the filters together
+    for (var k = 1; k < filters.length; ++k) {
+	text += "f" + (k - 1);
+	text += ".connect(" + "f" + k + ");\n";
+    }
+
+    // Create the gain term and conenct it
+    text += "\n";
+    text += "g = context.createGain();\n";
+    text += "g.gain.value = " + webaudioDesc.totalGain + ";\n";
+    text += "f" + (filters.length - 1);
+    text += ".connect(g);\n";
+    text += "g.connect(context.destination);\n";
+    text += "</pre>\n";
+
+    document.getElementById("webaudio").innerHTML = text;
+}
+
+function createGraph(webaudioDesc, Fs, filterType) {
+    offline = new OfflineAudioContext(1, 1, Fs);
+    var f = webaudioDesc.desc;
+    filters = new Array(f.length);
+    for (var k = 0; k < f.length; ++k) {
+	if (f[k].filterType === "biquad" && hasNewBiquadFilter) {
+	    filters[k] = offline.createBiquadFilter();
+	    filters[k].type = f[k].biquadType;
+	    filters[k].frequency.value = f[k].f0;
+	    filters[k].Q.value = f[k].Q;
+	} else {
+	    filters[k] = offline.createIIRFilter(f[k].top, f[k].bot);
+	}
+    }
+
+    for (var k = 1; k < f.length; ++k) {
+	filters[k-1].connect(filters[k]);
+    }
+
+    gain = offline.createGain();
+    gain.gain.value = webaudioDesc.totalGain;
+    filters[f.length - 1].connect(gain);
+    gain.connect(offline.destination);
+}
+
+function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
+    createGraph(webaudioDesc, Fs, filterType);
+
+    var freq = new Float32Array(1000);
+
+    for (var k = 0; k < freq.length; ++k) {
+        freq[k] = k * sampleRate / 2 / freq.length;
+    }
+
+    var totalMag = new Float32Array(freq.length);
+    var mag = new Float32Array(freq.length);
+    var phase = new Float32Array(freq.length);
+
+    totalMag.fill(gain.gain.value);
+    for (var k = 0; k < filters.length; ++k) {
+	filters[k].getFrequencyResponse(freq, mag, phase);
+	for (var m = 0; m < mag.length; ++m) {
+	    totalMag[k] *= mag[k];
+	}
+    }
+
+    var data = [];
+    for (var k = 0; k < totalMag.length; ++k) {
+	data.push([freq[k], 20*Math.log10(totalMag[k])]);
+    }
+    
+    $.plot($("#graph-webaudio"), [{
+        data: data,
+        label: "Magnitude response"
+    }], {
+        yaxes: [{
+            min: -80
+        }]
+    });
+
 }
 
 // Find the poles of a Butterworth filter, returning the order, the
