@@ -235,6 +235,19 @@ function cabs(z) {
     return Math.hypot(z.re, z.im);
 }
 
+function cadd(x, y) {
+    return {re: x.re + y.re, im: x.im + y.im};
+}
+
+function cmul(x, y) {
+    return {re: x.re*y.re - x.im*y.im,
+	    im: x.im*y.re + x.re*y.im};
+}
+
+function rcmul(a, x) {
+    return {re: a*x.re, im: a*x.im};
+}
+    
 // Complex division: w/z
 function cdiv(w, z) {
     var den = Math.pow(Math.hypot(z.re, z.im), 2);
@@ -414,11 +427,16 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
 	    B.push([g, [1, 2, 1]]);
 	}
     } else if (type === "cheby-2" || type === "elliptic") {
-	var G = p.map(pp => { return {re: (1-pp.re)/2, im: -pp.im/2}; });
 	for (var m = 0; m < p.length; ++m) {
-	    var g = Math.pow(cabs(G[m]), 2);
+	    var G = cdiv({re: 1-p[m].re, im: -p[m].im},
+			 {re: 1-z[m].re, im: -z[m].im})
+	    var g = Math.pow(cabs(G), 2);
 	    A.push([1, -2*p[m].re, Math.pow(cabs(p[m]),2)]);
-	    B.push([g, [1, -2*z[m].re, Math.pow(cabs(z[m]),2)]]);
+	    // For cheby-2 filters, I think we have notch filters, so
+	    // the coefficient of the z^(-2) term should be exactly 0.
+	    // Make it so.
+	    var c = (type === "cheby-2") ? 1 : Math.pow(cabs(z[m]),2);
+	    B.push([g, [1, -2*z[m].re, c]]);
 	}
     }
 
@@ -471,7 +489,6 @@ function digitalTeX(filter) {
     return f;
 }
 
-/*
 function digitalResponse(filter, freq, Fs) {
     // To compute the response of the digital filter we need to evaluate terms like
     // 1 + b*z^(-1)+c*z^(-2) for z = exp(j*w).
@@ -480,17 +497,27 @@ function digitalResponse(filter, freq, Fs) {
     var top = filter.top;
     var bot = filter.bot;
     var mag = new Float32Array(freq.length);
-    mag.fill(1);
+    mag.fill(filter.H0);
 
     for (var k = 0; k < freq.length; ++k) {
 	var w = 2*Math.PI*freq[k]/Fs;
 	for (var m = 0; m < top.length; ++m) {
-	    var g = top[0];
-	    var t = top[1];
-	    for
-	    mag[k] *= Math.hypot(
+	    var g = top[m][0];
+	    var B = top[m][1];
+	    var A = bot[m];
+	    var sumt = {re: 1, im: 0};
+	    var sumb = {re: 1, im: 0};
+	    for (var n = 1; n < B.length; ++n) {
+		var cis = {re: Math.cos(n*w), im: -Math.sin(n*w)};
+		sumt = cadd(sumt, rcmul(B[n], cis));
+		sumb = cadd(sumb, rcmul(A[n], cis));
+	    }
+	    mag[k] *= g*cabs(sumt)/cabs(sumb);
+	}
+    }
+
+    return mag;
 }
-*/
 
 function webAudioFilterDesc(top, bot, Fs, type) {
     var order = bot.length - 1;
