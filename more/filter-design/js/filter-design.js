@@ -1,4 +1,5 @@
 var context;
+var sampleRate = 48000;
 var hasNewBiquadFilter;
 var hasIIRFilter;
 var filters;
@@ -12,13 +13,14 @@ var modGain;
 var mod;
 
 function designFilter(filterType) {
+    sampleRate = document.getElementById("samplerate").value;
     var passBand = document.getElementById("passband").value;
     var stopBand = document.getElementById("stopband").value;
     var passdB = document.getElementById("passdB").value;
     var stopdB = document.getElementById("stopdB").value;
 
     var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
-    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, context.sampleRate, filterType);
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
 
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
@@ -34,12 +36,12 @@ function designFilter(filterType) {
     console.log(digitalTeXFormula);
 
     description = "Digital " + filterType + " design of order " + digitalFilter.order;
-    description += ", sample rate " + context.sampleRate + " Hz";
+    description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
     MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
 
-    plotDigitalResponse(digitalFilter, context.sampleRate);
+    plotDigitalResponse(digitalFilter, sampleRate);
 }
 
 // Find the poles of a Butterworth filter, returning the order, the
@@ -146,7 +148,7 @@ function plotAnalogResponse(filter) {
     var freq = new Float32Array(1000);
 
     for (var k = 0; k < freq.length; ++k) {
-        freq[k] = k * context.sampleRate / 2 / freq.length;
+        freq[k] = k * sampleRate / 2 / freq.length;
     }
 
     var mag = analogResponse(filter, freq);
@@ -163,14 +165,18 @@ function plotAnalogResponse(filter) {
     $.plot($("#graph-analog"), [{
         data: dataAnalog,
         label: "Magnitude response"
-    }]);
+    }], {
+        yaxes: [{
+            min: -80
+        }]
+    });
 }
 
 function plotDigitalResponse(filter, Fs) {
     var freq = new Float32Array(1000);
 
     for (var k = 0; k < freq.length; ++k) {
-        freq[k] = k * context.sampleRate / 2 / freq.length;
+        freq[k] = k * sampleRate / 2 / freq.length;
     }
 
     var mag = digitalResponse(filter, freq, Fs);
