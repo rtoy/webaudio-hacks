@@ -275,7 +275,7 @@ function analogLowpassFilter(fp, fs, Ap, As, type) {
 	}
     }
 
-    return {order: N, top: B, bot: A};
+    return {order: N, H0: polesZeroes.H0, top: B, bot: A};
 }
 
 function texifyNumber(number, options) {
@@ -330,8 +330,12 @@ function analogTermTeX(term) {
 
 function analogTeX(filter) {
     var f = "\\begin{align*}\n";
-    f += "H_a(s) = ";
-    f += "& " + analogTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
+    f += "H_a(s) = \\, &";
+    if (filter.H0 != 1) {
+	f+= texifyNumber(filter.H0) + "\\\\\n";
+	f+= "& \\times ";
+    }
+    f += analogTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
     for (var k = 1; k < filter.top.length; ++k) {
 	var term = filter[k];
 	f += "& \\times" + analogTermTeX([filter.top[k], filter.bot[k]]) + "\\\\\n";
@@ -349,7 +353,7 @@ function analogResponse(filter, freq) {
     //
     //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
     var mag = new Float32Array(freq.length);
-    mag.fill(1);
+    mag.fill(filter.H0);
 
     var pi2 = 2 * Math.PI;
     var pi4 = pi2 * pi2;
