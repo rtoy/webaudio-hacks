@@ -46,14 +46,16 @@ function designFilter(filterType) {
 
     var webaudio = webAudioFilter(digitalFilter, sampleRate, filterType);
     console.log(webaudio);
-    displayWebAudio(webaudio);
+    displayWebAudio(webaudio, digitalFilter.order, sampleRate, filterType);
 
     plotWebAudioResponse(webaudio, sampleRate, filterType);
 }
 
-function displayWebAudio(webaudioDesc) {
+function displayWebAudio(webaudioDesc, order, Fs, filterType) {
     // Generate code that implements the filter structure described by webaudioDesc.
     var text = "<pre>\n";
+    text += "// WebAudio " + filterType + " design of order "+ order;
+    text += ", sample rate " + Fs + " Hz.\n";
     var filters = webaudioDesc.desc;
     for (var k = 0; k < filters.length; ++k) {
 	var v = "f" + k;
@@ -96,7 +98,7 @@ function displayWebAudio(webaudioDesc) {
 	text += ".connect(context.destination);\n";
     }
 
-    document.getElementById("webaudio").innerHTML = text;
+    document.getElementById("webaudio-eq").innerHTML = text;
 }
 
 function createGraph(webaudioDesc, Fs, filterType) {
