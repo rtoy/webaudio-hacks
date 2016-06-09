@@ -366,7 +366,9 @@ function analogResponse(filter, freq) {
     //
     //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
     var mag = new Float32Array(freq.length);
+    var phase = new Float32Array(freq.length);
     mag.fill(filter.H0);
+    phase.fill(0);
 
     var pi2 = 2 * Math.PI;
     var pi4 = pi2 * pi2;
@@ -378,13 +380,16 @@ function analogResponse(filter, freq) {
 		mag[k] *= Math.hypot(1, top[m][1]*pi2*f);
 		mag[k] /= Math.hypot(1, bot[m][1]*pi2*f);
 	    } else {
+                // 1-4*pi*c*f^2 + i*2*pi*b*f.
 		mag[k] *= Math.hypot(1-top[m][2]*pi4*f*f, pi2*top[m][1]*f);
 		mag[k] /= Math.hypot(1-bot[m][2]*pi4*f*f, pi2*bot[m][1]*f);
+                phase[k] += Math.atan2(pi2*top[m][1]*f, 1-top[m][2]*pi4*f*f);
+                phase[k] -= Math.atan2(pi2*bot[m][1]*f, 1-bot[m][2]*pi4*f*f);
 	    }
 	}
     }
 
-    return mag;
+    return {mag: mag, phase: phase};
 }
 
 function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
@@ -502,6 +507,7 @@ function digitalResponse(filter, freq, Fs) {
     var top = filter.top;
     var bot = filter.bot;
     var mag = new Float32Array(freq.length);
+    var phase = new Float32Array(freq.length);
     mag.fill(filter.H0);
 
     for (var k = 0; k < freq.length; ++k) {
@@ -518,10 +524,11 @@ function digitalResponse(filter, freq, Fs) {
 		sumb = cadd(sumb, rcmul(A[n], cis));
 	    }
 	    mag[k] *= g*cabs(sumt)/cabs(sumb);
+            phase[k] += Math.atan2(sumt.im, sumt.re) - Math.atan2(sumb.im, sumb.re);
 	}
     }
 
-    return mag;
+    return {mag: mag, phase: phase};
 }
 
 function webAudioFilterDesc(top, bot, Fs, type) {
