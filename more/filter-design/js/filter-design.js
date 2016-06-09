@@ -97,8 +97,8 @@ function displayWebAudio(webaudioDesc, options) {
 	text += ".connect(" + "f" + k + ");\n";
     }
 
-    // Create the gain term and conenct it
-    if (hasNewBiquadFilter) {
+    // Create the gain term, if needed, and connect it
+    if (webaudioDesc.totalGain != 1) {
 	text += "\n";
 	text += "g = context.createGain();\n";
 	text += "g.gain.value = " + webaudioDesc.totalGain + ";\n";
@@ -106,9 +106,6 @@ function displayWebAudio(webaudioDesc, options) {
 	text += ".connect(g);\n";
 	text += "g.connect(context.destination);\n";
 	text += "</pre>\n";
-    } else {
-	text += "f" + (filters.length - 1);
-	text += ".connect(context.destination);\n";
     }
 
     document.getElementById("webaudio-eq").innerHTML = text;
@@ -163,7 +160,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
 
-    if (hasNewBiquadFilter) {
+    if (gain && gain.gain.value != 1) {
 	totalMag.fill(gain.gain.value);
     } else {
 	totalMag.fill(1);
