@@ -141,179 +141,462 @@
 //   v0 = -j/(N*K1)*inverse_sn(j/eps_p, k1)
 //
 //
-//----------------------------------------------------------------------
-// Jacobian elliptic fucntions.
-//
-function jacobi_sn(u, m) {
-    if (m == 0) {
-        // sn(u, 0) = sin(u)
-        return Math.sin(u);
-    }
-    if (m == 1) {
-        // sn(u, 1) = tanh(u)
-        return Math.tanh(u);
-    }
-    return  elliptic_sn_descending(u, m);
-}
 
-function jacobi_snk(u, k) {
-    return jacobi_sn(u, k * k);
-}
+function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
+    var Wp = 2*Math.PI*fp;
+    var Ws = 2*Math.PI*fs;
+    var ep = Math.sqrt(Math.pow(10, Ap/10)-1);
+    var es = Math.sqrt(Math.pow(10, As/10)-1);
 
-function elliptic_sn_descending(u, m) {
-    if (m == 1) {
-        // sn(u, 1) = tanh(u)
-        return Math.tanh(u);
-    }
-    if (Math.abs(m) <= epsilon*Math.abs(u)) {
-        return Math.sinh(u);
+    // Selectivity and discrimination parameters
+    var k = Wp/Ws;
+    var k1 = ep/es;
+
+    var N;
+
+    // Determine order of filter to meet or exceed the requirements
+    if (type === "butterworth") {
+	N = Math.ceil(Math.log(1/k1)/Math.log(1/k));
+    } else if (type === "cheby-1") {
+	N = Math.ceil(Math.acosh(1/k1)/Math.acosh(1/k));
+    } else if (type === "cheby-2") {
+	N = Math.ceil(Math.acosh(1/k1)/Math.acosh(1/k));
+	// Revompute k to satisfy degree equation
+	k = 1/Math.cosh(Math.acosh(1/k1) / N);
+    } else if (type === "elliptic") {
+	throw "Unknown filter type: " + type;
     }
 
-    var [v, mu, root_mu] = descending_transform(u, m);
-    var new_sn = elliptic_sn_descending(v, mu);
-    return (1 + root_mu) * new_sn / (1 + root_mu * new_sn * new_sn);
-}
+    var L = Math.floor(N/2);
+    var r = N - 2*L;
+    var u = new Array(L);
+    var pa = new Array(L);
+    var za;
 
-// Descending Landen transform
-function descending_transform(u, m) {
-    var root_m1 = Math.sqrt(1 - m);
-    var root_mu = (1 - root_m1) / (1 + root_m1);
-    var mu = root_mu * root_mu;
-    var v = u / (1 + root_mu);
-
-    return {v: v, mu: mu, root_mu: root_mu};
-}
-        
-function jacobi_cn(u, m) {
-    if (m == 0) {
-        // cn(u, 0) = cos(u)
-        return Math.cos(u);
+    for (var m = 0; m < L; ++m) {
+	u[m] = (2*m+1)/N;
     }
-    if (m == 1) {
-        // cn(u, 1) = sech(u)
-        return 1 / Math.cosh(u);
+
+    // Determine poles and zeroes, if any
+    if (type === "butterworth") {
+	za = [];
+	var factor = Ws / Math.pow(es, 1/N);
+	for (var m = 0; m < L; ++m) {
+	    var pr = factor*Math.cos(Math.PI/2*u[m]);
+	    var pi = factor*Math.sin(Math.PI/2*u[m]);
+	    pa[m] = {re: -pi, im: pr};
+	    pa0 = -factor;
+	}
+    } else if (type === "cheby-1") {
+	za = [];
+	var v0 = Math.asinh(1/ep)/(N*Math.PI/2);
+	for (var m = 0; m < L; ++m) {
+	    var pr = Math.cos(Math.PI/2*u[m])*Math.cosh(Math.PI/2*v0);
+	    var pi = Math.sin(Math.PI/2*u[m])*Math.sinh(Math.PI/2*v0);
+	    pa[m] = {re: -Wp*pi, im: Wp*pr};
+	}
+	pa0 = -Wp*Math.sinh(v0*Math.PI/2);
+    } else if (type === "cheby-2") {
+	var factor = Wp / k;
+	var v0 = Math.asinh(es) / (N*Math.PI/2);
+	var za = new Array(L);
+	for (var m = 0; m < L; ++m) {
+	    za[m] = {re: 0, im: -factor/Math.cos(Math.PI/2*u[m])};
+	    var su = Math.sin(Math.PI/2*u[m]);
+	    var cu = Math.cos(Math.PI/2*u[m]);
+	    var shv = Math.sinh(Math.PI/2*v0);
+	    var chv = Math.cosh(Math.PI/2*v0);
+	    var d = su*su*shv*shv + cu*cu*chv*chv;
+	    var pr = -factor*su*shv/d;
+	    var pi = -factor*cu*chv/d;
+	    pa[m] = {re: pr, im: pi};
+	}
+	pa0 = -factor / Math.sinh(v0*Math.PI/2);
+    } else {
+	// Elliptic
     }
-    var [v, mu, root_mu] = ascending_transform(u, m);
-    var d = jacobi_dn(v, mu);
-    return (1 + root_mu1) / mu * ((d * d - root_mu1) / d);
-}
 
-function jacobi_cnk(u, k) {
-    return jacobi_cn(u, k*k);
-}
-
-function ascending_transform(u, m) {
-    var root_m = Math.sqrt(m);
-    var mu = 4 * root_m / Math.pow(1 + root_m, 2);
-    var root_mu1 = (1 - root_m) / (1 + root_m);
-    var v = u / (1 + root_mu1);
-
-    return {v: v, mu: mu, root_mu1: root_mu1};
-}
-
-function jacobi_dn(u, m) {
-    if (m == 0) {
-        // dn(u, 0) = 1
-        return 1;
+    var H0 = 1;
+    if (type === "cheby-1" || type === "elliptic") {
+	H0 = Math.pow(Math.pow(10, -Ap/20), 1-r);
     }
-    if (m == 1) {
-        // dn(u, 1) = sech(u)
-        return 1 / Math.cosh(u);
+
+    return {order: N, zeroes: za, poles: [pa0, pa], H0: H0}
+}
+
+// Reciprocal of complex number z
+function crecip(z) {
+    var d = z.re*z.re + z.im*z.im;
+    return {re: z.re/d, im: -z.im/d};
+}
+
+// Absolute value of a complex number z
+function cabs(z) {
+    return Math.hypot(z.re, z.im);
+}
+
+function cadd(x, y) {
+    return {re: x.re + y.re, im: x.im + y.im};
+}
+
+function cmul(x, y) {
+    return {re: x.re*y.re - x.im*y.im,
+	    im: x.im*y.re + x.re*y.im};
+}
+
+function rcmul(a, x) {
+    return {re: a*x.re, im: a*x.im};
+}
+    
+// Complex division: w/z
+function cdiv(w, z) {
+    var den = Math.pow(Math.hypot(z.re, z.im), 2);
+    return {re: (w.re*z.re + w.im*z.im)/den,
+	    im: (w.im*z.re - w.re*z.im)/den};
+}
+
+function analogLowpassFilter(fp, fs, Ap, As, type) {
+    var polesZeroes = findLowpassPolesAndZeroes(fp, fs, Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var L = Math.floor(N/2);
+    var r = N - 2*L;
+
+    var A = [];
+    var B = [];
+
+    if (r === 1) {
+	A.push([1, -1/pa0]);
+	B.push([1,0]);
     }
-    var root_1m = Math.sqrt(1 - m);
-    var root = (1 - root_1m) / (1 + root_1m);
-    var z = u / (1 + root);
-    var s = elliptic_sn_ascending(z, root * root);
-    var p = root * s * s;
-    return (1 - p) / (1 + p);
-}
 
-function jacobi_dnk(u, k) {
-    return jacobi_dn(u, k*k);
-}
-
-funtion jacobi_cdk(u, k) {
-    return jacobi_cnk(u, k) / jacobi_dnk(u, k);
-}
-
-function elliptic_kc(m) {
-    if (< m 0) {
-        m = -m;
-        var m1 = 1 + m;
-        var root = Math.sqrt(m1);
-        var mdiv = m / m1;
-        return elliptic_kc(mdiv) / root - (elliptic_f 0 mdiv) / root;
+    for (var m = 0; m < L; ++m) {
+	var recip = crecip(pa[m]);
+	A.push([1, -2*recip.re, Math.pow(cabs(recip),2)]);
     }
-    if (m == 0) {
-        return Math.PI / 2;
+
+    if (type === "cheby-2" || type === "elliptic") {
+	for (var m = 0; m < L; ++m) {
+	    var recip = crecip(za[m]);
+	    B.push([1, -2*recip.re, Math.pow(cabs(recip),2)]);
+	}
+    } else {
+	for (var m = 0; m < L; ++m) {
+	    B.push([1,0,0]);
+	}
     }
-    if (m == 1) {
-        throw ;
+
+    return {order: N, H0: polesZeroes.H0, top: B, bot: A};
+}
+
+function texifyNumber(number, options) {
+    // Convert the number to a string.  If it is in scientific form,
+    // replace with the appropriate teX version.
+    if (options && !options.showUnity && number === 1) {
+	if (options.addSign) {
+	    return Math.sign(number) < 0 ? "-" : "+";
+	}
+	return "";
     }
-    return carlson_rf(0, 1 - m, 1);
-}
-
-function elliptic_kck(k) {
-    return elliptic_kc(k*k);
-}
-
-function carlson_rf(x, y, z) {
-    var xn = x;
-    var yn = y;
-    var zn = z;
-    var a = (xn + yn + zn) / 3;
-    var eps = Math.max(Math.abs(a - xn), Math.abs(a - yn), Math.abs(a - zn)) / errtol(x, y, z);
-    var an = a;
-    var power4 = 1;
-    var n = 0;
-
-    while (power4 * eps > Math.abs(an)) {
-        var xnroot = Math.sqrt(xn);
-        var ynroot = Math.sqrt(yn);
-        var znroot = Math.sqrt(zn);
-        var lam = xnroot * xnroot + ynroot * ynroot + znroot * znroot;
-        power4 *= 1/4;
-        xn = (xn + lam) / 4;
-        yn = (yn + lam) / 4;
-        zn = (zn + lam) / 4;
-        an = (an + lam) / 4;
-        ++n;
+    if (options && options.addSign) {
+	var s = Math.abs(number).toString();
+	s = s.replace(/(e)(.*)/, "\\times 10^{$2}");
+	s = (number < 0) ? "- " + s: "+" + s;
+    } else {
+	var s = number.toString();
+	s = s.replace(/(e)(.*)/, "\\times 10^{$2}");
     }
-    var xndev = (a - x) * power4 / an;
-    var yndev = (a - y) * power4 / an;
-    var zndev = -(xndev + yndev);
-    var ee2 = xndev*yndev - 6*zndev*zndev;
-    var ee3 = xndev * yndev * zndev;
-    var s = 1 - ee2/10 + ee3/14 + ee2*ee2/24 - 3/44*ee2*ee3;
-    return s / Math.sqrt(an);
+
+    return s;
 }
 
-function inverse_jacobi_sn(u, m) {
-    return u * carlson_rf(1 - u*u, 1 - m*u*u, 1);
-}
-
-function inverse_jacobi_snk(u, k) {
-    return inverse_jacobi_sn(u, k*k);
-}
-
-function inverse_jacobi_dn(w, m) {
-    if (w == 1) {
-        return 0;
+function analogTermTeX(term) {
+    var f = "\\frac{";
+    if (term[0].length == 2) {
+	// Linear term
+	if (term[0][1] == 0) {
+	    f += "1";
+	} else {
+	    f += "1 " + texifyNumber(term[0][1], {addSign: true}) + "s";
+	}
+	f += "}{";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "s";
+	f += "}";
+    } else {
+	f += texifyNumber(term[0][0], {showUnity: true});
+	if (term[0][1] != 0) {
+	    f += texifyNumber(term[0][1], {addSign: true}) + "s";
+	}
+	if (term[0][2] != 0) {
+	    f += texifyNumber(term[0][2], {addSign: true}) + "s^2";
+	}
+	f += "}{";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "s ";
+	f += texifyNumber(term[1][2], {addSign: true}) + "s^2";
+	f += "}";
     }
-    if (m == 1) {
-        // w = dn(u,1) = sech(u) = 1 / cosh(u)
-        // cosh(u) = 1/w
-        // u = acosh(1/w)
-        return Math.acosh(1/w;
+
+    return f;
+}
+
+function analogTeX(filter) {
+    var f = "\\begin{align*}\n";
+    f += "H_a(s) = \\, &";
+    if (filter.H0 != 1) {
+	f+= texifyNumber(filter.H0) + "\\\\\n";
+	f+= "& \\times ";
     }
-    return inverse_jacobi_cn(w, 1/m) / Math.sqrt(m);
-        
+    f += analogTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
+    for (var k = 1; k < filter.top.length; ++k) {
+	var term = filter[k];
+	f += "& \\times" + analogTermTeX([filter.top[k], filter.bot[k]]) + "\\\\\n";
+    }
+    f += "\n\\end{align*}\n";
+
+    return f;
 }
 
-function inverse_jacobi_cd(w, m) {
-    return inverse_jacobi_sn(Math.sqrt(1 - w*w) / Math.sqrt(1 - m*w*w), m);
+function analogResponse(filter, freq) {
+    var top = filter.top;
+    var bot = filter.bot;
+    // To compute the response we need to calculate expression of the
+    // form 1+b*s+c*s^2 where s = 2*pi*j*f.
+    //
+    //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
+    var mag = new Float32Array(freq.length);
+    mag.fill(filter.H0);
+
+    var pi2 = 2 * Math.PI;
+    var pi4 = pi2 * pi2;
+
+    for (var k = 0; k < freq.length; ++k) {
+	var f = freq[k];
+	for (var m = 0 ; m < top.length; ++m) {
+	    if (top[m].length == 2) {
+		mag[k] *= Math.hypot(1, top[m][1]*pi2*f);
+		mag[k] /= Math.hypot(1, bot[m][1]*pi2*f);
+	    } else {
+		mag[k] *= Math.hypot(1-top[m][2]*pi4*f*f, pi2*top[m][1]*f);
+		mag[k] /= Math.hypot(1-bot[m][2]*pi4*f*f, pi2*bot[m][1]*f);
+	    }
+	}
+    }
+
+    return mag;
 }
 
-function inverse_jacobi_cdk(w, k) {
-    return inverse_jacobi_cd(w, k*k);
+function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
+    var wPass = 2*Math.PI*fp/Fs;
+    var wStop = 2*Math.PI*fs/Fs;
+    var omegaPass = Math.tan(wPass/2);
+    var omegaStop = Math.tan(wStop/2);
+    var polesZeroes = findLowpassPolesAndZeroes(omegaPass/(2*Math.PI), omegaStop/(2*Math.PI), Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var H0 = polesZeroes.H0;
+    
+    var p0 = (1+pa0)/(1-pa0);
+    var z = za.map(zz => cdiv({re: 1+zz.re, im: zz.im}, {re: 1-zz.re, im: -zz.im}));
+    var p = pa.map(pp => cdiv({re: 1+pp.re, im: pp.im}, {re: 1-pp.re, im: -pp.im}));
+    var G0 = (1 - p0)/2;
+
+/*
+    console.log("p0 = " + p0);
+    console.log("z = ");
+    console.log(z);
+    console.log("pa =");
+    console.log(pa);
+    console.log("p = ");
+    console.log(p);
+*/
+
+    var A = [];
+    var B = [];
+
+    if ((N % 2) == 1) {
+	A.push([1, -p0]);
+	B.push([G0, [1, 1]]);
+    }
+    
+    if (type === "butterworth" || type === "cheby-1") {
+	var G = p.map(pp => { return {re: (1-pp.re)/2, im: -pp.im/2}; });
+	console.log("G =");
+	console.log(G);
+	for (var m = 0; m < p.length; ++m) {
+	    var g = Math.pow(cabs(G[m]), 2);
+	    A.push([1, -2*p[m].re, Math.pow(cabs(p[m]),2)]);
+	    B.push([g, [1, 2, 1]]);
+	}
+    } else if (type === "cheby-2" || type === "elliptic") {
+	for (var m = 0; m < p.length; ++m) {
+	    var G = cdiv({re: 1-p[m].re, im: -p[m].im},
+			 {re: 1-z[m].re, im: -z[m].im})
+	    var g = Math.pow(cabs(G), 2);
+	    A.push([1, -2*p[m].re, Math.pow(cabs(p[m]),2)]);
+	    // For cheby-2 filters, I think we have notch filters, so
+	    // the coefficient of the z^(-2) term should be exactly 0.
+	    // Make it so.
+	    var c = (type === "cheby-2") ? 1 : Math.pow(cabs(z[m]),2);
+	    B.push([g, [1, -2*z[m].re, c]]);
+	}
+    }
+
+    return {order: N, H0: H0, top: B, bot: A};
+}
+
+function digitalTermTeX(term) {
+    var f = "\\frac{";
+    if (term[0][1].length == 2) {
+	// Linear term
+	if (term[0][1][1] == 0) {
+	    f += "1";
+	} else {
+	    f += "1 " + texifyNumber(term[0][1][1], {addSign: true}) + "z^{-1}";
+	}
+	f += "}{";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "z^{-1}";
+	f += "}";
+    } else {
+	f += texifyNumber(term[0][0], {showUnity: true}) + "(1";
+	if (term[0][1][0] != 0) {
+	    f += texifyNumber(term[0][1][1], {addSign: true}) + "z^{-1}";
+	}
+	if (term[0][1][2] != 0) {
+	    f += texifyNumber(term[0][1][2], {addSign: true}) + "z^{-2}";
+	}
+	f += ")}{";
+	f += "1 " + texifyNumber(term[1][1], {addSign: true}) + "z^{-1} ";
+	f += texifyNumber(term[1][2], {addSign: true}) + "z^{-2}";
+	f += "}";
+    }
+
+    return f;
+}
+function digitalTeX(filter) {
+    var f = "\\begin{align*}\n";
+    f += "H(z) = \\, &";
+
+    if (filter.H0 != 1) {
+	f += texifyNumber(filter.H0) + "\\\\\n";
+	f += "&\\times";
+    }
+    f +=  digitalTermTeX([filter.top[0], filter.bot[0]]) + "\\\\\n";
+    for (var k = 1; k < filter.top.length; ++k) {
+	var term = filter[k];
+	f += "& \\times" + digitalTermTeX([filter.top[k], filter.bot[k]]) + "\\\\\n";
+    }
+    f += "\n\\end{align*}\n";
+
+    return f;
+}
+
+function digitalResponse(filter, freq, Fs) {
+    // To compute the response of the digital filter we need to evaluate terms like
+    // 1 + b*z^(-1)+c*z^(-2) for z = exp(j*w).
+    //
+    //  1+b*z^(-1)+c*z^(-2) = (1+b*cos(w)+c*cos(2*w)) - j*(b*sin(w)+c*sin(2*w)
+    var top = filter.top;
+    var bot = filter.bot;
+    var mag = new Float32Array(freq.length);
+    mag.fill(filter.H0);
+
+    for (var k = 0; k < freq.length; ++k) {
+	var w = 2*Math.PI*freq[k]/Fs;
+	for (var m = 0; m < top.length; ++m) {
+	    var g = top[m][0];
+	    var B = top[m][1];
+	    var A = bot[m];
+	    var sumt = {re: 1, im: 0};
+	    var sumb = {re: 1, im: 0};
+	    for (var n = 1; n < B.length; ++n) {
+		var cis = {re: Math.cos(n*w), im: -Math.sin(n*w)};
+		sumt = cadd(sumt, rcmul(B[n], cis));
+		sumb = cadd(sumb, rcmul(A[n], cis));
+	    }
+	    mag[k] *= g*cabs(sumt)/cabs(sumb);
+	}
+    }
+
+    return mag;
+}
+
+function webAudioFilterDesc(top, bot, Fs, type) {
+    var order = bot.length - 1;
+    var gain = top[0];
+    var zterm = top[1];
+    if (order == 1) {
+	return {filterType: "iir",
+		top: [gain, gain],
+		bot: bot,
+		filterGain: 1};
+    }
+    
+    if (type === "butterworth" || type === "cheby-1") {
+	var b = bot[1];
+	var c = bot[2];
+	var alpha = (1-c)/(1+c);
+	var w0 = Math.acos(-b*(1+alpha)/2);
+	var a0 = 1+alpha;
+	var b0 = (1-Math.cos(w0))/2;
+	return {filterType: "biquad",
+		biquadType: "lowpass",
+		gain: gain*a0/b0,
+		f0: w0*Fs/(2*Math.PI),
+		Q: 20*Math.log10(Math.sin(w0)/2/alpha),
+		top: zterm,
+		bot: bot,
+		filterGain: gain};
+    }
+    if (type === "cheby-2") {
+	// Superficially, sections for a Chebyshev-2 filters kind of
+	// look like biquad notch filters, but they're not.  The
+	// numerator coefficient of z^(-1) is not consistent with the
+	// denominator coefficient of z^(-1}.  And sometimes the
+	// numerator coefficient is positive, whereas the biquad notch
+	// filter has a negative coefficient.
+	//
+	// Thus, use an IIR filter.
+	return {filterType: "iir",
+		top: zterm.map(x => x*gain),
+		bot: bot,
+		filterGain: 1}
+    }
+    if (type === "elliptic") {
+	var b = bot[1];
+	var c = bot[2];
+	var alpha = (1-c)/(1+c);
+	var w0 = Math.acos(-b*(1+alpha)/2);
+	var a0 = 1+alpha;
+	return {filterType: "biquad",
+		biquadType: "notch",
+		gain: gain*a0,
+		f0: w0*Fs/(2*Math.PI),
+		Q: Math.sin(w0)/2/alpha,
+		top: zterm,
+		bot: bot,
+		filterGain: gain};
+    }
+    throw "Unknown filter type: " + type;
+}
+
+function webAudioFilter(filter, Fs, type) {
+    var result = [];
+
+    for (var m = 0; m < filter.top.length; ++m) {
+	result.push(webAudioFilterDesc(filter.top[m], filter.bot[m], Fs, type));
+    }
+
+    var totalGain = filter.H0;
+    for (var m = 0; m < result.length; ++m) {
+	if (result[m].filterType === "biquad") {
+	    totalGain *= result[m].gain;
+	}
+    }
+
+    return {totalGain: totalGain,
+	    desc: result}
 }
