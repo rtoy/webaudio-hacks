@@ -224,37 +224,6 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
     return {order: N, zeroes: za, poles: [pa0, pa], H0: H0}
 }
 
-// Reciprocal of complex number z
-function crecip(z) {
-    var d = z.re*z.re + z.im*z.im;
-    return {re: z.re/d, im: -z.im/d};
-}
-
-// Absolute value of a complex number z
-function cabs(z) {
-    return Math.hypot(z.re, z.im);
-}
-
-function cadd(x, y) {
-    return {re: x.re + y.re, im: x.im + y.im};
-}
-
-function cmul(x, y) {
-    return {re: x.re*y.re - x.im*y.im,
-	    im: x.im*y.re + x.re*y.im};
-}
-
-function rcmul(a, x) {
-    return {re: a*x.re, im: a*x.im};
-}
-    
-// Complex division: w/z
-function cdiv(w, z) {
-    var den = Math.pow(Math.hypot(z.re, z.im), 2);
-    return {re: (w.re*z.re + w.im*z.im)/den,
-	    im: (w.im*z.re - w.re*z.im)/den};
-}
-
 function analogLowpassFilter(fp, fs, Ap, As, type) {
     var polesZeroes = findLowpassPolesAndZeroes(fp, fs, Ap, As, type);
     var N = polesZeroes.order;
