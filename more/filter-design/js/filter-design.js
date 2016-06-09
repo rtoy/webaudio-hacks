@@ -60,9 +60,9 @@ function designFilter(filterType) {
 function displayWebAudio(webaudioDesc, options) {
     // Generate code that implements the filter structure described by webaudioDesc.
     var text = "<pre>\n";
-    text += "// WebAudio " + options.filterType;
-    text += " design of order "+ options.order;
-    text += ", sample rate " + options.sampleRate + " Hz.\n";
+    text += "// WebAudio " + options.filterType + " design\n";
+    text += "// Order = "+ options.order + "\n";
+    text += "// Sample rate = " + options.sampleRate + " Hz\n";
     text += "// Passband = " + options.passBand + " Hz\n";
     text += "// Stopband = " + options.stopBand + " Hz\n";
     text += "// Passband attenuation = " + options.passAttenuation + " dB\n";
