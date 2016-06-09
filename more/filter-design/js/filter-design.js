@@ -157,6 +157,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     }
 
     var totalMag = new Float32Array(freq.length);
+    var totalPhase = new Float32Array(freq.length);
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
 
@@ -169,20 +170,29 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
 	filters[k].getFrequencyResponse(freq, mag, phase);
 	for (var m = 0; m < mag.length; ++m) {
 	    totalMag[m] *= mag[m];
+            totalPhase[m] += phase[m];
 	}
     }
 
-    var data = [];
+    var dataMag = [];
+    var dataPhase = [];
     for (var k = 0; k < totalMag.length; ++k) {
-	data.push([freq[k], 20*Math.log10(totalMag[k])]);
+	dataMag.push([freq[k], 20*Math.log10(totalMag[k])]);
+        dataPhase.push([freq[k], phase[k]*180/Math.PI]);
     }
     
     $.plot($("#graph-webaudio"), [{
-        data: data,
+        data: dataMag,
         label: "Magnitude response"
+    }, {
+        data: dataPhase,
+        label: "Phase response",
+        yaxis: 2
     }], {
         yaxes: [{
             min: -80
+        }, {
+            position: "right"
         }]
     });
 
@@ -195,23 +205,31 @@ function plotAnalogResponse(filter) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var mag = analogResponse(filter, freq);
+    var {mag, phase} = analogResponse(filter, freq);
 
     console.log(freq);
     console.log(mag);
 
-    var dataAnalog = [];
+    var analogMag = [];
+    var analogPhase = [];
     for (var k = 0; k < freq.length; ++k) {
         var r = 20 * Math.log10(mag[k]);
-        dataAnalog.push([freq[k], r]);
+        analogMag.push([freq[k], r]);
+        analogPhase.push([freq[k], phase[k]*180/Math.PI]);
     }
 
     $.plot($("#graph-analog"), [{
-        data: dataAnalog,
+        data: analogMag,
         label: "Magnitude response"
+    }, {
+        data: analogPhase,
+        label: "Phase response",
+        yaxis: 2
     }], {
         yaxes: [{
             min: -80
+        }, {
+            position: "right"
         }]
     });
 }
@@ -223,20 +241,28 @@ function plotDigitalResponse(filter, Fs) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var mag = digitalResponse(filter, freq, Fs);
+    var {mag, phase} = digitalResponse(filter, freq, Fs);
 
     // Plot the response
-    var dataDigital = [];
+    var digitalMag = [];
+    var digitalPhase = [];
     for (var k = 0; k < freq.length; ++k) {
-        dataDigital.push([freq[k], 20 * Math.log10(mag[k])]);
+        digitalMag.push([freq[k], 20 * Math.log10(mag[k])]);
+        digitalPhase.push([freq[k], phase[k]*180/Math.PI]);
     }
 
     $.plot($("#graph-digital"), [{
-        data: dataDigital,
+        data: digitalMag,
         label: "Magnitude response"
+    }, {
+        data: digitalPhase,
+        label: "Phase response",
+        yaxis: 2
     }], {
         yaxes: [{
             min: -80
+        }, {
+            position: "right"
         }]
     });
 }
