@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+  <head>
+    <title>Digital Filter Design</title>
+    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+    <script type="text/javascript" src="../../flot/jquery.js"></script>
+    <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
+    <script src="js/filter-design.js"></script>
+    <script src="js/design-chebyshev.js"></script>
+    <script src="js/elliptic.js"></script>
+    <script src="js/design-elliptic.js"></script>
+    <script src="js/design.js"></script>
+    <style type="text/css">
+      .flexbox {
+        display: -ms-flex;
+        display: -webkit-flex;
+        display: flex;
+        width: 100%;
+      }
+      
+      .left {
+        background: #a0ffa0;
+        min-width: 75px;
+        flex-grow: 1;
+      }
+      
+      .right {
+        background: #a0a0ff;
+        flex-grow: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Digital Filter Design</h1>
+
+    <form>
+      <div>
+	Sample Rate (Hz)
+	<input id="samplerate" type="number" min="3000" max="192000" value="48000">
+      </div>
+      <div>
+        Passband (Hz)
+        <input id="passband" type="number" min="0" value="4800" />
+      </div>
+      <div>
+        Passband attenuation, dB
+        <input id="passdB" type="number" min="0" value="1" />
+      </div>
+      <br>
+      <div>
+        Stopband (Hz)
+        <input id="stopband" type="number" min="0" value="7200" />
+      </div>
+      <div style="float:left">
+        Stopband attenuation, dB
+        <input id="stopdB" type="number" min="0" value="15" />
+      </div>
+    </form>
+    <br>
+    <button type="button" onclick="designFilter('butterworth')">Design Butterworth Filter</button>
+    <button type="button" onclick="designFilter('cheby-1')">Design Chebyshev-1 Filter</button>
+    <button type="button" onclick="designFilter('cheby-2')">Design Chebyshev-2 Filter</button>
+    <button type="button" onclick="designFilter('elliptic')" disabled>Design Elliptic Filter</button>
+
+    <br>
+    <hr>
+    <div style="display: flex">
+      <div id="analog-design" class="left">
+	<div id="analog-type"></div>
+	<div id="analog-eq">
+	  \[{}\]
+	</div>
+      </div>
+      <div id="graph-analog" class="right" style="width:50%;height:400px;"></div>
+    </div>
+
+    <br>
+    <hr>
+
+    <div style="display: flex">
+      <div class="left">
+	<div id="digital-type"></div>
+	<div id="digital-eq" class="left">
+	  \[{}\]
+	</div>
+      </div>
+      <div id="graph-digital" class="right" style="width:50%;height:400px;"></div>
+    </div>
+    <br>
+    <hr>
+    <div style="display: flex">
+      <div class="left">
+	<div id="webaudio-eq">
+	</div>
+      </div>
+      <div id="graph-webaudio" class="right" style="width:50%;height:400px">
+      </div>
+    </div>
+
+    <br>
+
+    <hr>
+
+    <script>
+      window.onload = init;
+    </script>
+    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
+    <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
+    <!-- hhmts start -->
+Last modified: Mon Jun  6 15:04:44 PDT 2016
+<!-- hhmts end -->
+  </body>
+
+</html>

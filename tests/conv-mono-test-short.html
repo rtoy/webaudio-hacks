@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<link rel="stylesheet" href="../fast/js/resources/js-test-style.css"/>
+<!-- Needed by flot to display the graphs --!>
+<style type="text/css">
+    .ui-tabs-hide { 
+      position: absolute; 
+      left: 1000em;
+    }
+</style>
+<script src="../resources/compatibility.js"></script>
+<script src="../fast/js/resources/js-test-pre.js"></script>
+<script src="resources/convolution-testing.js"></script>
+<script type="text/javascript" src="../flot/jquery.js"></script>
+<script type="text/javascript" src="../flot/jquery.flot.js"></script>
+<script type="text/javascript" src="../flot/jquery.flot.resize.js"></script>
+</head>
+
+<body>
+
+<div id="description"></div>
+<div id="console"></div>
+
+<p>Signal</p>
+<div id="signal" style="width:600px;height:300px;"> </div>
+<p>Convolution kernel</p>
+<div id="kernel" style="width:600px;height:300px;"></div>
+<p>Result</p>
+<div id="conv" style="width:600px;height:300px;"></div>
+<p>Expected</p>
+<div id="expected" style="width:600px;height:300px;"></div>
+<p>Diff</p>
+<div id="diff" style="width:600px;height:300px;"></div>
+
+<script>
+var renderLengthSeconds = 1;
+var pulseLengthSeconds = .1;
+var pulseLengthFrames = pulseLengthSeconds * sampleRate;
+
+
+function drawCurve(tag, y, start, stop) {
+    var yData = [];
+    for (var k = start; k < stop; ++k) {
+      yData.push([k, y[k]]);
+    }
+    $.plot($(tag),
+      [ { data : yData } ]);
+}
+
+var context;
+var squarePulse;
+var trianglePulse;
+var bufferSource;
+var convolver;
+
+function runTest() {
+    // Create offline audio context.
+    if (typeof webkitOfflineAudioContext == 'function') {
+        context = new webkitOfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
+    } else {
+        context = new webkitAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
+    }
+
+    squarePulse = createSquarePulseBuffer(context, pulseLengthFrames);
+    trianglePulse = createTrianglePulseBuffer(context, 2 * pulseLengthFrames);
+    
+    bufferSource = context.createBufferSource();
+    bufferSource.buffer = squarePulse;
+    
+    convolver = context.createConvolver();
+    convolver.normalize = false;
+    convolver.buffer = squarePulse;
+
+    bufferSource.connect(convolver);
+    convolver.connect(context.destination);
+
+    drawCurve("#signal", bufferSource.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
+    drawCurve("#kernel", convolver.buffer.getChannelData(0), 0, 1.5*pulseLengthSeconds*sampleRate);
+
+    bufferSource.start(0);
+    
+    context.oncomplete = checkConvolvedResult(trianglePulse);
+    context.startRendering();
+}
+
+runTest();
+
+</script>
+
+<script src="../fast/js/resources/js-test-post.js"></script>
+
+</body>
+</html>

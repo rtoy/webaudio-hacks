@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Random WebAudio Demos and Tests</title>
+  </head>
+
+  <body>
+    <h1>Random WebAudio Demos and Tests</h1>
+
+    Here are some random demos and tests.
+
+    <h2>Basic Oscillator, Convolver, and Decoding Tests</h2>
+    <ul>
+      <li><a href="osc.html">osc.html</a></li>
+      <li><a href="osc-waveform.html">View oscillator waveforms</a></li>
+      <li><a href="conv-mono-test-short.html">Test for convolving two square waves (short) using 0.1
+      sec pulses rendered for 1 sec.</a></li>
+      <li><a href="conv-mono-test.html">Test for convolving two square waves using 1 sec pulses
+      rendered for 3 sec.</a></li>
+      <li><a href="test-plot-audio.html">test-plot-audio.html, plots several different types of
+      audio files.</a></li>
+      <li><a href="test-plot-wav.html">test-plot-wav.html, plots just one wav file</a></li>
+      <li><a href="time-convolver.html">Time the speed of the convolver node (1s kernel)</a></li>
+      <li><a href="time-convolver-short.html">Time the speed of the convolver node (128-frame kernel)</a></li>
+    </ul>
+
+    <h2>Miscellaneous Tests</h2>
+    <ul>
+      <li><a href="flush-denormals.html">Test to see if denormals are flushed to zero</a>. Currently
+      the test is set so that it always fails so that the last non-zero value is printed. For chrome
+      with denormals flushed to zero, the last non-zero value should be at index 139.  When
+      denormals are not flushed, the last index is larger, possibly up to 200 or more.
+      </li>
+      <li><a href="test-ogg.html">Test ogg file decoding, for android.</a> (See <a
+      href="https://code.google.com/p/chromium/issues/detail?id=382271">crbug 382271</a>.)
+      </li>
+      <li><a href="test-decode-time.html">Test decoding time.</a> Just a simple test to see how long
+      it takes <code>decodeAudioData</code> to decode an m4a file.
+      </li>
+      <li>
+	<a href="biquad-automation.html">Biquad automation test.</a>  This is a simple test for
+	biquad automation to demonstrate a-rate automation
+      </li>
+    </ul>
+    <h2>ScriptProcessorNode Tests</h2>
+    <ul>
+      <li><a href="script-processor/leak-nodes.html">Simple test to see if ScriptProcessorNodes leak
+      memory</a></li>
+      <li><a href="script-processor/script-node-test.html">Simple tests of the behavior of
+      ScriptProcessorNodes</a></li>
+    </ul>
+    <hr>
+<!-- Created: Thu Feb 28 15:49:18 PST 2013 -->
+<!-- hhmts start -->
+Last modified: Tue Dec 15 22:31:29 PST 2015
+<!-- hhmts end -->
+  </body>
+</html>

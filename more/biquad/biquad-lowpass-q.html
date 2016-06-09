@@ -1,0 +1,538 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Compare Biquad Lowpass Filters</title>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src="../../flot/jquery.js"></script>
+  <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
+  <script type="text/javascript">
+    // Events
+    window.onload = init;
+    var context;
+    var filter;
+    var gain;
+    var filterNew;
+    var gainNew;
+    var masterGain;
+    var sound;
+    var cutoff = .5;
+    var q = 10.0; // in dB
+    var gain = 0.0; // in dB
+    var source = null;
+    var noctaves = 8;
+    var cutoffOctaves = 10;
+    var usedB = false;
+
+    function nyquist() {
+      return context.sampleRate / 2;
+    }
+
+    function getURLParameter(name) {
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+    }
+
+    function computeEquivalentQ(Qnew) {
+      // For the current biquads
+      //  alpha_b = sin(w0)/2*sqrt((4-sqrt(16-16/Qlin^2))/2)
+      // For the new biquad
+      //  alpha_b = sin(w0)/(2*Qnew).
+      //
+      // Thus,
+      //
+      //  1/Qnew = sqrt((4-sqrt(16-16/Qlin^2))/2)
+      //
+      // For a given value of Qnew, compute a new Qlin (from solving the above for Qlin):
+      //
+      //   Qlin = 4/sqrt(16-(4-2/Qnew^2)^2)
+      //        = 2*Qnew^2/sqrt(4*Qnew^2-1)
+      //
+      // where Q = 20*log10(Qlin)
+
+      var Qlin;
+      if (Qnew > 0.5) {
+        Qlin = 2*Math.pow(Qnew, 2) / Math.sqrt(4*Math.pow(Qnew, 2) - 1);
+        return 20 * Math.log10(Qlin);
+      } else {
+        return undefined;
+      }
+    }
+
+    function dBFormatter(v, axis) {
+      return v.toFixed(axis.tickDecimals) + " dB";
+    }
+
+    function degFormatter(v, axis) {
+      return v.toFixed(axis.tickDecimals) + " deg";
+    }
+
+    function toms463(xmin, xmax, n) {
+      // From TOMS 463
+      var sqr = [1.414214, 3.162278, 7.071068];
+      var vint = [1, 2, 5, 10];
+      var del = 0.00002
+        // Arbitrarily use 4 intervals.
+      var a = (xmax - xmin) / 4;
+      var al = Math.log(a) / Math.LN10;
+      var nal = Math.floor(al);
+      if (a < 1) {
+        nal = nal - 1;
+      }
+      var b = a / Math.pow(10, nal);
+      var i = 4;
+      for (i = 0; i < 3; ++i) {
+        if (b < sqr[i]) {
+          break;
+        }
+      }
+      var dist = vint[i] * Math.pow(10, nal);
+      var fm1 = xmin / dist;
+      var m1 = Math.floor(fm1);
+      if (fm1 < 0) {
+        m1 = m1 - 1;
+      }
+      if (Math.abs(m1 + 1 - fm1) < del) {
+        m1 = m1 + 1;
+      }
+      var xminp = dist * m1;
+      var fm2 = xmax / dist;
+      var m2 = Math.floor(fm2 + 1);
+      if (fm2 < -1) {
+        m2 = m2 - 1;
+      }
+      if (Math.abs(fm2 + 1 - m2) < del) {
+        m2 = m2 - 1;
+      }
+      var xmaxp = dist * m2;
+      if (xminp > xmin) {
+        xminp = xmin;
+      }
+      if (xmaxp < xmax) {
+        xmaxp = xmax;
+      }
+      return [xminp, xmaxp, dist];
+    }
+
+    function tickScale(axis) {
+      // Compute scale
+      var tickInfo = toms463(axis.min, axis.max, 4);
+
+      // Generate ticks now.
+      var ticks = [];
+      var val = tickInfo[0];
+      while (val <= tickInfo[1]) {
+        ticks.push(val);
+        val = val + tickInfo[2];
+      }
+      return ticks;
+    }
+
+    function drawCurve() {
+      var width = 500;
+
+      var freq = new Float32Array(width);
+      magResponse = new Float32Array(width);
+      var phaseResponse = new Float32Array(width);
+
+      magResponseNew = new Float32Array(width);
+      var phaseResponseNew = new Float32Array(width);
+
+
+      for (var k = 0; k < width; ++k) {
+        var f = k / width;
+        // Convert to log frequency scale (octaves).
+        f = Math.pow(2.0, noctaves * (f - 1.0));
+        freq[k] = f * nyquist();
+      }
+
+      filter.getFrequencyResponse(freq, magResponse, phaseResponse);
+      filterNew.getFrequencyResponse(freq, magResponseNew, phaseResponseNew);
+      var magData = [];
+      var phaseData = [];
+      var magDataNew = [];
+      var phaseDataNew = [];
+      var magDiff = [];
+
+      for (var k = 0; k < width; ++k) {
+        var db = 20.0 * Math.log10(magResponse[k]);
+        var dbNew = 20.0 * Math.log10(magResponseNew[k]);
+        var phaseDeg = 180 / Math.PI * phaseResponse[k];
+        var phaseDegNew = 180 / Math.PI * phaseResponseNew[k];
+
+        magData.push([freq[k], db]);
+        phaseData.push([freq[k], phaseDeg]);
+        magDataNew.push([freq[k], dbNew]);
+        phaseDataNew.push([freq[k], phaseDegNew]);
+        magDiff.push([freq[k], db - dbNew]);
+
+      }
+
+/*
+      console.log("New curve");
+      console.log("filter.Q = " + filter.Q.value);
+      console.log(magResponse);
+      console.log("filterNew.Q = " + filterNew.Q.value);
+      console.log(magResponseNew);
+*/
+      // Figure out the y axis range based on the filter type.
+
+      var magmin = -40;
+      var magmax = 40;
+      var phasemin = -200;
+      var phasemax = 0;
+      $.plot($("#graph"), [{
+        data: magData,
+        label: "Orig Mag (dB)"
+      }, {
+        data: phaseData,
+        label: "Phase (deg)",
+        yaxis: 2
+      }, {
+        data: magDataNew,
+        label: "New Mag (dB)"
+      }, {
+        data: phaseDataNew,
+        label: "New Phase (deg)",
+        yaxis: 2
+      }], {
+        //xaxes: [ { ticks : tickScale } ],
+        yaxes: [{
+          tickFormatter: dBFormatter,
+          min: magmin,
+        }, {
+          // align if we are to the right
+          alignTicksWithAxis: position = "right" ? 1 : null,
+          position: position,
+          tickFormatter: degFormatter,
+          //min: phasemin,
+          //max: phasemax,
+          //ticks : tickScale
+        }],
+        legend: {
+          position: 'ne'
+        }
+      });
+    }
+
+    function loadSound(url) {
+      // Load asynchronously
+      var request = new XMLHttpRequest();
+      request.open("GET", "../../demos/audio/sounds/" + url, true);
+      request.responseType = "arraybuffer";
+      request.onload = function() {
+        context.decodeAudioData(request.response, function(buffer) {
+          sound = buffer;
+          if (source) {
+            source.stop(0);
+            source = null;
+          }
+          source = context.createBufferSource();
+          source.connect(filter);
+          source.connect(filterNew);
+          source.loop = true;
+          source.buffer = buffer;
+          source.start(0);
+
+        }, function() {
+          console.log("error decoding file.")
+        });
+      };
+
+
+      request.send();
+    }
+
+    function normalizedCutoffToHz(normalizedFreq, noctaves) {
+      var f = new Number(normalizedFreq);
+      f = nyquist() * Math.pow(2.0, noctaves * (f - 1.0));
+      return f;
+    }
+
+    function init() {
+      AudioContext = AudioContext || webkitAudioContext;
+      usedB = getURLParameter("usedB") === "true";
+      if (usedB) {
+        var unitLabel = document.getElementById("qnew-units");
+        unitLabel.innerHTML = "dB, new";
+      } else {
+        var unitLabel = document.getElementById("qnew-units");
+        unitLabel.innerHTML = "linear, new";
+      }
+      
+      // Setup biquad and other audio stuff
+      context = new AudioContext();
+      filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
+      filter.Q.value = q;
+      filter.frequency.value = 2500;
+      gain = context.createGain();
+      gain.gain.value = 1;
+
+      filterNew = context.createBiquadFilter();
+      filterNew.type = "lowpass";
+      filterNew.frequency.value = filter.frequency.value;
+      filterNew.Q.value = computeEquivalentQ(filter.Q.value);
+      filterNew.gain.value = filter.gain.value;
+      filterNew.frequency.value = 2500;
+      gainNew = context.createGain();
+      gainNew.gain.value = 0;
+
+      masterGain = context.createGain();
+      masterGain.gain.value = 0.5;
+      masterGain.connect(context.destination);
+
+      var period = 2;
+      var startTime = context.currentTime;
+
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      filterNew.connect(gainNew);
+      gainNew.connect(masterGain);
+      loadSound("tones/pinkgood.wav");
+      selectFilter(0);
+
+      var element = document.getElementById("Qvalue");
+      element.value = filter.Q.value;
+      element = document.getElementById("cutoff");
+      element.value = filter.frequency.value;
+
+      updateQvalue();
+    }
+
+    // Convert the old Q parameter to the Qnew parameter so we can simulate the new value.
+    function convertQToQnew(QdB) {
+      var Qlin = Math.pow(10, QdB / 20);
+      var Qnew = 1 / Math.sqrt((4 - Math.sqrt(16 - 16 / (Qlin * Qlin))) / 2);
+
+      if (usedB)
+        Qnew = 20 * Math.log10(Qnew)
+      return Qnew;
+    }
+
+    // Convert the Qnew parameter to the equivalent old Q parameter so we can simulate it.
+    function convertQnewToQ(Qnew) {
+      if (usedB) {
+        Qnew = Math.pow(10, Qnew / 20);
+      }
+
+      if (Qnew > 0.5) {
+        var q2 = Math.pow(Qnew, 2);
+        var Qlin = 2 * q2 / Math.sqrt(4 * q2 - 1);
+        return 20 * Math.log10(Qlin);
+      } else {
+        return undefined;
+      }
+    }
+      
+    function updateQvalue() {
+      var qElement = document.getElementById("Qvalue");
+      var Qnew = convertQToQnew(qElement.value);
+      var qNewElement = document.getElementById("Qnew");
+      qNewElement.value = Qnew;
+      filter.Q.value = qElement.value;
+      filterNew.Q.value = Qnew;
+      drawCurve();
+    }
+
+    function updateQnewValue() {
+      var qElement = document.getElementById("Qvalue");
+      var qNewElement = document.getElementById("Qnew");
+      var warning = document.getElementById("warningBox");
+      var Q = convertQnewToQ(qNewElement.value);
+      qElement.value = Q;
+      if (Q) {
+        filter.Q.value = Q;
+        filterNew.Q.value = qNewElement.value;
+        warning.innerHTML = "";
+      } else {
+        warning.innerHTML = '<p style="color:red"><strong>No equivalent filter possible for Q = ' + qNewElement.value + '</strong></p>';
+      }
+      drawCurve();
+    }
+
+    function updateFilters() {
+      var freq = document.getElementById("cutoff");
+      filter.frequency.value = freq.value;
+      filterNew.frequency.value = freq.value;
+
+      drawCurve();
+    }
+
+    function selectFilter(x) {
+      // x = 1 means route the new filter to the output.  0 means the old (original) filter.
+      gain.gain.value = 1 - x;
+      gainNew.gain.value = x;
+    }
+
+    function setFilterType(type) {
+      filter.type = type;
+      filterNew.type = type;
+      drawCurve();
+    }
+
+    function loadOsc(type) {
+      if (source) {
+        source.stop();
+        source = null;
+      }
+      source = context.createOscillator();
+      source.type = type;
+      source.connect(filter);
+      source.connect(filterNew);
+      source.start();
+    }
+
+    function updateGain() {
+      var element = document.getElementById("masterGain");
+      masterGain.gain.value = element.value;
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Compare Biquad Lowpass Filters</h1>
+
+  <p>
+    Simple demo to compare the <a
+    href="http://webaudio.github.io/web-audio-api/#filters-characteristics">original WebAudio
+    Biquad</a> lowpass or highpass filter with a new Biquad filters using the <a
+    href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt">Audio EQ Cookbook</a> formula.
+  </p>
+  <div id="graph" style="width:80%;height:300px;"></div>
+
+<br/>
+<div id="fields">
+    <form>
+      <div style="float:left;">
+      \(Q\) dB, original<br>
+      <input id="Qvalue" type="number" step="any" min="0" value="10" name="Q (dB)" onchange="updateQvalue();"
+    />
+      </div>
+      <div id="warningBox" style="float:left;"></div>
+      <div style="clear:both">
+      <br>\(Q_{new}\) <span id="qnew-units">linear</span><br>
+      <input id="Qnew" type="number" step="any" min="0" value="10" name="Q (dB)"
+      onchange="updateQnewValue();"/>
+      <br><br>Cutoff (Hz)<br>
+      <input id="cutoff" type="number" step="any" min="0" value="350" name="cutoff"
+    onchange="updateFilters();"/>
+      <br>
+      <br>Master Gain<br>
+      <input id="masterGain" type="range" name="masterGain" min="0" max="1" step=".05" onchange="updateGain()">
+      </div>
+    </form>
+</div>
+  <div id="container" style="clear:both;">
+    <div id="filterselect" style="width:25%;float:left;">
+      <h3>Select Filter</h3>
+      <form>
+        <input type="radio" name="biquad" checked onClick="selectFilter(0);">Original Biquad
+        <br/>
+        <input type="radio" name="biquad" onClick="selectFilter(1);">New Biquad
+        <br>
+      </form>
+    </div>
+    <div id="sources" style="width:25%;float:left;">
+      <h3>Source</h3>
+      <form>
+        <input type="radio" checked="checked" name="source" onClick="loadSound('tones/pinkgood.wav');"
+        />Noise
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/cauldron.wav');">Cauldron
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/waves.wav');">Waves
+        <br/>
+        <input type="radio" name="source" onClick="loadSound('effects/ticking.wav');">Ticking clock
+        <br/>
+        <input type="radio" name="source" onClick="loadOsc('sawtooth');">Sawtooth
+        <br/>
+      </form>
+    </div>
+    <div id="filterTypes" style="width:25%;float:left;">
+      <h3>Filter Type</h3>
+      <form>
+        <input type="radio" name="type" checked onClick="setFilterType('lowpass');"> Lowpass
+        <br/>
+        <input type="radio" name="type" onClick="setFilterType('highpass');"> Highpass
+        <br>
+      </form>
+
+    </div>
+  </div>
+
+  <div style="clear:both;text-align:left;">
+    <hr/>
+    <h2>Detailed Description</h2>
+    <h3>Original Biquad Design</h3>
+    <p>
+      This is an examination of the lowpass and highpass Biquad filter in WebAudio. You
+      can choose to listen to the effect of two biquad filters. The original is the
+      original Biquad filter in WebAudio, with the entered Q value. This Q value
+      is in dB. From the graphs, you can see that the selected Q value is the same
+      as the peak value of the frequency response.
+    </p>
+    <p>
+      More specifically, the filter coefficients are computed using this formula for \(\alpha_B\):
+      $$
+        \begin{align*}
+          \alpha_B &= \frac{\sin\omega_0}{2} \sqrt{\frac{4-\sqrt{16-\frac{16}{Q_L^2}}}{2}} \\
+           Q_L &= 10^\frac{Q}{20}
+        \end{align*}
+      $$
+    </p>
+    <h3>New Biquad Design</h3>
+    <p>
+      If you select the "New Biquad" you will get to hear the effect of the biquad filter
+      using the formulation from the Audio EQ Cookbook that defines the filter differently.
+      This Q value is a linear value. When you select the "New Biquad", a biquad
+      filter is constructed (using the original biquad filter formulation of course)
+      that would produce the same effect as this Audio Cookbook design. The equivalent
+      Q value is displayed below the Q input box. above.
+    </p>
+    <p>
+      The Audio EQ Cookbook computes the coefficients using 
+$$
+  \alpha_B = \frac{\sin \omega_0}{2Q_{new}}
+$$
+    </p>
+
+    <p>
+      From this, we can see that the new Audio EQ Cookbook filter can be simulated using WebAudio's
+      biquad using the relationship
+$$
+  \frac{1}{Q_{new}} = \sqrt{\frac{4-\sqrt{16-\frac{16}{Q_L^2}}}{2}}
+$$
+      or
+$$
+  Q_L = \frac{2Q_{new}^2}{\sqrt{4Q_{new}^2-1}}
+$$
+     Thus, given \(Q_L\) or \(Q_{new}\) we can convert from one filter design to the other.
+    </p>
+    <p>
+        Note, however, that there are restrictions on this conversion.  From the first equation,
+        it's clear that \(Q_L \ge 1\) to produce a non-complex \(Q_{new}\).  Fortunately, this is
+        always true for WebAudio because the \(Q\) parameter is in dB and must be strictly
+        positive.  This implies \(Q_L \ge 1\).
+    </p>
+    <p>
+      The converse, however, is not true.  From the second equation, we must have \(Q_{new} \ge
+      \frac{1}{2}\) to ensure \(Q_L\) is real.  This implies that there are low pass (and high pass)
+      analog filters that can be designed that cannot be represented by WebAudio's low pass (or high
+      pass) biquad filters.
+    </p>
+  </div>
+
+  <div id="footer" style="clear:both;text-align:left;">
+
+    <hr>
+    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
+    <!-- Created: Thu Mar 24 10:31:20 PDT 2016 -->
+    <!-- hhmts start -->
+Last modified: Thu Mar 31 10:52:30 PDT 2016
+<!-- hhmts end -->
+  </div>
+</body>
+
+</html>

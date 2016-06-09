@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Biquad Automation Example</title>
+    <script type="text/javascript" src="../flot/jquery.js"></script>
+    <script type="text/javascript" src="../flot/jquery.flot.js"></script>
+  </head>
+
+  <body>
+    <h1>Biquad Automation example</h1>
+
+    <p>
+      Here's a simple test for automating a Biquad filter.  The main intent is
+      have a fast automation to demonstrate a-rate automation, if available.
+      Check the graph below to see if you have a-rate biquads.
+    </p>
+
+    <p>
+      This is based on the example from <a
+      href="https://github.com/WebAudio/web-audio-api/issues/509#issuecomment-94731355">WebAudio
+      issue #509</a>.  We have a 440-Hz sine-wave oscillator connected to a
+      bandpass filter.  The center frequency of the filter is 264 Hz.  The
+      center frequency of the filter is driven by another sine-wave oscillator
+      with a frequency of 103 Hz with an amplitude of 148.  This causes the
+      center frequency of the bandpass filter to oscillate between 116 Hz to 412
+      Hz.
+    </p>
+    <p>
+      If only k-rate automation is supported, the output should be a little bit
+      buzzy. With a-rate automation, the sound should be smooth.
+    </p>
+
+    <button type="Test" onclick="doTest()">Press to start and stop the test</button>
+
+    <hr>
+    <p>
+      Graph of the output of a 4400 Hz sine wave through a lowpass biquad filter
+      with a cutoff frequency of 4400 Hz that is linear ramped from 4400 Hz to
+      10 Hz in 0.01 sec.  If a-rate automation for the biquad is supported, the
+      curve is nice and smooth.  If note, you will see a stairstep curve with
+      some possibly odd artifacts
+    </p>
+    <div id="graph" style="width:600px;height:400px">
+    </div>
+
+    <script>
+      window.onload = biquadGraph;
+
+      var context = new AudioContext();
+      var src;
+      var osc;
+      var filt = context.createBiquadFilter();
+      var gain = context.createGain();
+      var play = true;
+
+      function doTest() {
+        if (play)
+          startTest();
+        else
+          stopTest();
+      }
+
+      function startTest() {
+        play = false;
+        // Create the audio source oscillator
+        src = context.createOscillator();
+        src.frequency.value = 440;
+
+        // Creating the oscillator that modulates the filter center frequency.
+        osc = context.createOscillator();
+
+        osc.frequency.value = 103;
+
+        // Set up the filter.
+        filt.type = "bandpass";
+        filt.frequency.value = 264;;
+
+        // Gain applied to the modulating oscillator.  This causes the
+        // oscillator to go from -148 to 148.  This gets summed with the filter
+        // frequency value of 264 to produce a center frequency that varies from
+        // 116 Hz to 412 Hz.
+        gain.gain.value = 148;
+        osc.connect(gain);
+        gain.connect(filt.frequency);
+
+        // Connect the source and filter together.
+        src.connect(filt);
+        filt.connect(context.destination);
+
+        // Go!
+        src.start();
+        osc.start();
+      }
+
+      function stopTest() {
+        play = true;
+        // Stop!
+        src.stop();
+        osc.stop();
+      }
+
+      var sampleRate = 48000;
+
+      function drawGraph(event) {
+        var data = event.renderedBuffer.getChannelData(0);
+
+        var graphData = [];
+        for (var k = 0; k < data.length; ++k) {
+          graphData.push([k / sampleRate, data[k]]);
+        }
+
+        $.plot($("#graph"),
+          [ { data: graphData }]);
+      }
+
+      function biquadGraph() {
+        var renderDuration = 0.25;
+        var renderFrames = Math.floor(renderDuration * sampleRate);
+        var oac = new OfflineAudioContext(1, renderFrames, sampleRate);
+
+        var src = oac.createOscillator();
+        src.frequency.value = 4400;
+
+        var filter = oac.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(4400, 0);
+        filter.frequency.linearRampToValueAtTime(10, 0.01);
+
+        src.connect(filter);
+        filter.connect(oac.destination);
+
+        src.start();
+        oac.oncomplete = drawGraph;
+
+        oac.startRendering();
+      }
+    </script>
+    <hr>
+    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
+<!-- Created: Tue Dec 15 21:57:34 PST 2015 -->
+<!-- hhmts start -->
+Last modified: Wed Dec 16 11:54:36 PST 2015
+<!-- hhmts end -->
+  </body>
+</html>

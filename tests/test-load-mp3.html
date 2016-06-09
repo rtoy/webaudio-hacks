@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <script type="text/javascript" src="resources/buffer-loader.js"></script>
+    <!-- Slider stuff -->
+    <script type="text/javascript" src="resources/events.js"></script>
+    <style type="text/css">
+      #slider { margin: 10px; }
+    </style>
+    <title></title>
+<script>
+
+var context;
+var bufferLoader;
+var source;
+
+// List of files that can be plotted.
+var mediaInfo =
+  [
+      { url:"resources/media/original.mp3", info: "br-jam-loop original" },
+  ];
+
+var context;
+// Decoded audio samples      
+var bufferList = 0;
+// The index of the buffer that will be plotted.
+var bufferIndex = 0;
+
+window.onload = init;
+
+function finishedLoading(buffers)
+{
+    bufferList = buffers;
+
+    source.buffer = bufferList[0];
+    source.start(0);
+}
+
+function init()
+{
+    window.AudioContext = webkitAudioContext || AudioContext;
+    // Create audio context.
+    context = new AudioContext();
+
+    source = context.createBufferSource();
+    source.connect(context.destination);
+
+    bufferLoader = new BufferLoader(
+        context,
+        mediaInfo.map(function (value) { return value.url; }),
+        finishedLoading
+    );
+    
+    bufferLoader.load();
+}
+</script>
+  </head>
+
+  <body>
+    <h1>Waveform</h1>
+
+    <div id="media">
+      <h2>Play Audio</h2>
+      <div id="info"> </div>
+    </div>
+
+  </body>
+</html>

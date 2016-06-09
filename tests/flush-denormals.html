@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <script src="resources/compatibility.js"></script>
+    <script src="resources/audio-testing.js"></script>
+    <script src="resources/js-test.js"></script>
+    <title>Test that denormal floats are flushed to zero</title>
+  </head>
+
+  <body>
+    <div id="description"></div>
+    <div id="console"></div>
+    <script>
+      description("Test that denormal floats are flushed to zero.");
+
+      // Amplitude of the impulse. This should be a very small number close to the smallest
+      // normalized single float value (1.1754944e-38)
+      var impulseAmplitude = 1e-35;
+
+      // The output of the filter is expected to be zero after this frame. This value is
+      // experimentally determined and depends on the impulseAmplitude and the particular filter
+      // used.
+      var indexExpectedZeroSamples = 0;
+
+      var sampleRate = 44100.0;
+      var pulseLengthFrames = .1 * sampleRate;
+      var renderLengthSeconds = .6;
+
+      // Filter a very low amplitude impulse through a lowpass filter and check that after a certain
+      // point that the output is exactly zero. If this is true, that means that denormals are being
+      // flushed to zero. Denormals can drastically slow down processing and WebAudio doesn't need
+      // to preserve denormals during processing.
+      function runTest() {
+          if (window.testRunner) {
+              testRunner.dumpAsText();
+              testRunner.waitUntilDone();
+          }
+
+          window.jsTestIsAsync = true;
+
+          // Create offline audio context.
+          var context = new OfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
+
+          var filter = context.createBiquadFilter();
+          filter.type = "lowpass";
+
+          // Create an impulse signal with a very small amplitude
+          var impulse = context.createBuffer(1, pulseLengthFrames, context.sampleRate);
+          var data = impulse.getChannelData(0);
+          for (var k = 1; k < data.length; ++k) {
+              data[k] = 0;
+          }
+          data[0] = impulseAmplitude;
+      
+          var signal = context.createBufferSource();
+          signal.buffer = impulse;
+          signal.connect(filter);
+          filter.connect(context.destination);
+          signal.start();
+
+          context.oncomplete = checkResult;
+          context.startRendering();
+      }
+
+      function checkResult() {
+          var renderedData = event.renderedBuffer.getChannelData(0);
+
+          var len = renderedData.length;
+          var indexLastNonZeroValue = 0;
+
+          // Starting from the end, find the first non-zero value.
+          for (var k = len - 1; k >= 0; --k) {
+              if (renderedData[k] != 0) {
+                  indexLastNonZeroValue = k;
+                  break;
+              }
+          }
+
+          if (indexLastNonZeroValue <= indexExpectedZeroSamples) {
+              testPassed("Filter output correctly flushed to zero after sample " + indexExpectedZeroSamples);
+          } else {
+              testFailed("Filter output not flushed to zero after sample " + indexExpectedZeroSamples
+                         + ". Got " + renderedData[indexLastNonZeroValue]
+                         + " at sample " + indexLastNonZeroValue);
+          }
+
+          finishJSTest();
+      }
+
+      runTest();
+      successfullyParsed = true;
+    </script>
+  </body>
+</html>
