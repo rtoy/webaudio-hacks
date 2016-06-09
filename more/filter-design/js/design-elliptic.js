@@ -1,3 +1,6 @@
+// Test invocation:
+// designElliptic(4, 4.5, 0.95, .05, 48000);
+
 function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     var wp = 2 * Math.PI * fp;
     var ws = 2 * Math.PI * fs;
@@ -43,8 +46,8 @@ function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     console.log("za = ");
     console.log(za);
 
-    var v0 = inverse_jacobi_sni(1 / ep, k1*k1);
-    v0 = -v0.im / N / K1;
+    var v0 = complex_inverse_jacobi_sn({re: 0, im: 1 / ep}, k1*k1);
+    v0 = v0.im / N / K1;
     console.log("v0 = ");
     console.log(v0);
     
