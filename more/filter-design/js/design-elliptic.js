@@ -50,7 +50,13 @@ function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     v0 = v0.im / N / K1;
     console.log("v0 = ");
     console.log(v0);
-    
+
+    var pa = new Array(L);
+    for (var n = 1; n <= L; ++n) {
+        pa[n-1] = complex_jacobi_cd({re: (2*n-1)/L, im: -v0}, {re: k*k, im: 0});
+    }
+    console.log("pa = ");
+    console.log(pa);
 }
 
 function ellipticDeg(N, K1, K1p) {
