@@ -2,13 +2,21 @@
 //
 // A complex number is represented as a dictionary: {re: r, im: i}.
 
+function cequal(x, y) {
+    return (x.re == y.re) && (x.im == y.im);
+}
+
+function cequalr(x, r) {
+    return (x.re == r) && (x.im == 0);
+}
+
 function cadd(x, y) {
     return {re: x.re + y.re,
             im: x.im + y.im}
 }
 
 function rcadd(r, z) {
-    return {rm: r + z.re,
+    return {re: r + z.re,
             im: z.im}
 }
 
@@ -24,7 +32,7 @@ function rcsub(r, z) {
 
 function cmul(x, y) {
     return {re: x.re * y.re - x.im * y.im,
-            im: x.im * y.re - x.re * y.im};
+            im: x.im * y.re + x.re * y.im};
 }
 
 // Reciprocal of complex number z
@@ -70,7 +78,7 @@ function csqrt(z) {
     return {re: r, im: Math.sign(z.im) * i};
 }
 
-functiom complex_sin(z) {
+function complex_sin(z) {
     // sin(x+%i*y) = sin(x)*cosh(y) + i*cos(x)*sinh(y)
     // For our purposes, this is good enough.
     return {re: Math.sin(z.re)*Math.cosh(z.im),
