@@ -243,7 +243,10 @@ function plotAnalogResponse(filter) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var {mag, phase} = analogResponse(filter, freq);
+    //var {mag, phase} = analogResponse(filter, freq);
+    var response = analogResponse(filter, freq);
+    mag = response.mag;
+    phase = response.phase;
 
     console.log(freq);
     console.log(mag);
