@@ -293,7 +293,10 @@ function plotDigitalResponse(filter, Fs) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var {mag, phase} = digitalResponse(filter, freq, Fs);
+    //var {mag, phase} = digitalResponse(filter, freq, Fs);
+    var response = digitalResponse(filter, freq, Fs);
+    mag = response.mag;
+    phase = response.phase;
 
     // Plot the response
     var digitalMag = [];

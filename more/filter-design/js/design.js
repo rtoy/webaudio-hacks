@@ -320,6 +320,22 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
     }
 }
 
+function ellipticDeg(N, K1, K1p) {
+    var q = Math.exp(-Math.PI*(K1p/K1)/N);
+    // Compute the two sums
+    //
+    //   sum(q^(m*(m+1)), m, 0, 10) = 1 + sum(q^(m*(m+1)), m, 1, 10)
+    //   sum(q^(m*m), m, 1, 10)
+    var s1 = 1;
+    var s2 = 0;
+    for (var m = 1; m <= 10; ++m) {
+        s1 += Math.pow(q, m*(m+1));
+        s2 += Math.pow(q, m*m);
+    }
+
+    return 4*Math.sqrt(q)* Math.pow(s1 / (1 + 2*s2), 2);
+}
+
 function analogLowpassFilter(fp, fs, Ap, As, type) {
     var polesZeroes = findLowpassPolesAndZeroes(fp, fs, Ap, As, type);
     var N = polesZeroes.order;
