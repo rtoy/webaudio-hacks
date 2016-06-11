@@ -36,7 +36,12 @@ function elliptic_sn_descending(u, m) {
         return Math.sin(u);
     }
 
-    var {v, mu, root_mu} = descending_transform(u, m);
+    //var {v, mu, root_mu} = descending_transform(u, m);
+    var xfrm = descending_transform(u, m);
+    var v = xfrm.v;
+    var mu = xfrm.mu;
+    var root_mu = xfrm.root_mu;
+
     var new_sn = elliptic_sn_descending(v, mu);
     return (1 + root_mu) * new_sn / (1 + root_mu * new_sn * new_sn);
 }
@@ -50,7 +55,12 @@ function complex_elliptic_sn_descending(u, m) {
         return complex_sin(u);
     }
 
-    var {v, mu, root_mu} = complex_descending_transform(u, m);
+    //var {v, mu, root_mu} = complex_descending_transform(u, m);
+    var xfrm = complex_descending_transform(u, m);
+    var v = xfrm.v;
+    var mu = xfrm.mu;
+    var root_mu = xfrm.root_mu;
+
     var new_sn = complex_elliptic_sn_descending(v, mu);
     var top = cmul(rcadd(1, root_mu), new_sn);
     var bot = rcadd(1, cmul(root_mu, cmul(new_sn, new_sn)));
@@ -93,7 +103,12 @@ function jacobi_cn(u, m) {
         // cn(u, 1) = sech(u)
         return 1 / Math.cosh(u);
     }
-    var {v, mu, root_mu1} = ascending_transform(u, m);
+    //var {v, mu, root_mu1} = ascending_transform(u, m);
+    var xfrm = ascending_transform(u, m);
+    var v = xfrm.v;
+    var mu = xfrm.mu;
+    var root_mu = xfrm.root_mu;
+
     var d = jacobi_dn(v, mu);
     return (1 + root_mu1) / mu * ((d * d - root_mu1) / d);
 }
@@ -105,7 +120,12 @@ function complex_jacobi_cn(u, m) {
     if (cequalr(m, 1)) {
         return rcdiv(1, complex_cosh(u));
     }
-    var {v, mu, root_mu1} = complex_ascending_transform(u, m);
+    //var {v, mu, root_mu1} = complex_ascending_transform(u, m);
+    var xfrm = complex_ascending_transform(u, m);
+    var v = xfrm.v;
+    var mu = xfrm.mu;
+    var root_mu = xfrm.root_mu;
+
     var d = complex_jacobi_dn(v, mu);
     var cn = cmul(cdiv(rcadd(1, root_mu1), mu),
                   cdiv(csub(cmul(d, d),
