@@ -51,9 +51,16 @@ function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     console.log("v0 = ");
     console.log(v0);
 
+    var pa0;
+    pa0 = complex_jacobi_sn({re: 0, im: v0 * K}, {re: k*k, im: 0});
+    pa0 = cmul({re: 0, im: wp}, pa0);
+    console.log("pa0 =");
+    console.log(pa0);
+    
     var pa = new Array(L);
     for (var n = 1; n <= L; ++n) {
-        pa[n-1] = complex_jacobi_cd({re: (2*n-1)/L, im: -v0}, {re: k*k, im: 0});
+        pa[n-1] = complex_jacobi_cd({re: (2*n-1)/L*K, im: -v0*K}, {re: k*k, im: 0});
+	pa[n-1] = cmul({re:0, im: wp}, pa[n-1]);
     }
     console.log("pa = ");
     console.log(pa);
