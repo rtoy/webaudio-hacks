@@ -15,13 +15,17 @@ var mod;
 
 function designFilter(filterType) {
     sampleRate = document.getElementById("samplerate").value;
-    var passBand = document.getElementById("passband").value;
-    var stopBand = document.getElementById("stopband").value;
-    var passdB = document.getElementById("passdB").value;
-    var stopdB = document.getElementById("stopdB").value;
+    var passBand = document.getElementById("passband").value | 0;
+    var stopBand = document.getElementById("stopband").value | 0;
+    var passdB = document.getElementById("passdB").value | 0;
+    var stopdB = document.getElementById("stopdB").value | 0;
+
+    if (passBand <= 0 || stopBand <= 0 || passBand >= stopBand) {
+	alert("Invalid passband or stopband frequencies");
+	return;
+    }
 
     var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
-    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
 
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
@@ -33,6 +37,17 @@ function designFilter(filterType) {
 
     plotAnalogResponse(analogFilter);
 
+    if (sampleRate <= 0) {
+	alert("Sample rate must be positive!");
+	return;
+    }
+
+    if (passBand >= sampleRate / 2 || stopBand >= sampleRate /2) {
+	alert("Invalid pass band or stop band frequency exceeds Nyquist frequency.");
+	return;
+    }
+
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
@@ -139,6 +154,15 @@ function createGraph(webaudioDesc, Fs, filterType) {
 }
 
 function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
+    try {
+	context = new OfflineAudioContext(1, 1, Fs);
+    } catch (e) {
+	var warning = "<p>Could not create offline audio context with sample rate " + Fs + " Hz.</p>";
+	warning += "<p>Thus the filter response cannot be plotted.</p>";
+	document.getElementById("graph-webaudio").innerHTML = warning;
+	return;
+    };
+
     try {
 	createGraph(webaudioDesc, Fs, filterType);
     } catch (e) {
