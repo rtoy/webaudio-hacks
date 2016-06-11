@@ -107,7 +107,7 @@ function jacobi_cn(u, m) {
     var xfrm = ascending_transform(u, m);
     var v = xfrm.v;
     var mu = xfrm.mu;
-    var root_mu = xfrm.root_mu;
+    var root_mu1 = xfrm.root_mu1;
 
     var d = jacobi_dn(v, mu);
     return (1 + root_mu1) / mu * ((d * d - root_mu1) / d);
@@ -124,7 +124,7 @@ function complex_jacobi_cn(u, m) {
     var xfrm = complex_ascending_transform(u, m);
     var v = xfrm.v;
     var mu = xfrm.mu;
-    var root_mu = xfrm.root_mu;
+    var root_mu1 = xfrm.root_mu1;
 
     var d = complex_jacobi_dn(v, mu);
     var cn = cmul(cdiv(rcadd(1, root_mu1), mu),
