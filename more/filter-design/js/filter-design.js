@@ -80,6 +80,7 @@ function designFilter(filterType) {
 function displayWebAudio(webaudioDesc, options) {
     // Generate code that implements the filter structure described by webaudioDesc.
     var text = "<pre>\n";
+    text += '<code class="javascript">\n';
     text += "// WebAudio " + options.filterType + " design\n";
     text += "// Order = "+ options.order + "\n";
     text += "// Sample rate = " + options.sampleRate + " Hz\n";
@@ -125,10 +126,14 @@ function displayWebAudio(webaudioDesc, options) {
 	text += "f" + (filters.length - 1);
 	text += ".connect(g);\n";
 	text += "g.connect(context.destination);\n";
-	text += "</pre>\n";
     }
 
-    document.getElementById("webaudio-eq").innerHTML = text;
+    text += "</code>\n";
+    text += "</pre>\n";
+    var element = document.getElementById("webaudio-eq");
+    element.innerHTML = text;
+    hljs.highlightBlock(element);
+    
 }
 
 function createGraph(webaudioDesc, Fs, filterType) {
