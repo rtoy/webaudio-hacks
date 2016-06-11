@@ -153,6 +153,10 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
     var k1 = ep / es;
 
     var N;
+    var K;
+    var Kp;
+    var K1;
+    var K1p;
 
     // Determine order of filter to meet or exceed the requirements
     if (type === "butterworth") {
@@ -164,7 +168,21 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         // Revompute k to satisfy degree equation
         k = 1 / Math.cosh(Math.acosh(1 / k1) / N);
     } else if (type === "elliptic") {
-        throw "Unknown filter type: " + type;
+        K = elliptic_kc(k * k);
+        Kp = elliptic_kc(1 - k * k);
+        console.log("K = " + K + ", K' = " + Kp);
+
+        K1 = elliptic_kc(k1 * k1);
+        K1p = elliptic_kc(1 - k1 * k1);
+        console.log("K1 = " + K1 + ", K1' = " + K1p);
+
+        N = (K1p / K1) / (Kp / K);
+        console.log("N = " + N + ", " + Math.ceil(N));
+        N = Math.ceil(N);
+
+        k = ellipticDeg(N, K1, K1p);
+        K = elliptic_kc(k * k);
+        console.log("new k = " + k + ", K = " + K);
     }
 
     var L = Math.floor(N / 2);
@@ -226,6 +244,67 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         pa0 = -factor / Math.sinh(v0 * Math.PI / 2);
     } else {
         // Elliptic
+        var fs_new = fp / k;
+        console.log("fs_new = " + fs_new);
+        var L = Math.floor(N / 2);
+        var r = N - 2 * L;
+
+        var zeta_i = new Array(L);
+        for (var n = 1; n <= L; ++n) {
+            zeta_i[n - 1] = jacobi_cd((2 * n - 1) / N * K, k * k);
+        }
+        console.log("zeta_i = ");
+        console.log(zeta_i);
+
+        var za = zeta_i.map(function (z) {
+            return {
+	        re: 0,
+                im: Wp / (k * z)
+            };
+        });
+        console.log("za = ");
+        console.log(za);
+
+        var v0 = complex_inverse_jacobi_sn({
+            re: 0,
+            im: 1 / ep
+        }, k1 * k1);
+        v0 = v0.im / N / K1;
+        console.log("v0 = ");
+        console.log(v0);
+
+        var pa0;
+        pa0 = complex_jacobi_sn({
+            re: 0,
+            im: v0 * K
+        }, {
+            re: k * k,
+            im: 0
+        });
+        pa0 = cmul({
+            re: 0,
+            im: Wp
+        }, pa0);
+	pa0 = pa0.re;
+        console.log("pa0 =");
+        console.log(pa0);
+
+        var pa = new Array(L);
+        for (var n = 1; n <= L; ++n) {
+            pa[n - 1] = complex_jacobi_cd({
+                re: (2 * n - 1) / N * K,
+                im: -v0 * K
+            }, {
+                re: k * k,
+                im: 0
+            });
+            pa[n - 1] = cmul({
+                re: 0,
+                im: Wp
+            }, pa[n - 1]);
+        }
+        console.log("pa = ");
+        console.log(pa);
     }
 
     var H0 = 1;
