@@ -208,7 +208,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     for (var k = 0; k < totalMag.length; ++k) {
 	var r = plotType === "dB" ? 20*Math.log10(totalMag[k]) : totalMag[k];
 	dataMag.push([freq[k], r]);
-        dataPhase.push([freq[k], phase[k]*180/Math.PI]);
+        dataPhase.push([freq[k], totalPhase[k]*180/Math.PI]);
     }
     
     if (plotType == "dB") {
