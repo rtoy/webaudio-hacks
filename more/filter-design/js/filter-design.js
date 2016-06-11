@@ -20,10 +20,10 @@ function setPlotType(type) {
 
 function designFilter(filterType) {
     sampleRate = document.getElementById("samplerate").value;
-    var passBand = document.getElementById("passband").value | 0;
-    var stopBand = document.getElementById("stopband").value | 0;
-    var passdB = document.getElementById("passdB").value | 0;
-    var stopdB = document.getElementById("stopdB").value | 0;
+    var passBand = Number(document.getElementById("passband").value);
+    var stopBand = Number(document.getElementById("stopband").value);
+    var passdB = Number(document.getElementById("passdB").value);
+    var stopdB = Number(document.getElementById("stopdB").value);
 
     if (passBand <= 0 || stopBand <= 0 || passBand >= stopBand) {
 	alert("Invalid passband or stopband frequencies");
