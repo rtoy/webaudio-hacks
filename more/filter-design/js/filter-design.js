@@ -8,10 +8,15 @@ var freq;
 var mag;
 var phase;
 
+var plotType = "dB";
 var gain;
 var osc;
 var modGain;
 var mod;
+
+function setPlotType(type) {
+    plotType = type;
+}
 
 function designFilter(filterType) {
     sampleRate = document.getElementById("samplerate").value;
@@ -201,10 +206,25 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     var dataMag = [];
     var dataPhase = [];
     for (var k = 0; k < totalMag.length; ++k) {
-	dataMag.push([freq[k], 20*Math.log10(totalMag[k])]);
+	var r = plotType === "dB" ? 20*Math.log10(totalMag[k]) : totalMag[k];
+	dataMag.push([freq[k], r]);
         dataPhase.push([freq[k], phase[k]*180/Math.PI]);
     }
     
+    if (plotType == "dB") {
+	plotOptions = {
+        yaxes: [{
+            min: -80
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
+    }
+
     $.plot($("#graph-webaudio"), [{
         data: dataMag,
         label: "Magnitude response"
@@ -212,13 +232,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
         data: dataPhase,
         label: "Phase response",
         yaxis: 2
-    }], {
-        yaxes: [{
-            min: -80
-        }, {
-            position: "right"
-        }]
-    });
+    }], plotOptions);
 
 }
 
@@ -237,9 +251,25 @@ function plotAnalogResponse(filter) {
     var analogMag = [];
     var analogPhase = [];
     for (var k = 0; k < freq.length; ++k) {
-        var r = 20 * Math.log10(mag[k]);
+        var r = plotType === "dB" ? 20 * Math.log10(mag[k]) : mag[k];
         analogMag.push([freq[k], r]);
         analogPhase.push([freq[k], (phase[k]*180/Math.PI) % 180]);
+    }
+
+    var plotOptions;
+
+    if (plotType == "dB") {
+	plotOptions = {
+        yaxes: [{
+            min: -80
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
     }
 
     $.plot($("#graph-analog"), [{
@@ -249,13 +279,8 @@ function plotAnalogResponse(filter) {
         data: analogPhase,
         label: "Phase response",
         yaxis: 2
-    }], {
-        yaxes: [{
-            min: -80
-        }, {
-            position: "right"
-        }]
-    });
+    }], plotOptions
+    );
 }
 
 function plotDigitalResponse(filter, Fs) {
@@ -271,8 +296,25 @@ function plotDigitalResponse(filter, Fs) {
     var digitalMag = [];
     var digitalPhase = [];
     for (var k = 0; k < freq.length; ++k) {
-        digitalMag.push([freq[k], 20 * Math.log10(mag[k])]);
+	var r = plotType === "dB" ? 20 * Math.log10(mag[k]) : mag[k];
+        digitalMag.push([freq[k], r]);
         digitalPhase.push([freq[k], phase[k]*180/Math.PI]);
+    }
+
+    var plotOptions;
+
+    if (plotType == "dB") {
+	plotOptions = {
+        yaxes: [{
+            min: -80
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
     }
 
     $.plot($("#graph-digital"), [{
@@ -282,13 +324,8 @@ function plotDigitalResponse(filter, Fs) {
         data: digitalPhase,
         label: "Phase response",
         yaxis: 2
-    }], {
-        yaxes: [{
-            min: -80
-        }, {
-            position: "right"
-        }]
-    });
+    }], plotOptions
+	);
 }
 
 // Check the Q implementation and return a promise.

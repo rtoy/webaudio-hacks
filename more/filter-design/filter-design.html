@@ -36,32 +36,39 @@
   <body>
     <h1>Digital Filter Design</h1>
 
+    <h3>Filter Parameters</h3>
     <form>
       <div>
 	Sample Rate (Hz)
 	<input id="samplerate" type="number" min="3000" max="192000" value="48000">
       </div>
       <div>
-        Passband (Hz)
-        <input id="passband" type="number" min="0" value="4800" />
+	Passband (Hz)
+	<input id="passband" type="number" min="0" value="4800" />
       </div>
       <div>
-        Passband attenuation, dB
-        <input id="passdB" type="number" min="0" value="1" />
+	Passband attenuation, dB
+	<input id="passdB" type="number" min="0" value="1" />
       </div>
       <br>
       <div>
-        Stopband (Hz)
-        <input id="stopband" type="number" min="0" value="7200" />
+	Stopband (Hz)
+	<input id="stopband" type="number" min="0" value="7200" />
       </div>
       <div style="float:left">
-        Stopband attenuation, dB
-        <input id="stopdB" type="number" min="0" value="15" />
+	Stopband attenuation, dB
+	<input id="stopdB" type="number" min="0" value="15" />
       </div>
     </form>
 
     <br>
-    <br>
+    <h3>Plot style for response</h3>
+    <form>
+      <input type="radio" name="plotType" onclick="setPlotType('dB')" checked>dB plot</input><br>
+      <input type="radio" name="plotType" onclick="setPlotType('linear')">linear plot</input><br>
+    </form>
+
+    <h3>Design Filter</h3>
     <button type="button" onclick="designFilter('butterworth')">Design Butterworth Filter</button>
     <button type="button" onclick="designFilter('cheby-1')">Design Chebyshev-1 Filter</button>
     <button type="button" onclick="designFilter('cheby-2')">Design Chebyshev-2 Filter</button>
@@ -112,7 +119,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sat Jun 11 11:33:20 PDT 2016
+Last modified: Sat Jun 11 12:05:00 PDT 2016
 <!-- hhmts end -->
   </body>
 
