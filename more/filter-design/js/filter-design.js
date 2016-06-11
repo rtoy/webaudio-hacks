@@ -239,7 +239,7 @@ function plotAnalogResponse(filter) {
     for (var k = 0; k < freq.length; ++k) {
         var r = 20 * Math.log10(mag[k]);
         analogMag.push([freq[k], r]);
-        analogPhase.push([freq[k], phase[k]*180/Math.PI]);
+        analogPhase.push([freq[k], (phase[k]*180/Math.PI) % 180]);
     }
 
     $.plot($("#graph-analog"), [{
