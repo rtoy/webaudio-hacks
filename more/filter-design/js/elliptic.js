@@ -132,9 +132,9 @@ function complex_jacobi_cn(u, m) {
 
     var d = complex_jacobi_dn(v, mu);
     var cn = cmul(cdiv(rcadd(1, root_mu1), mu),
-                  cdiv(csub(cmul(d, d),
-                            root_mu1),
-                       d));
+        cdiv(csub(cmul(d, d),
+                root_mu1),
+            d));
     return cn;
 }
 
@@ -162,8 +162,8 @@ function complex_ascending_transform(u, m) {
 
     return {
         v: v,
-            mu: mu,
-            root_mu1: root_mu1
+        mu: mu,
+        root_mu1: root_mu1
     };
 }
 
