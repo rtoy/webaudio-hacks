@@ -220,14 +220,9 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         var za = new Array(L);
         for (var m = 0; m < L; ++m) {
             za[m] = makeComplex(0, -factor / Math.cos(Math.PI / 2 * u[m]));
-            var su = Math.sin(Math.PI / 2 * u[m]);
-            var cu = Math.cos(Math.PI / 2 * u[m]);
-            var shv = Math.sinh(Math.PI / 2 * v0);
-            var chv = Math.cosh(Math.PI / 2 * v0);
-            var d = su * su * shv * shv + cu * cu * chv * chv;
-            var pr = -factor * su * shv / d;
-            var pi = -factor * cu * chv / d;
-            pa[m] = makeComplex(pr, pi);
+            pa[m] = cdiv(
+                makeComplex(0, -factor),
+                complex_cos(rcmul(Math.PI / 2, makeComplex(u[m], v0))));
         }
         pa0 = -factor / Math.sinh(v0 * Math.PI / 2);
     } else {
