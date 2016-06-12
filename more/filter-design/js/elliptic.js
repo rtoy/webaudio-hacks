@@ -23,10 +23,6 @@ function complex_jacobi_sn(u, m) {
     return complex_elliptic_sn_descending(u, m);
 }
 
-function jacobi_snk(u, k) {
-    return jacobi_sn(u, k * k);
-}
-
 function elliptic_sn_descending(u, m) {
     if (m == 1) {
         // sn(u, 1) = tanh(u)
@@ -134,10 +130,6 @@ function complex_jacobi_cn(u, m) {
     return cn;
 }
 
-function jacobi_cnk(u, k) {
-    return jacobi_cn(u, k * k);
-}
-
 function ascending_transform(u, m) {
     var root_m = Math.sqrt(m);
     var mu = 4 * root_m / Math.pow(1 + root_m, 2);
@@ -196,14 +188,6 @@ function complex_jacobi_dn(u, m) {
     var p = cmul(root, cmul(s, s));
     var dn = cdiv(rcsub(1, p), rcadd(1, p));
     return dn;
-}
-
-function jacobi_dnk(u, k) {
-    return jacobi_dn(u, k*k);
-}
-
-function jacobi_cdk(u, k) {
-    return jacobi_cnk(u, k) / jacobi_dnk(u, k);
 }
 
 function elliptic_kc(m) {
@@ -302,9 +286,11 @@ function inverse_jacobi_sn(u, m) {
     return u * carlson_rf(1 - u*u, 1 - m*u*u, 1);
 }
 
+/*
 function inverse_jacobi_snk(u, k) {
     return inverse_jacobi_sn(u, k*k);
 }
+*/
 
 function inverse_jacobi_dn(w, m) {
     if (w == 1) {
@@ -332,10 +318,6 @@ function complex_jacobi_cd(u, m) {
 
 function inverse_jacobi_cd(w, m) {
     return inverse_jacobi_sn(Math.sqrt(1 - w*w) / Math.sqrt(1 - m*w*w), m);
-}
-
-function inverse_jacobi_cdk(w, k) {
-    return inverse_jacobi_cd(w, k*k);
 }
 
 function complex_inverse_jacobi_sn(u, m) {
