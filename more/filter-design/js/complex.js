@@ -106,7 +106,7 @@ function complex_sin(z) {
 }
 
 // Cos of a complex value
-function complex_cos(u) {
+function complex_cos(z) {
     // cos(x+%i*y) = cos(x)*cosh(y) - i*sin(x)*sinh(y)
     // For our purposes, this is good enough.
     return makeComplex(
