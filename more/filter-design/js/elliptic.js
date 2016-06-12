@@ -220,10 +220,6 @@ function elliptic_kc(m) {
     return carlson_rf(0, 1 - m, 1);
 }
 
-function elliptic_kck(k) {
-    return elliptic_kc(k*k);
-}
-
 function errtol(x, y, z) {
     return Math.sqrt(Number.EPSILON);
 }
