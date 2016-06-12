@@ -1,6 +1,8 @@
 //----------------------------------------------------------------------
 // Jacobian elliptic fucntions.
 //
+
+// Jacobi sn for real arguments
 function jacobi_sn(u, m) {
     if (m == 0) {
         // sn(u, 0) = sin(u)
@@ -13,6 +15,7 @@ function jacobi_sn(u, m) {
     return elliptic_sn_descending(u, m);
 }
 
+// Jacobi sn for complex arguments
 function complex_jacobi_sn(u, m) {
     if (cequalr(m, 0)) {
         return complex_sin(u);
@@ -23,6 +26,7 @@ function complex_jacobi_sn(u, m) {
     return complex_elliptic_sn_descending(u, m);
 }
 
+// Descending Landen transform for Jacobi sn (real)
 function elliptic_sn_descending(u, m) {
     if (m == 1) {
         // sn(u, 1) = tanh(u)
@@ -42,6 +46,7 @@ function elliptic_sn_descending(u, m) {
     return (1 + root_mu) * new_sn / (1 + root_mu * new_sn * new_sn);
 }
 
+// Descending Landen transform for Jacobi sn (complex)
 function complex_elliptic_sn_descending(u, m) {
     if (cequalr(m, 1)) {
         // sn(u, 1) = tanh(u)
@@ -63,7 +68,7 @@ function complex_elliptic_sn_descending(u, m) {
     return cdiv(top, bot);
 }
 
-// Descending Landen transform
+// Descending Landen transform (real)
 function descending_transform(u, m) {
     var root_m1 = Math.sqrt(1 - m);
     var root_mu = (1 - root_m1) / (1 + root_m1);
@@ -77,6 +82,7 @@ function descending_transform(u, m) {
     };
 }
 
+// Descending Landen transform (complex)
 function complex_descending_transform(u, m) {
     var root_m1 = csqrt(rcsub(1, m));
     var root_mu = cdiv(rcsub(1, root_m1), rcadd(1, root_m1));
@@ -90,6 +96,7 @@ function complex_descending_transform(u, m) {
     };
 }
 
+// Jacobi cn function for real arguments.
 function jacobi_cn(u, m) {
     if (m == 0) {
         // cn(u, 0) = cos(u)
@@ -109,6 +116,7 @@ function jacobi_cn(u, m) {
     return (1 + root_mu1) / mu * ((d * d - root_mu1) / d);
 }
 
+// Jacobi cn function for complex arguments.
 function complex_jacobi_cn(u, m) {
     if (cequalr(m, 0)) {
         return complex_cos(u);
@@ -130,6 +138,7 @@ function complex_jacobi_cn(u, m) {
     return cn;
 }
 
+// Ascending Landen transform for real arguments
 function ascending_transform(u, m) {
     var root_m = Math.sqrt(m);
     var mu = 4 * root_m / Math.pow(1 + root_m, 2);
@@ -143,6 +152,7 @@ function ascending_transform(u, m) {
     };
 }
 
+// Ascending Landen transform for complex arguments
 function complex_ascending_transform(u, m) {
     var root_m = csqrt(m);
     var root_m1 = rcadd(1, root_m);
@@ -157,6 +167,7 @@ function complex_ascending_transform(u, m) {
     };
 }
 
+// Jacobi dn function for real arguments
 function jacobi_dn(u, m) {
     if (m == 0) {
         // dn(u, 0) = 1
@@ -174,6 +185,7 @@ function jacobi_dn(u, m) {
     return (1 - p) / (1 + p);
 }
 
+// Jacobi dn function for complex arguments
 function complex_jacobi_dn(u, m) {
     if (cequalr(m, 0)) {
         return {re: 1, im: 0};
@@ -190,6 +202,7 @@ function complex_jacobi_dn(u, m) {
     return dn;
 }
 
+// Complete elliptic integral of the first kind, real parameter
 function elliptic_kc(m) {
     if (m < 0) {
         m = -m;
@@ -215,6 +228,7 @@ function errtol(x, y, z) {
     return Math.sqrt(Number.EPSILON);
 }
 
+// Carlson's RF function for real arguments
 function carlson_rf(x, y, z) {
     var xn = x;
     var yn = y;
@@ -246,6 +260,7 @@ function carlson_rf(x, y, z) {
     return s / Math.sqrt(an);
 }
 
+// Carlson's RF function for complex arguments
 function complex_carlson_rf(x, y, z) {
     var xn = x;
     var yn = y;
@@ -282,6 +297,7 @@ function complex_carlson_rf(x, y, z) {
     return cdiv(s, csqrt(an));
 }
 
+// Inverse jacobi sn function for real arguments
 function inverse_jacobi_sn(u, m) {
     return u * carlson_rf(1 - u*u, 1 - m*u*u, 1);
 }
@@ -306,10 +322,12 @@ function inverse_jacobi_dn(w, m) {
         
 }
 
+// Jacobi cd function for real arguments
 function jacobi_cd(u, m) {
     return jacobi_cn(u, m) / jacobi_dn(u, m);
 }
 
+// Jacobi cd function for complex arguments
 function complex_jacobi_cd(u, m) {
     var cn = complex_jacobi_cn(u, m);
     var dn = complex_jacobi_dn(u, m);
