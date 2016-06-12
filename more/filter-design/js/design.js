@@ -508,11 +508,12 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
                 makeComplex(1 - z[m].re, -z[m].im));
             var g = Math.pow(cabs(G), 2);
             A.push([1, -2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
-            // For cheby-2 filters, I think we have notch filters, so
-            // the coefficient of the z^(-2) term should be exactly 0.
-            // Make it so.
-            var c = (type === "cheby-2") ? 1 : Math.pow(cabs(z[m]), 2);
-            B.push([g, [1, -2 * z[m].re, c]]);
+	    // For both Chebyshev-2 and elliptic filters, the zeroes
+	    // of the analog filter are pure imaginary.  In that case,
+	    // the bilinear transform of the zero za to the digital
+	    // domain is (1+za)/(1-za).  It's easy to show that the
+	    // absolute value is exactly 1.  Make it so.
+            B.push([g, [1, -2 * z[m].re, 1]]);
         }
     }
 
