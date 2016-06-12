@@ -302,12 +302,6 @@ function inverse_jacobi_sn(u, m) {
     return u * carlson_rf(1 - u*u, 1 - m*u*u, 1);
 }
 
-/*
-function inverse_jacobi_snk(u, k) {
-    return inverse_jacobi_sn(u, k*k);
-}
-*/
-
 function inverse_jacobi_dn(w, m) {
     if (w == 1) {
         return 0;
