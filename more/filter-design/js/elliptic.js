@@ -325,10 +325,6 @@ function complex_inverse_jacobi_sn(u, m) {
     arg1 = rcsub(1, arg1);
 
     var arg2 = rcsub(1, rcmul(m, cmul(u,u)));
-    console.log("arg1");
-    console.log(arg1)
-    console.log("arg2");
-    console.log(arg2)
         
     return cmul(u, complex_carlson_rf(arg1, arg2,{re: 1, im:0}));
 }
