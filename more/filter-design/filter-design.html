@@ -36,7 +36,15 @@
   <body>
     <h1>Digital Filter Design</h1>
 
+
     <h3>Filter Parameters</h3>
+    <form>
+      <input type="radio" name="filterType" onclick="setFilterType('lowpass')" checked>Lowpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('highpass')">Highpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('bandpass')" disabled>Bandpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('bandstop')" disabled>Bandstop<br>
+    </form>
+    <br>
     <form>
       <div>
 	Sample Rate (Hz)
@@ -119,7 +127,7 @@
     <address><a href="mailto:toy.raymond@gmail.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sat Jun 11 15:45:49 PDT 2016
+Last modified: Sun Jun 12 13:08:07 PDT 2016
 <!-- hhmts end -->
   </body>
 

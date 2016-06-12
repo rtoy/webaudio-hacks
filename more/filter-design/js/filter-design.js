@@ -8,6 +8,7 @@ var freq;
 var mag;
 var phase;
 
+var filterType = "lowpass";
 var plotType = "dB";
 var gain;
 var osc;
@@ -18,7 +19,21 @@ function setPlotType(type) {
     plotType = type;
 }
 
-function designFilter(filterType) {
+function setFilterType(type) {
+    filterType = type;
+}
+
+function designFilter(filterImplType) {
+    if (filterType == "lowpass") {
+	designLowpassFilter(filterImplType);
+    } else if (filterType == "highpass") {
+	designHighpassFilter(filterImplType);
+    } else {
+	alert("Not yet implemented: " + filterType);
+    }
+}
+
+function designLowpassFilter(filterImplType) {
     sampleRate = document.getElementById("samplerate").value;
     var passBand = Number(document.getElementById("passband").value);
     var stopBand = Number(document.getElementById("stopband").value);
@@ -30,12 +45,12 @@ function designFilter(filterType) {
 	return;
     }
 
-    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
+    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
 
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
 
-    var description = "Analog " + filterType + " design of order " + analogFilter.order;
+    var description = "Analog " + filterImplType + " design of order " + analogFilter.order;
     document.getElementById("analog-type").innerHTML = description;
     var math = MathJax.Hub.getAllJax("analog-eq");
     MathJax.Hub.Queue(["Text", math[0], aFormula]);
@@ -52,11 +67,11 @@ function designFilter(filterType) {
 	return;
     }
 
-    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
-    description = "Digital " + filterType + " design of order " + digitalFilter.order;
+    description = "Digital " + filterImplType + " design of order " + digitalFilter.order;
     description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
@@ -64,18 +79,60 @@ function designFilter(filterType) {
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
-    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterType);
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
     console.log(webaudio);
     displayWebAudio(webaudio, { order: digitalFilter.order,
 		sampleRate: sampleRate,
-		filterType: filterType,
+		filterImplType: filterImplType,
 		passBand: passBand,
 		stopBand: stopBand,
 		passAttenuation: passdB,
 		stopAttenuation: stopdB});
 
-    plotWebAudioResponse(webaudio, sampleRate, filterType);
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
 }
+
+function designHighpassFilter(filterImplType) {
+    sampleRate = document.getElementById("samplerate").value;
+    var passBand = Number(document.getElementById("passband").value);
+    var stopBand = Number(document.getElementById("stopband").value);
+    var passdB = Number(document.getElementById("passdB").value);
+    var stopdB = Number(document.getElementById("stopdB").value);
+
+    // Map the highpass frequency parameters to the equivalent lowpass
+    // equivalent and design a lowpass filter.
+    var passBandLow = 1 / (passBand);
+    var stopBandLow = 1/ (stopBand);
+
+    var analogFilter = analogLowpassFilter(passBandLow, stopBandLow, passdB, stopdB, filterImplType);
+
+    console.log("Highpass:  lowpass equivalent:");
+    console.log(analogFilter);
+    // The equivalent highpass filter can be obtained from the lowpass
+    // filter above by substituting 1/s in the transfer function.
+    // This can be done by reversing the order of the coefficients for
+    // the numerator and denominator terms.
+
+    for (var n = 0; n < analogFilter.bot.length; ++n) {
+	analogFilter.bot[n] = analogFilter.bot[n].reverse();
+	analogFilter.top[n] = analogFilter.top[n].reverse();
+    }
+    
+
+    console.log("Highpass:");
+    console.log(analogFilter);
+
+    var aFormula = analogTeX(analogFilter);
+    console.log(aFormula);
+
+    var description = "Analog " + filterImplType + " design of order " + analogFilter.order;
+    document.getElementById("analog-type").innerHTML = description;
+    var math = MathJax.Hub.getAllJax("analog-eq");
+    MathJax.Hub.Queue(["Text", math[0], aFormula]);
+
+    plotAnalogResponse(analogFilter);
+}
+
 
 function displayWebAudio(webaudioDesc, options) {
     // Generate code that implements the filter structure described by webaudioDesc.

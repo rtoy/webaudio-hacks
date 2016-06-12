@@ -361,12 +361,12 @@ function analogTermTeX(term) {
         if (term[0][1] == 0) {
             f += "1";
         } else {
-            f += "1 " + texifyNumber(term[0][1], {
+            f += texifyNumber(term[0][0]) + texifyNumber(term[0][1], {
                 addSign: true
             }) + "s";
         }
         f += "}{";
-        f += "1 " + texifyNumber(term[1][1], {
+        f += texifyNumber(term[1][0]) + texifyNumber(term[1][1], {
             addSign: true
         }) + "s";
         f += "}";
@@ -385,7 +385,7 @@ function analogTermTeX(term) {
             }) + "s^2";
         }
         f += "}{";
-        f += "1 " + texifyNumber(term[1][1], {
+        f += texifyNumber(term[1][0]) + texifyNumber(term[1][1], {
             addSign: true
         }) + "s ";
         f += texifyNumber(term[1][2], {
@@ -418,9 +418,9 @@ function analogResponse(filter, freq) {
     var top = filter.top;
     var bot = filter.bot;
     // To compute the response we need to calculate expression of the
-    // form 1+b*s+c*s^2 where s = 2*pi*j*f.
+    // form a+b*s+c*s^2 where s = 2*pi*j*f.
     //
-    //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
+    //  a+b*s+c*s^2 = (a-4*pi*c*f^2) + i*2*pi*b*f
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
     mag.fill(filter.H0);
@@ -433,14 +433,14 @@ function analogResponse(filter, freq) {
         var f = freq[k];
         for (var m = 0; m < top.length; ++m) {
             if (top[m].length == 2) {
-                mag[k] *= Math.hypot(1, top[m][1] * pi2 * f);
-                mag[k] /= Math.hypot(1, bot[m][1] * pi2 * f);
+                mag[k] *= Math.hypot(top[m][0], top[m][1] * pi2 * f);
+                mag[k] /= Math.hypot(bot[m][0], bot[m][1] * pi2 * f);
             } else {
                 // 1-4*pi*c*f^2 + i*2*pi*b*f.
-                mag[k] *= Math.hypot(1 - top[m][2] * pi4 * f * f, pi2 * top[m][1] * f);
-                mag[k] /= Math.hypot(1 - bot[m][2] * pi4 * f * f, pi2 * bot[m][1] * f);
-                phase[k] += Math.atan2(pi2 * top[m][1] * f, 1 - top[m][2] * pi4 * f * f);
-                phase[k] -= Math.atan2(pi2 * bot[m][1] * f, 1 - bot[m][2] * pi4 * f * f);
+                mag[k] *= Math.hypot(top[m][0] - top[m][2] * pi4 * f * f, pi2 * top[m][1] * f);
+                mag[k] /= Math.hypot(bot[m][0] - bot[m][2] * pi4 * f * f, pi2 * bot[m][1] * f);
+                phase[k] += Math.atan2(pi2 * top[m][1] * f, top[m][0] - top[m][2] * pi4 * f * f);
+                phase[k] -= Math.atan2(pi2 * bot[m][1] * f, bot[m][0] - bot[m][2] * pi4 * f * f);
             }
         }
     }
