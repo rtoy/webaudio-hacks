@@ -202,10 +202,7 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         for (var m = 0; m < L; ++m) {
             var pr = factor * Math.cos(Math.PI / 2 * u[m]);
             var pi = factor * Math.sin(Math.PI / 2 * u[m]);
-            pa[m] = {
-                re: -pi,
-                im: pr
-            };
+            pa[m] = makeComplex(-pi, pr);
             pa0 = -factor;
         }
     } else if (type === "cheby-1") {
@@ -214,10 +211,7 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         for (var m = 0; m < L; ++m) {
             var pr = Math.cos(Math.PI / 2 * u[m]) * Math.cosh(Math.PI / 2 * v0);
             var pi = Math.sin(Math.PI / 2 * u[m]) * Math.sinh(Math.PI / 2 * v0);
-            pa[m] = {
-                re: -Wp * pi,
-                im: Wp * pr
-            };
+            pa[m] = makeComplex(-Wp * pi, Wp * pr);
         }
         pa0 = -Wp * Math.sinh(v0 * Math.PI / 2);
     } else if (type === "cheby-2") {
@@ -225,10 +219,7 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         var v0 = Math.asinh(es) / (N * Math.PI / 2);
         var za = new Array(L);
         for (var m = 0; m < L; ++m) {
-            za[m] = {
-                re: 0,
-                im: -factor / Math.cos(Math.PI / 2 * u[m])
-            };
+            za[m] = makeComplex(0, -factor / Math.cos(Math.PI / 2 * u[m]));
             var su = Math.sin(Math.PI / 2 * u[m]);
             var cu = Math.cos(Math.PI / 2 * u[m]);
             var shv = Math.sinh(Math.PI / 2 * v0);
@@ -236,10 +227,7 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
             var d = su * su * shv * shv + cu * cu * chv * chv;
             var pr = -factor * su * shv / d;
             var pi = -factor * cu * chv / d;
-            pa[m] = {
-                re: pr,
-                im: pi
-            };
+            pa[m] = makeComplex(pr, pi);
         }
         pa0 = -factor / Math.sinh(v0 * Math.PI / 2);
     } else {
@@ -257,51 +245,30 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         console.log(zeta_i);
 
         var za = zeta_i.map(function (z) {
-            return {
-	        re: 0,
-                im: Wp / (k * z)
-            };
+            return makeComplex(0, Wp / (k * z));
         });
+
         console.log("za = ");
         console.log(za);
 
-        var v0 = complex_inverse_jacobi_sn({
-            re: 0,
-            im: 1 / ep
-        }, k1 * k1);
+        var v0 = complex_inverse_jacobi_sn(makeComplex(0, 1 / ep), k1 * k1);
         v0 = v0.im / N / K1;
         console.log("v0 = ");
         console.log(v0);
 
         var pa0;
-        pa0 = complex_jacobi_sn({
-            re: 0,
-            im: v0 * K
-        }, {
-            re: k * k,
-            im: 0
-        });
-        pa0 = cmul({
-            re: 0,
-            im: Wp
-        }, pa0);
+        pa0 = complex_jacobi_sn(makeComplex(0, v0 * K), makeComplex(k * k));
+        pa0 = cmul(makeComplex(0, Wp) , pa0);
 	pa0 = pa0.re;
         console.log("pa0 =");
         console.log(pa0);
 
         var pa = new Array(L);
         for (var n = 1; n <= L; ++n) {
-            pa[n - 1] = complex_jacobi_cd({
-                re: (2 * n - 1) / N * K,
-                im: -v0 * K
-            }, {
-                re: k * k,
-                im: 0
-            });
-            pa[n - 1] = cmul({
-                re: 0,
-                im: Wp
-            }, pa[n - 1]);
+            pa[n - 1] = complex_jacobi_cd(
+                makeComplex((2 * n - 1) / N * K, -v0 * K),
+                makeComplex(k * k));
+            pa[n - 1] = cmul(makeComplex(0, Wp), pa[n - 1]);
         }
         console.log("pa = ");
         console.log(pa);
@@ -508,20 +475,12 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
     var H0 = polesZeroes.H0;
 
     var p0 = (1 + pa0) / (1 - pa0);
-    var z = za.map(zz => cdiv({
-        re: 1 + zz.re,
-        im: zz.im
-    }, {
-        re: 1 - zz.re,
-        im: -zz.im
-    }));
-    var p = pa.map(pp => cdiv({
-        re: 1 + pp.re,
-        im: pp.im
-    }, {
-        re: 1 - pp.re,
-        im: -pp.im
-    }));
+    var z = za.map(zz => cdiv(
+        makeComplex(1 + zz.re, zz.im),
+        makeComplex(1 - zz.re, -zz.im)));
+    var p = pa.map(pp => cdiv(
+        makeComplex(1 + pp.re, pp.im),
+        makeComplex(1 - pp.re, -pp.im)));
     var G0 = (1 - p0) / 2;
 
     /*
@@ -544,10 +503,7 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
 
     if (type === "butterworth" || type === "cheby-1") {
         var G = p.map(pp => {
-            return {
-                re: (1 - pp.re) / 2,
-                im: -pp.im / 2
-            };
+            return makeComplex((1 - pp.re) / 2, -pp.im / 2)
         });
         console.log("G =");
         console.log(G);
@@ -558,13 +514,9 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
         }
     } else if (type === "cheby-2" || type === "elliptic") {
         for (var m = 0; m < p.length; ++m) {
-            var G = cdiv({
-                re: 1 - p[m].re,
-                im: -p[m].im
-            }, {
-                re: 1 - z[m].re,
-                im: -z[m].im
-            })
+            var G = cdiv(
+                makeComplex(1 - p[m].re, -p[m].im),
+                makeComplex(1 - z[m].re, -z[m].im));
             var g = Math.pow(cabs(G), 2);
             A.push([1, -2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
             // For cheby-2 filters, I think we have notch filters, so
@@ -661,19 +613,10 @@ function digitalResponse(filter, freq, Fs) {
             var g = top[m][0];
             var B = top[m][1];
             var A = bot[m];
-            var sumt = {
-                re: 1,
-                im: 0
-            };
-            var sumb = {
-                re: 1,
-                im: 0
-            };
+            var sumt = makeComplex(1);
+            var sumb = makeComplex(1);
             for (var n = 1; n < B.length; ++n) {
-                var cis = {
-                    re: Math.cos(n * w),
-                    im: -Math.sin(n * w)
-                };
+                var cis = makeComplex(Math.cos(n * w), -Math.sin(n * w));
                 sumt = cadd(sumt, rcmul(B[n], cis));
                 sumb = cadd(sumb, rcmul(A[n], cis));
             }
