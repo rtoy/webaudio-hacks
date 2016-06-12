@@ -1,5 +1,9 @@
 //----------------------------------------------------------------------
-// Jacobian elliptic fucntions.
+// Jacobian elliptic functions, their inverses and integrals.
+//
+// Following Abramowitz and Stegun, all of the Jacobian elliptic
+// functions use the parameter m instead of the modulus k, related by
+// m = k*k.
 //
 
 // Jacobi sn for real arguments
