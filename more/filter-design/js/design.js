@@ -170,19 +170,13 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
     } else if (type === "elliptic") {
         K = elliptic_kc(k * k);
         Kp = elliptic_kc(1 - k * k);
-        console.log("K = " + K + ", K' = " + Kp);
-
         K1 = elliptic_kc(k1 * k1);
         K1p = elliptic_kc(1 - k1 * k1);
-        console.log("K1 = " + K1 + ", K1' = " + K1p);
-
         N = (K1p / K1) / (Kp / K);
-        console.log("N = " + N + ", " + Math.ceil(N));
         N = Math.ceil(N);
-
+	// Recompute k (and K!) to match the rounded value of N.
         k = ellipticDeg(N, K1, K1p);
         K = elliptic_kc(k * k);
-        console.log("new k = " + k + ", K = " + K);
     }
 
     var L = Math.floor(N / 2);
