@@ -142,9 +142,7 @@
 //
 //
 
-function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
-    var Wp = 2 * Math.PI * fp;
-    var Ws = 2 * Math.PI * fs;
+function findLowpassPolesAndZeroes(Wp, Ws, Ap, As, type) {
     var ep = Math.sqrt(Math.pow(10, Ap / 10) - 1);
     var es = Math.sqrt(Math.pow(10, As / 10) - 1);
 
@@ -221,8 +219,6 @@ function findLowpassPolesAndZeroes(fp, fs, Ap, As, type) {
         pa0 = -factor / Math.sinh(v0 * Math.PI / 2);
     } else {
         // Elliptic
-        var fs_new = fp / k;
-        console.log("fs_new = " + fs_new);
         var L = Math.floor(N / 2);
         var r = N - 2 * L;
 
@@ -293,7 +289,8 @@ function ellipticDeg(N, K1, K1p) {
 }
 
 function analogLowpassFilter(fp, fs, Ap, As, type) {
-    var polesZeroes = findLowpassPolesAndZeroes(fp, fs, Ap, As, type);
+    var polesZeroes = findLowpassPolesAndZeroes(
+      2 * Math.PI * fp, 2 * Math.PI * fs, Ap, As, type);
     var N = polesZeroes.order;
     var za = polesZeroes.zeroes;
     var pa0 = polesZeroes.poles[0];
@@ -456,7 +453,7 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
     var wStop = 2 * Math.PI * fs / Fs;
     var omegaPass = Math.tan(wPass / 2);
     var omegaStop = Math.tan(wStop / 2);
-    var polesZeroes = findLowpassPolesAndZeroes(omegaPass / (2 * Math.PI), omegaStop / (2 * Math.PI), Ap, As, type);
+    var polesZeroes = findLowpassPolesAndZeroes(omegaPass, omegaStop, Ap, As, type);
     var N = polesZeroes.order;
     var za = polesZeroes.zeroes;
     var pa0 = polesZeroes.poles[0];
