@@ -104,22 +104,9 @@ function designHighpassFilter(filterImplType) {
     var passBandLow = 1 / (passBand);
     var stopBandLow = 1/ (stopBand);
 
-    var analogFilter = analogLowpassFilter(passBandLow, stopBandLow, passdB, stopdB, filterImplType);
+    var analogFilter = analogHighpassFilter(passBandLow, stopBandLow, passdB, stopdB, filterImplType);
 
     console.log("Highpass:  lowpass equivalent:");
-    console.log(analogFilter);
-    // The equivalent highpass filter can be obtained from the lowpass
-    // filter above by substituting 1/s in the transfer function.
-    // This can be done by reversing the order of the coefficients for
-    // the numerator and denominator terms.
-
-    for (var n = 0; n < analogFilter.bot.length; ++n) {
-	analogFilter.bot[n] = analogFilter.bot[n].reverse();
-	analogFilter.top[n] = analogFilter.top[n].reverse();
-    }
-    
-
-    console.log("Highpass:");
     console.log(analogFilter);
 
     var aFormula = analogTeX(analogFilter);

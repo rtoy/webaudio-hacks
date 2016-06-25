@@ -330,6 +330,56 @@ function analogLowpassFilter(fp, fs, Ap, As, type) {
     };
 }
 
+function analogHighpassFilter(fp, fs, Ap, As, type) {
+    var polesZeroes = findLowpassPolesAndZeroes(
+	1 / (2 * Math.PI * fs), 1 / (2 * Math.PI * fp), Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var L = Math.floor(N / 2);
+    var r = N - 2 * L;
+
+    var A = [];
+    var B = [];
+
+    if (r === 1) {
+        A.push([1, -1 / pa0]);
+        B.push([1, 0]);
+    }
+
+    for (var m = 0; m < L; ++m) {
+        var recip = crecip(pa[m]);
+        A.push([1, -2 * recip.re, Math.pow(cabs(recip), 2)]);
+    }
+
+    if (type === "cheby-2" || type === "elliptic") {
+        for (var m = 0; m < L; ++m) {
+            var recip = crecip(za[m]);
+            B.push([1, -2 * recip.re, Math.pow(cabs(recip), 2)]);
+        }
+    } else {
+        for (var m = 0; m < L; ++m) {
+            B.push([1, 0, 0]);
+        }
+    }
+
+    console.log("A = ");
+    console.log(A);
+    A = A.map(x => x.reverse());
+    B = B.map(x => x.reverse());
+
+    console.log("New A = ");
+    console.log(A);
+
+    return {
+        order: N,
+        H0: polesZeroes.H0,
+        top: B,
+        bot: A
+    };
+}
+
 function texifyNumber(number, options) {
     // Convert the number to a string.  If it is in scientific form,
     // replace with the appropriate teX version.
