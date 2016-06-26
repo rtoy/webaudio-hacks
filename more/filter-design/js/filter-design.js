@@ -99,12 +99,7 @@ function designHighpassFilter(filterImplType) {
     var passdB = Number(document.getElementById("passdB").value);
     var stopdB = Number(document.getElementById("stopdB").value);
 
-    // Map the highpass frequency parameters to the equivalent lowpass
-    // equivalent and design a lowpass filter.
-    var passBandLow = 1 / (passBand);
-    var stopBandLow = 1/ (stopBand);
-
-    var analogFilter = analogHighpassFilter(passBandLow, stopBandLow, passdB, stopdB, filterImplType);
+    var analogFilter = analogHighpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
 
     console.log("Highpass:  lowpass equivalent:");
     console.log(analogFilter);
