@@ -21,6 +21,25 @@ function setPlotType(type) {
 
 function setFilterType(type) {
     filterType = type;
+    if (type == "lowpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Passband (Hz)";
+	s1.innerHTML = "Passband attentuation, dB";
+	b2.innerHTML = "Stopband (Hz)";
+	s2.innerHTML = "Stopband attenuation, dB";
+    } else if (type == "highpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Stopband (Hz)";
+	s1.innerHTML = "Stopband attentuation, dB";
+	b2.innerHTML = "Passband (Hz)";
+	s2.innerHTML = "Passband attenuation, dB";
+    }
 }
 
 function designFilter(filterImplType) {
@@ -35,10 +54,10 @@ function designFilter(filterImplType) {
 
 function designLowpassFilter(filterImplType) {
     sampleRate = document.getElementById("samplerate").value;
-    var passBand = Number(document.getElementById("passband").value);
-    var stopBand = Number(document.getElementById("stopband").value);
-    var passdB = Number(document.getElementById("passdB").value);
-    var stopdB = Number(document.getElementById("stopdB").value);
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band1-db-value").value);
+    var stopdB = Number(document.getElementById("band2-db-value").value);
 
     if (passBand <= 0 || stopBand <= 0 || passBand >= stopBand) {
 	alert("Invalid passband or stopband frequencies");
@@ -94,10 +113,10 @@ function designLowpassFilter(filterImplType) {
 
 function designHighpassFilter(filterImplType) {
     sampleRate = document.getElementById("samplerate").value;
-    var passBand = Number(document.getElementById("passband").value);
-    var stopBand = Number(document.getElementById("stopband").value);
-    var passdB = Number(document.getElementById("passdB").value);
-    var stopdB = Number(document.getElementById("stopdB").value);
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band2-db-value").value);
+    var stopdB = Number(document.getElementById("band1-db-value").value);
 
     var analogFilter = analogHighpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
 
