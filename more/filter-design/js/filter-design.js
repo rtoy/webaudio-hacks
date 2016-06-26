@@ -30,6 +30,12 @@ function setFilterType(type) {
 	s1.innerHTML = "Passband attentuation, dB";
 	b2.innerHTML = "Stopband (Hz)";
 	s2.innerHTML = "Stopband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
+	
     } else if (type == "highpass") {
 	var b1 = document.getElementById("band1");
 	var b2 = document.getElementById("band2");
@@ -39,6 +45,11 @@ function setFilterType(type) {
 	s1.innerHTML = "Stopband attentuation, dB";
 	b2.innerHTML = "Passband (Hz)";
 	s2.innerHTML = "Passband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
     }
 }
 
