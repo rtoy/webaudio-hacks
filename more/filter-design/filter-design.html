@@ -46,28 +46,53 @@
     </form>
     <br>
     <form>
-      <div>
-	Sample Rate (Hz)
-	<input id="samplerate" type="number" min="3000" max="192000" value="48000">
-      </div>
-	<br>
-      <div>
-	<div id="band1" style="float:left">Passband (Hz)</div>
-	<input id="band1-value" type="number" min="0" value="4800" />
-      </div>
-      <div>
-	<div id="band1-db" style="float:left">Passband attenuation, dB</div>
-	<input id="band1-db-value" type="number" min="0" value="1" />
-      </div>
       <br>
-      <div>
-	<div id="band2" style="float:left">Stopband (Hz)</div>
-	<input id="band2-value" type="number" min="0" value="7200" />
-      </div>
-      <div>
-	<div id="band2-db" style="float:left">Stopband attenuation, dB</div>
-	<input id="band2-db-value" type="number" min="0" value="15" />
-      </div>
+      <table>
+	<tr>
+          <td>
+	    Sample Rate (Hz)
+	  </td>
+	  <td>
+            <input id="samplerate" type="number" min="3000" max="192000" value="48000">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div id="band1" style="float:left">Passband (Hz)</div>
+          </td>
+          <td>
+            <input id="band1-value" type="number" min="0" value="4800" />
+	  </td>
+	  <td>
+          </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band1-db" style="float:left">Passband attenuation, dB</div>
+          </td>
+          <td>
+            <input id="band1-db-value" type="number" min="0" value="1" />
+	  </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band2" style="float:left">Stopband (Hz)</div>
+          </td>
+          <td>
+            <input id="band2-value" type="number" min="0" value="7200" />
+	  </td>
+	  <td>
+          </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band2-db" style="float:left">Stopband attenuation, dB</div>
+          </td>
+          <td>
+            <input id="band2-db-value" type="number" min="0" value="15" />
+	  </td>
+	</tr>
+      </table>
     </form>
 
     <br>
@@ -128,7 +153,7 @@
     <address><a href="mailto:toy.raymond@gmail.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Sun Jun 26 09:48:03 PDT 2016
+Last modified: Sun Jun 26 10:14:53 PDT 2016
 <!-- hhmts end -->
   </body>
 
