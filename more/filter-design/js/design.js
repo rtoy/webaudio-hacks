@@ -572,6 +572,86 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
     };
 }
 
+function cot(x) {
+    return 1 / Math.tan(x);
+}
+
+function digitalHighpassFilter(fp, fs, Ap, As, Fs, type) {
+    var wPass = 2 * Math.PI * fp / Fs;
+    var wStop = 2 * Math.PI * fs / Fs;
+    var omegaPass = cot(wPass / 2);
+    var omegaStop = cot(wStop / 2);
+    var polesZeroes = findLowpassPolesAndZeroes(omegaStop, omegaPass, Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var H0 = polesZeroes.H0;
+
+    var p0 = (1 + pa0) / (1 - pa0);
+    var z = za.map(zz => cdiv(
+        makeComplex(1 + zz.re, zz.im),
+        makeComplex(1 - zz.re, -zz.im)));
+    var p = pa.map(pp => cdiv(
+        makeComplex(1 + pp.re, pp.im),
+        makeComplex(1 - pp.re, -pp.im)));
+    var G0 = (1 - p0) / 2;
+
+    /*
+        console.log("p0 = " + p0);
+        console.log("z = ");
+        console.log(z);
+        console.log("pa =");
+        console.log(pa);
+        console.log("p = ");
+        console.log(p);
+    */
+
+    var A = [];
+    var B = [];
+
+    if ((N % 2) == 1) {
+        A.push([1, p0]);
+        B.push([G0, [1, -1]]);
+    }
+
+    if (type === "butterworth" || type === "cheby-1") {
+        var G = p.map(pp => {
+            return makeComplex((1 - pp.re) / 2, -pp.im / 2)
+        });
+        console.log("G =");
+        console.log(G);
+        for (var m = 0; m < p.length; ++m) {
+            var g = Math.pow(cabs(G[m]), 2);
+            A.push([1, 2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
+            B.push([g, [1, -2, 1]]);
+        }
+    } else if (type === "cheby-2" || type === "elliptic") {
+        for (var m = 0; m < p.length; ++m) {
+            var G = cdiv(
+                makeComplex(1 - p[m].re, -p[m].im),
+                makeComplex(1 - z[m].re, -z[m].im));
+            var g = Math.pow(cabs(G), 2);
+            A.push([1, 2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
+	    // For both Chebyshev-2 and elliptic filters, the zeroes
+	    // of the analog filter are pure imaginary.  In that case,
+	    // the bilinear transform of the zero za to the digital
+	    // domain is (1+za)/(1-za).  It's easy to show that the
+	    // absolute value is exactly 1.  Make it so.
+            B.push([g, [1, 2 * z[m].re, 1]]);
+        }
+    }
+
+    
+    return {
+        order: N,
+        H0: H0,
+        top: B,
+        bot: A
+    };
+}
+
+
 function digitalTermTeX(term) {
     var f = "\\frac{";
     if (term[0][1].length == 2) {

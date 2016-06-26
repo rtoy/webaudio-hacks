@@ -143,6 +143,19 @@ function designHighpassFilter(filterImplType) {
     MathJax.Hub.Queue(["Text", math[0], aFormula]);
 
     plotAnalogResponse(analogFilter);
+
+    var digitalFilter = digitalHighpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
+    var digitalTeXFormula = digitalTeX(digitalFilter);
+    console.log(digitalTeXFormula);
+
+    description = "Digital " + filterImplType + " design of order " + digitalFilter.order;
+    description += ", sample rate " + sampleRate + " Hz";
+    document.getElementById("digital-type").innerHTML = description;
+    math = MathJax.Hub.getAllJax("digital-eq");
+    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+
+    plotDigitalResponse(digitalFilter, sampleRate);
+
 }
 
 
