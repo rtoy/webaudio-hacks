@@ -330,6 +330,56 @@ function analogLowpassFilter(fp, fs, Ap, As, type) {
     };
 }
 
+function analogHighpassFilter(fp, fs, Ap, As, type) {
+    var polesZeroes = findLowpassPolesAndZeroes(
+	1 / (2 * Math.PI * fs), 1 / (2 * Math.PI * fp), Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var L = Math.floor(N / 2);
+    var r = N - 2 * L;
+
+    var A = [];
+    var B = [];
+
+    if (r === 1) {
+        A.push([1, -1 / pa0]);
+        B.push([1, 0]);
+    }
+
+    for (var m = 0; m < L; ++m) {
+        var recip = crecip(pa[m]);
+        A.push([1, -2 * recip.re, Math.pow(cabs(recip), 2)]);
+    }
+
+    if (type === "cheby-2" || type === "elliptic") {
+        for (var m = 0; m < L; ++m) {
+            var recip = crecip(za[m]);
+            B.push([1, -2 * recip.re, Math.pow(cabs(recip), 2)]);
+        }
+    } else {
+        for (var m = 0; m < L; ++m) {
+            B.push([1, 0, 0]);
+        }
+    }
+
+    console.log("A = ");
+    console.log(A);
+    A = A.map(x => x.reverse());
+    B = B.map(x => x.reverse());
+
+    console.log("New A = ");
+    console.log(A);
+
+    return {
+        order: N,
+        H0: polesZeroes.H0,
+        top: B,
+        bot: A
+    };
+}
+
 function texifyNumber(number, options) {
     // Convert the number to a string.  If it is in scientific form,
     // replace with the appropriate teX version.
@@ -358,12 +408,12 @@ function analogTermTeX(term) {
         if (term[0][1] == 0) {
             f += "1";
         } else {
-            f += "1 " + texifyNumber(term[0][1], {
+            f += texifyNumber(term[0][0]) + texifyNumber(term[0][1], {
                 addSign: true
             }) + "s";
         }
         f += "}{";
-        f += "1 " + texifyNumber(term[1][1], {
+        f += texifyNumber(term[1][0]) + texifyNumber(term[1][1], {
             addSign: true
         }) + "s";
         f += "}";
@@ -382,7 +432,7 @@ function analogTermTeX(term) {
             }) + "s^2";
         }
         f += "}{";
-        f += "1 " + texifyNumber(term[1][1], {
+        f += texifyNumber(term[1][0]) + texifyNumber(term[1][1], {
             addSign: true
         }) + "s ";
         f += texifyNumber(term[1][2], {
@@ -415,9 +465,9 @@ function analogResponse(filter, freq) {
     var top = filter.top;
     var bot = filter.bot;
     // To compute the response we need to calculate expression of the
-    // form 1+b*s+c*s^2 where s = 2*pi*j*f.
+    // form a+b*s+c*s^2 where s = 2*pi*j*f.
     //
-    //  1+b*s+c*s^2 = (1-4*pi*c*f^2) + i*2*pi*b*f
+    //  a+b*s+c*s^2 = (a-4*pi*c*f^2) + i*2*pi*b*f
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
     mag.fill(filter.H0);
@@ -430,14 +480,14 @@ function analogResponse(filter, freq) {
         var f = freq[k];
         for (var m = 0; m < top.length; ++m) {
             if (top[m].length == 2) {
-                mag[k] *= Math.hypot(1, top[m][1] * pi2 * f);
-                mag[k] /= Math.hypot(1, bot[m][1] * pi2 * f);
+                mag[k] *= Math.hypot(top[m][0], top[m][1] * pi2 * f);
+                mag[k] /= Math.hypot(bot[m][0], bot[m][1] * pi2 * f);
             } else {
                 // 1-4*pi*c*f^2 + i*2*pi*b*f.
-                mag[k] *= Math.hypot(1 - top[m][2] * pi4 * f * f, pi2 * top[m][1] * f);
-                mag[k] /= Math.hypot(1 - bot[m][2] * pi4 * f * f, pi2 * bot[m][1] * f);
-                phase[k] += Math.atan2(pi2 * top[m][1] * f, 1 - top[m][2] * pi4 * f * f);
-                phase[k] -= Math.atan2(pi2 * bot[m][1] * f, 1 - bot[m][2] * pi4 * f * f);
+                mag[k] *= Math.hypot(top[m][0] - top[m][2] * pi4 * f * f, pi2 * top[m][1] * f);
+                mag[k] /= Math.hypot(bot[m][0] - bot[m][2] * pi4 * f * f, pi2 * bot[m][1] * f);
+                phase[k] += Math.atan2(pi2 * top[m][1] * f, top[m][0] - top[m][2] * pi4 * f * f);
+                phase[k] -= Math.atan2(pi2 * bot[m][1] * f, bot[m][0] - bot[m][2] * pi4 * f * f);
             }
         }
     }
@@ -521,6 +571,86 @@ function digitalLowpassFilter(fp, fs, Ap, As, Fs, type) {
         bot: A
     };
 }
+
+function cot(x) {
+    return 1 / Math.tan(x);
+}
+
+function digitalHighpassFilter(fp, fs, Ap, As, Fs, type) {
+    var wPass = 2 * Math.PI * fp / Fs;
+    var wStop = 2 * Math.PI * fs / Fs;
+    var omegaPass = cot(wPass / 2);
+    var omegaStop = cot(wStop / 2);
+    var polesZeroes = findLowpassPolesAndZeroes(omegaStop, omegaPass, Ap, As, type);
+    var N = polesZeroes.order;
+    var za = polesZeroes.zeroes;
+    var pa0 = polesZeroes.poles[0];
+    var pa = polesZeroes.poles[1];
+    var H0 = polesZeroes.H0;
+
+    var p0 = (1 + pa0) / (1 - pa0);
+    var z = za.map(zz => cdiv(
+        makeComplex(1 + zz.re, zz.im),
+        makeComplex(1 - zz.re, -zz.im)));
+    var p = pa.map(pp => cdiv(
+        makeComplex(1 + pp.re, pp.im),
+        makeComplex(1 - pp.re, -pp.im)));
+    var G0 = (1 - p0) / 2;
+
+    /*
+        console.log("p0 = " + p0);
+        console.log("z = ");
+        console.log(z);
+        console.log("pa =");
+        console.log(pa);
+        console.log("p = ");
+        console.log(p);
+    */
+
+    var A = [];
+    var B = [];
+
+    if ((N % 2) == 1) {
+        A.push([1, p0]);
+        B.push([G0, [1, -1]]);
+    }
+
+    if (type === "butterworth" || type === "cheby-1") {
+        var G = p.map(pp => {
+            return makeComplex((1 - pp.re) / 2, -pp.im / 2)
+        });
+        console.log("G =");
+        console.log(G);
+        for (var m = 0; m < p.length; ++m) {
+            var g = Math.pow(cabs(G[m]), 2);
+            A.push([1, 2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
+            B.push([g, [1, -2, 1]]);
+        }
+    } else if (type === "cheby-2" || type === "elliptic") {
+        for (var m = 0; m < p.length; ++m) {
+            var G = cdiv(
+                makeComplex(1 - p[m].re, -p[m].im),
+                makeComplex(1 - z[m].re, -z[m].im));
+            var g = Math.pow(cabs(G), 2);
+            A.push([1, 2 * p[m].re, Math.pow(cabs(p[m]), 2)]);
+	    // For both Chebyshev-2 and elliptic filters, the zeroes
+	    // of the analog filter are pure imaginary.  In that case,
+	    // the bilinear transform of the zero za to the digital
+	    // domain is (1+za)/(1-za).  It's easy to show that the
+	    // absolute value is exactly 1.  Make it so.
+            B.push([g, [1, 2 * z[m].re, 1]]);
+        }
+    }
+
+    
+    return {
+        order: N,
+        H0: H0,
+        top: B,
+        bot: A
+    };
+}
+
 
 function digitalTermTeX(term) {
     var f = "\\frac{";
@@ -625,13 +755,13 @@ function webAudioFilterDesc(top, bot, Fs, type) {
     if (order == 1) {
         return {
             filterType: "iir",
-            top: [gain, gain],
+            top: zterm.map(x => x * gain),
             bot: bot,
             filterGain: 1
         };
     }
 
-    if (type === "butterworth" || type === "cheby-1") {
+    if (filterType === "lowpass" && (type === "butterworth" || type === "cheby-1")) {
         var b = bot[1];
         var c = bot[2];
         var alpha = (1 - c) / (1 + c);
@@ -649,7 +779,7 @@ function webAudioFilterDesc(top, bot, Fs, type) {
             filterGain: gain
         };
     }
-    if (type === "cheby-2" || type === "elliptic") {
+    if (filterType != "lowpass" || (type === "cheby-2" || type === "elliptic")) {
         // Superficially, sections for a Chebyshev-2 and elliptic
         // filters kind of look like biquad notch filters, but they're
         // not.  The numerator coefficient of z^(-1) is not consistent

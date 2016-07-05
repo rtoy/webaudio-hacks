@@ -8,6 +8,7 @@ var freq;
 var mag;
 var phase;
 
+var filterType = "lowpass";
 var plotType = "dB";
 var gain;
 var osc;
@@ -18,24 +19,68 @@ function setPlotType(type) {
     plotType = type;
 }
 
-function designFilter(filterType) {
+function setFilterType(type) {
+    filterType = type;
+    if (type == "lowpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Passband (Hz)";
+	s1.innerHTML = "Passband attentuation, dB";
+	b2.innerHTML = "Stopband (Hz)";
+	s2.innerHTML = "Stopband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
+	
+    } else if (type == "highpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Stopband (Hz)";
+	s1.innerHTML = "Stopband attentuation, dB";
+	b2.innerHTML = "Passband (Hz)";
+	s2.innerHTML = "Passband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
+    }
+}
+
+function designFilter(filterImplType) {
+    if (filterType == "lowpass") {
+	designLowpassFilter(filterImplType);
+    } else if (filterType == "highpass") {
+	designHighpassFilter(filterImplType);
+    } else {
+	alert("Not yet implemented: " + filterType);
+    }
+}
+
+function designLowpassFilter(filterImplType) {
     sampleRate = document.getElementById("samplerate").value;
-    var passBand = Number(document.getElementById("passband").value);
-    var stopBand = Number(document.getElementById("stopband").value);
-    var passdB = Number(document.getElementById("passdB").value);
-    var stopdB = Number(document.getElementById("stopdB").value);
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band1-db-value").value);
+    var stopdB = Number(document.getElementById("band2-db-value").value);
 
     if (passBand <= 0 || stopBand <= 0 || passBand >= stopBand) {
 	alert("Invalid passband or stopband frequencies");
 	return;
     }
 
-    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
+    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
 
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
 
-    var description = "Analog " + filterType + " design of order " + analogFilter.order;
+    var description = "Analog lowpass " + filterImplType + " design of order " + analogFilter.order;
     document.getElementById("analog-type").innerHTML = description;
     var math = MathJax.Hub.getAllJax("analog-eq");
     MathJax.Hub.Queue(["Text", math[0], aFormula]);
@@ -52,11 +97,11 @@ function designFilter(filterType) {
 	return;
     }
 
-    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
-    description = "Digital " + filterType + " design of order " + digitalFilter.order;
+    description = "Digital lowpass " + filterImplType + " design of order " + digitalFilter.order;
     description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
@@ -64,24 +109,74 @@ function designFilter(filterType) {
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
-    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterType);
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
     console.log(webaudio);
     displayWebAudio(webaudio, { order: digitalFilter.order,
 		sampleRate: sampleRate,
-		filterType: filterType,
+		filterType: "lowpass",
+		filterImplType: filterImplType,
 		passBand: passBand,
 		stopBand: stopBand,
 		passAttenuation: passdB,
 		stopAttenuation: stopdB});
 
-    plotWebAudioResponse(webaudio, sampleRate, filterType);
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
 }
+
+function designHighpassFilter(filterImplType) {
+    sampleRate = document.getElementById("samplerate").value;
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band2-db-value").value);
+    var stopdB = Number(document.getElementById("band1-db-value").value);
+
+    var analogFilter = analogHighpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
+
+    console.log("Highpass:  lowpass equivalent:");
+    console.log(analogFilter);
+
+    var aFormula = analogTeX(analogFilter);
+    console.log(aFormula);
+
+    var description = "Analog highpass " + filterImplType + " design of order " + analogFilter.order;
+    document.getElementById("analog-type").innerHTML = description;
+    var math = MathJax.Hub.getAllJax("analog-eq");
+    MathJax.Hub.Queue(["Text", math[0], aFormula]);
+
+    plotAnalogResponse(analogFilter);
+
+    var digitalFilter = digitalHighpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
+    var digitalTeXFormula = digitalTeX(digitalFilter);
+    console.log(digitalTeXFormula);
+
+    description = "Digital highpass " + filterImplType + " design of order " + digitalFilter.order;
+    description += ", sample rate " + sampleRate + " Hz";
+    document.getElementById("digital-type").innerHTML = description;
+    math = MathJax.Hub.getAllJax("digital-eq");
+    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+
+    plotDigitalResponse(digitalFilter, sampleRate);
+
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
+    console.log(webaudio);
+    displayWebAudio(webaudio, { order: digitalFilter.order,
+		sampleRate: sampleRate,
+		filterType: "highpass",
+		filterImplType: filterImplType,
+		passBand: passBand,
+		stopBand: stopBand,
+		passAttenuation: passdB,
+		stopAttenuation: stopdB});
+
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
+}
+
 
 function displayWebAudio(webaudioDesc, options) {
     // Generate code that implements the filter structure described by webaudioDesc.
     var text = "<pre>\n";
     text += '<code class="javascript">\n';
-    text += "// WebAudio " + options.filterType + " design\n";
+    text += "// WebAudio " + options.filterType + " " + options.filterImplType + " design\n";
     text += "// Order = "+ options.order + "\n";
     text += "// Sample rate = " + options.sampleRate + " Hz\n";
     text += "// Passband = " + options.passBand + " Hz\n";
