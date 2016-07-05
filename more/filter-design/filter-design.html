@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!doctype html>
 <html>
 
   <head>
@@ -6,10 +6,11 @@
     <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
     <script type="text/javascript" src="../../flot/jquery.js"></script>
     <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
     <script src="js/filter-design.js"></script>
-    <script src="js/design-chebyshev.js"></script>
+    <script src="js/complex.js"></script>
     <script src="js/elliptic.js"></script>
-    <script src="js/design-elliptic.js"></script>
     <script src="js/design.js"></script>
     <style type="text/css">
       .flexbox {
@@ -20,13 +21,13 @@
       }
       
       .left {
-        background: #a0ffa0;
+#        background: #a0ffa0;
         min-width: 75px;
         flex-grow: 1;
       }
       
       .right {
-        background: #a0a0ff;
+#        background: #a0a0ff;
         flex-grow: 0;
       }
     </style>
@@ -35,34 +36,77 @@
   <body>
     <h1>Digital Filter Design</h1>
 
+
+    <h3>Filter Parameters</h3>
     <form>
-      <div>
-	Sample Rate (Hz)
-	<input id="samplerate" type="number" min="3000" max="192000" value="48000">
-      </div>
-      <div>
-        Passband (Hz)
-        <input id="passband" type="number" min="0" value="4800" />
-      </div>
-      <div>
-        Passband attenuation, dB
-        <input id="passdB" type="number" min="0" value="1" />
-      </div>
-      <br>
-      <div>
-        Stopband (Hz)
-        <input id="stopband" type="number" min="0" value="7200" />
-      </div>
-      <div style="float:left">
-        Stopband attenuation, dB
-        <input id="stopdB" type="number" min="0" value="15" />
-      </div>
+      <input type="radio" name="filterType" onclick="setFilterType('lowpass')" checked>Lowpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('highpass')">Highpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('bandpass')" disabled>Bandpass<br>
+      <input type="radio" name="filterType" onclick="setFilterType('bandstop')" disabled>Bandstop<br>
     </form>
     <br>
+    <form>
+      <br>
+      <table>
+	<tr>
+          <td>
+	    Sample Rate (Hz)
+	  </td>
+	  <td>
+            <input id="samplerate" type="number" min="3000" max="192000" value="48000">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div id="band1" style="float:left">Passband (Hz)</div>
+          </td>
+          <td>
+            <input id="band1-value" type="number" min="0" value="4800" />
+	  </td>
+	  <td>
+          </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band1-db" style="float:left">Passband attenuation, dB</div>
+          </td>
+          <td>
+            <input id="band1-db-value" type="number" min="0" value="1" />
+	  </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band2" style="float:left">Stopband (Hz)</div>
+          </td>
+          <td>
+            <input id="band2-value" type="number" min="0" value="7200" />
+	  </td>
+	  <td>
+          </td>
+	</tr>
+        <tr>
+          <td>
+            <div id="band2-db" style="float:left">Stopband attenuation, dB</div>
+          </td>
+          <td>
+            <input id="band2-db-value" type="number" min="0" value="15" />
+	  </td>
+	</tr>
+      </table>
+    </form>
+
+    <br>
+    <h3>Plot style for response</h3>
+    <form>
+      <input type="radio" name="plotType" onclick="setPlotType('dB')" checked>dB plot<br>
+      <input type="radio" name="plotType" onclick="setPlotType('linear')">linear plot<br>
+    </form>
+
+    <h3>Design Filter</h3>
     <button type="button" onclick="designFilter('butterworth')">Design Butterworth Filter</button>
     <button type="button" onclick="designFilter('cheby-1')">Design Chebyshev-1 Filter</button>
     <button type="button" onclick="designFilter('cheby-2')">Design Chebyshev-2 Filter</button>
-    <button type="button" onclick="designFilter('elliptic')" disabled>Design Elliptic Filter</button>
+    <button type="button" onclick="designFilter('elliptic')">Design Elliptic Filter</button>
 
     <br>
     <hr>
@@ -106,10 +150,10 @@
     <script>
       window.onload = init;
     </script>
-    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
+    <address><a href="mailto:toy.raymond@gmail.com">Raymond Toy</a></address>
     <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
     <!-- hhmts start -->
-Last modified: Mon Jun  6 15:04:44 PDT 2016
+Last modified: Sun Jun 26 10:14:53 PDT 2016
 <!-- hhmts end -->
   </body>
 

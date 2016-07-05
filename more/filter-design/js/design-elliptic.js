@@ -1,3 +1,6 @@
+// Test invocation:
+// designElliptic(4, 4.5, 0.95, .05, 48000);
+
 function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     var wp = 2 * Math.PI * fp;
     var ws = 2 * Math.PI * fs;
@@ -43,11 +46,24 @@ function designElliptic(fp, fs, Gp, Gs, sampleRate) {
     console.log("za = ");
     console.log(za);
 
-    var v0 = inverse_jacobi_sni(1 / ep, k1*k1);
-    v0 = -v0.im / N / K1;
+    var v0 = complex_inverse_jacobi_sn({re: 0, im: 1 / ep}, k1*k1);
+    v0 = v0.im / N / K1;
     console.log("v0 = ");
     console.log(v0);
+
+    var pa0;
+    pa0 = complex_jacobi_sn({re: 0, im: v0 * K}, {re: k*k, im: 0});
+    pa0 = cmul({re: 0, im: wp}, pa0);
+    console.log("pa0 =");
+    console.log(pa0);
     
+    var pa = new Array(L);
+    for (var n = 1; n <= L; ++n) {
+        pa[n-1] = complex_jacobi_cd({re: (2*n-1)/L*K, im: -v0*K}, {re: k*k, im: 0});
+	pa[n-1] = cmul({re:0, im: wp}, pa[n-1]);
+    }
+    console.log("pa = ");
+    console.log(pa);
 }
 
 function ellipticDeg(N, K1, K1p) {

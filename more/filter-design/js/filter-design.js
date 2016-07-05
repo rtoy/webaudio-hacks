@@ -8,35 +8,100 @@ var freq;
 var mag;
 var phase;
 
+var filterType = "lowpass";
+var plotType = "dB";
 var gain;
 var osc;
 var modGain;
 var mod;
 
-function designFilter(filterType) {
-    sampleRate = document.getElementById("samplerate").value;
-    var passBand = document.getElementById("passband").value;
-    var stopBand = document.getElementById("stopband").value;
-    var passdB = document.getElementById("passdB").value;
-    var stopdB = document.getElementById("stopdB").value;
+function setPlotType(type) {
+    plotType = type;
+}
 
-    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterType);
-    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterType);
+function setFilterType(type) {
+    filterType = type;
+    if (type == "lowpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Passband (Hz)";
+	s1.innerHTML = "Passband attentuation, dB";
+	b2.innerHTML = "Stopband (Hz)";
+	s2.innerHTML = "Stopband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
+	
+    } else if (type == "highpass") {
+	var b1 = document.getElementById("band1");
+	var b2 = document.getElementById("band2");
+	var s1 = document.getElementById("band1-db");
+	var s2 = document.getElementById("band2-db");
+	b1.innerHTML = "Stopband (Hz)";
+	s1.innerHTML = "Stopband attentuation, dB";
+	b2.innerHTML = "Passband (Hz)";
+	s2.innerHTML = "Passband attenuation, dB";
+
+	// Swap the attenuation values.
+	var tmp = document.getElementById("band1-db-value").value;
+	document.getElementById("band1-db-value").value = document.getElementById("band2-db-value").value;
+	document.getElementById("band2-db-value").value = tmp;
+    }
+}
+
+function designFilter(filterImplType) {
+    if (filterType == "lowpass") {
+	designLowpassFilter(filterImplType);
+    } else if (filterType == "highpass") {
+	designHighpassFilter(filterImplType);
+    } else {
+	alert("Not yet implemented: " + filterType);
+    }
+}
+
+function designLowpassFilter(filterImplType) {
+    sampleRate = document.getElementById("samplerate").value;
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band1-db-value").value);
+    var stopdB = Number(document.getElementById("band2-db-value").value);
+
+    if (passBand <= 0 || stopBand <= 0 || passBand >= stopBand) {
+	alert("Invalid passband or stopband frequencies");
+	return;
+    }
+
+    var analogFilter = analogLowpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
 
     var aFormula = analogTeX(analogFilter);
     console.log(aFormula);
 
-    var description = "Analog " + filterType + " design of order " + analogFilter.order;
+    var description = "Analog lowpass " + filterImplType + " design of order " + analogFilter.order;
     document.getElementById("analog-type").innerHTML = description;
     var math = MathJax.Hub.getAllJax("analog-eq");
     MathJax.Hub.Queue(["Text", math[0], aFormula]);
 
     plotAnalogResponse(analogFilter);
 
+    if (sampleRate <= 0) {
+	alert("Sample rate must be positive!");
+	return;
+    }
+
+    if (passBand >= sampleRate / 2 || stopBand >= sampleRate /2) {
+	alert("Invalid pass band or stop band frequency exceeds Nyquist frequency.");
+	return;
+    }
+
+    var digitalFilter = digitalLowpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
     var digitalTeXFormula = digitalTeX(digitalFilter);
     console.log(digitalTeXFormula);
 
-    description = "Digital " + filterType + " design of order " + digitalFilter.order;
+    description = "Digital lowpass " + filterImplType + " design of order " + digitalFilter.order;
     description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
     math = MathJax.Hub.getAllJax("digital-eq");
@@ -44,23 +109,74 @@ function designFilter(filterType) {
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
-    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterType);
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
     console.log(webaudio);
     displayWebAudio(webaudio, { order: digitalFilter.order,
 		sampleRate: sampleRate,
-		filterType: filterType,
+		filterType: "lowpass",
+		filterImplType: filterImplType,
 		passBand: passBand,
 		stopBand: stopBand,
 		passAttenuation: passdB,
 		stopAttenuation: stopdB});
 
-    plotWebAudioResponse(webaudio, sampleRate, filterType);
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
 }
+
+function designHighpassFilter(filterImplType) {
+    sampleRate = document.getElementById("samplerate").value;
+    var passBand = Number(document.getElementById("band1-value").value);
+    var stopBand = Number(document.getElementById("band2-value").value);
+    var passdB = Number(document.getElementById("band2-db-value").value);
+    var stopdB = Number(document.getElementById("band1-db-value").value);
+
+    var analogFilter = analogHighpassFilter(passBand, stopBand, passdB, stopdB, filterImplType);
+
+    console.log("Highpass:  lowpass equivalent:");
+    console.log(analogFilter);
+
+    var aFormula = analogTeX(analogFilter);
+    console.log(aFormula);
+
+    var description = "Analog highpass " + filterImplType + " design of order " + analogFilter.order;
+    document.getElementById("analog-type").innerHTML = description;
+    var math = MathJax.Hub.getAllJax("analog-eq");
+    MathJax.Hub.Queue(["Text", math[0], aFormula]);
+
+    plotAnalogResponse(analogFilter);
+
+    var digitalFilter = digitalHighpassFilter(passBand, stopBand, passdB, stopdB, sampleRate, filterImplType);
+    var digitalTeXFormula = digitalTeX(digitalFilter);
+    console.log(digitalTeXFormula);
+
+    description = "Digital highpass " + filterImplType + " design of order " + digitalFilter.order;
+    description += ", sample rate " + sampleRate + " Hz";
+    document.getElementById("digital-type").innerHTML = description;
+    math = MathJax.Hub.getAllJax("digital-eq");
+    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+
+    plotDigitalResponse(digitalFilter, sampleRate);
+
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
+    console.log(webaudio);
+    displayWebAudio(webaudio, { order: digitalFilter.order,
+		sampleRate: sampleRate,
+		filterType: "highpass",
+		filterImplType: filterImplType,
+		passBand: passBand,
+		stopBand: stopBand,
+		passAttenuation: passdB,
+		stopAttenuation: stopdB});
+
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
+}
+
 
 function displayWebAudio(webaudioDesc, options) {
     // Generate code that implements the filter structure described by webaudioDesc.
     var text = "<pre>\n";
-    text += "// WebAudio " + options.filterType + " design\n";
+    text += '<code class="javascript">\n';
+    text += "// WebAudio " + options.filterType + " " + options.filterImplType + " design\n";
     text += "// Order = "+ options.order + "\n";
     text += "// Sample rate = " + options.sampleRate + " Hz\n";
     text += "// Passband = " + options.passBand + " Hz\n";
@@ -105,10 +221,14 @@ function displayWebAudio(webaudioDesc, options) {
 	text += "f" + (filters.length - 1);
 	text += ".connect(g);\n";
 	text += "g.connect(context.destination);\n";
-	text += "</pre>\n";
     }
 
-    document.getElementById("webaudio-eq").innerHTML = text;
+    text += "</code>\n";
+    text += "</pre>\n";
+    var element = document.getElementById("webaudio-eq");
+    element.innerHTML = text;
+    hljs.highlightBlock(element);
+    
 }
 
 function createGraph(webaudioDesc, Fs, filterType) {
@@ -140,6 +260,15 @@ function createGraph(webaudioDesc, Fs, filterType) {
 
 function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     try {
+	context = new OfflineAudioContext(1, 1, Fs);
+    } catch (e) {
+	var warning = "<p>Could not create offline audio context with sample rate " + Fs + " Hz.</p>";
+	warning += "<p>Thus the filter response cannot be plotted.</p>";
+	document.getElementById("graph-webaudio").innerHTML = warning;
+	return;
+    };
+
+    try {
 	createGraph(webaudioDesc, Fs, filterType);
     } catch (e) {
 	// If we get here, createGraph couldn't create the graph
@@ -157,6 +286,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     }
 
     var totalMag = new Float32Array(freq.length);
+    var totalPhase = new Float32Array(freq.length);
     var mag = new Float32Array(freq.length);
     var phase = new Float32Array(freq.length);
 
@@ -169,22 +299,40 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
 	filters[k].getFrequencyResponse(freq, mag, phase);
 	for (var m = 0; m < mag.length; ++m) {
 	    totalMag[m] *= mag[m];
+            totalPhase[m] += phase[m];
 	}
     }
 
-    var data = [];
+    var dataMag = [];
+    var dataPhase = [];
     for (var k = 0; k < totalMag.length; ++k) {
-	data.push([freq[k], 20*Math.log10(totalMag[k])]);
+	var r = plotType === "dB" ? 20*Math.log10(totalMag[k]) : totalMag[k];
+	dataMag.push([freq[k], r]);
+        dataPhase.push([freq[k], totalPhase[k]*180/Math.PI]);
     }
     
-    $.plot($("#graph-webaudio"), [{
-        data: data,
-        label: "Magnitude response"
-    }], {
+    if (plotType == "dB") {
+	plotOptions = {
         yaxes: [{
             min: -80
-        }]
-    });
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
+    }
+
+    $.plot($("#graph-webaudio"), [{
+        data: dataMag,
+        label: "Magnitude response"
+    }, {
+        data: dataPhase,
+        label: "Phase response",
+        yaxis: 2
+    }], plotOptions);
 
 }
 
@@ -195,25 +343,47 @@ function plotAnalogResponse(filter) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var mag = analogResponse(filter, freq);
+    //var {mag, phase} = analogResponse(filter, freq);
+    var response = analogResponse(filter, freq);
+    mag = response.mag;
+    phase = response.phase;
 
     console.log(freq);
     console.log(mag);
 
-    var dataAnalog = [];
+    var analogMag = [];
+    var analogPhase = [];
     for (var k = 0; k < freq.length; ++k) {
-        var r = 20 * Math.log10(mag[k]);
-        dataAnalog.push([freq[k], r]);
+        var r = plotType === "dB" ? 20 * Math.log10(mag[k]) : mag[k];
+        analogMag.push([freq[k], r]);
+        analogPhase.push([freq[k], (phase[k]*180/Math.PI) % 180]);
+    }
+
+    var plotOptions;
+
+    if (plotType == "dB") {
+	plotOptions = {
+        yaxes: [{
+            min: -80
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
     }
 
     $.plot($("#graph-analog"), [{
-        data: dataAnalog,
+        data: analogMag,
         label: "Magnitude response"
-    }], {
-        yaxes: [{
-            min: -80
-        }]
-    });
+    }, {
+        data: analogPhase,
+        label: "Phase response",
+        yaxis: 2
+    }], plotOptions
+    );
 }
 
 function plotDigitalResponse(filter, Fs) {
@@ -223,22 +393,45 @@ function plotDigitalResponse(filter, Fs) {
         freq[k] = k * sampleRate / 2 / freq.length;
     }
 
-    var mag = digitalResponse(filter, freq, Fs);
+    //var {mag, phase} = digitalResponse(filter, freq, Fs);
+    var response = digitalResponse(filter, freq, Fs);
+    mag = response.mag;
+    phase = response.phase;
 
     // Plot the response
-    var dataDigital = [];
+    var digitalMag = [];
+    var digitalPhase = [];
     for (var k = 0; k < freq.length; ++k) {
-        dataDigital.push([freq[k], 20 * Math.log10(mag[k])]);
+	var r = plotType === "dB" ? 20 * Math.log10(mag[k]) : mag[k];
+        digitalMag.push([freq[k], r]);
+        digitalPhase.push([freq[k], phase[k]*180/Math.PI]);
+    }
+
+    var plotOptions;
+
+    if (plotType == "dB") {
+	plotOptions = {
+        yaxes: [{
+            min: -80
+        }, {
+            position: "right"
+		}]};
+	    
+    } else {
+	plotOptions = {
+	  yaxes: [{}, {position: "right"}]
+	};
     }
 
     $.plot($("#graph-digital"), [{
-        data: dataDigital,
+        data: digitalMag,
         label: "Magnitude response"
-    }], {
-        yaxes: [{
-            min: -80
-        }]
-    });
+    }, {
+        data: digitalPhase,
+        label: "Phase response",
+        yaxis: 2
+    }], plotOptions
+	);
 }
 
 // Check the Q implementation and return a promise.
