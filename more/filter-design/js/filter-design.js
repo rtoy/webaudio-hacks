@@ -156,6 +156,17 @@ function designHighpassFilter(filterImplType) {
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
+    var webaudio = webAudioFilter(digitalFilter, sampleRate, filterImplType);
+    console.log(webaudio);
+    displayWebAudio(webaudio, { order: digitalFilter.order,
+		sampleRate: sampleRate,
+		filterImplType: filterImplType,
+		passBand: passBand,
+		stopBand: stopBand,
+		passAttenuation: passdB,
+		stopAttenuation: stopdB});
+
+    plotWebAudioResponse(webaudio, sampleRate, filterImplType);
 }
 
 

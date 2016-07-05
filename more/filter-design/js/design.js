@@ -755,13 +755,13 @@ function webAudioFilterDesc(top, bot, Fs, type) {
     if (order == 1) {
         return {
             filterType: "iir",
-            top: [gain, gain],
+            top: zterm.map(x => x * gain),
             bot: bot,
             filterGain: 1
         };
     }
 
-    if (type === "butterworth" || type === "cheby-1") {
+    if (filterType === "lowpass" && (type === "butterworth" || type === "cheby-1")) {
         var b = bot[1];
         var c = bot[2];
         var alpha = (1 - c) / (1 + c);
@@ -779,7 +779,7 @@ function webAudioFilterDesc(top, bot, Fs, type) {
             filterGain: gain
         };
     }
-    if (type === "cheby-2" || type === "elliptic") {
+    if (filterType != "lowpass" && (type === "cheby-2" || type === "elliptic")) {
         // Superficially, sections for a Chebyshev-2 and elliptic
         // filters kind of look like biquad notch filters, but they're
         // not.  The numerator coefficient of z^(-1) is not consistent
