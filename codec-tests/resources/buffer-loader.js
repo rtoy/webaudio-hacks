@@ -27,6 +27,8 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
                 }
             },
             function () {
+                if (++loader.loadCount == loader.urlList.length)
+                    loader.onload(loader.bufferList);
                 console.log('error decoding file data: ' + url);
             });
     }
