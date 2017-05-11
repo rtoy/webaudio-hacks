@@ -19,6 +19,7 @@ var xTickSpacing = 500;
 var maxSamplesToPlot = 60000;
 
 var context;
+var offlineContext;
 var bufferLoader;
 var source;
 
@@ -241,8 +242,13 @@ function init() {
     source = context.createBufferSource();
     source.connect(context.destination);
     source.loop = true;
+
+    // All of the files have a sample rate of 44100 Hz.  This context is used
+    // for decoding those files so that no resampling is done when creating the
+    // AudioBuffer for the files.
+    offlineContext = new OfflineAudioContext(1, 1, 44100);
     bufferLoader = new BufferLoader(
-        context,
+        offlineContext,
         mediaInfo.map(function(value) {
             return value.url;
         }),
