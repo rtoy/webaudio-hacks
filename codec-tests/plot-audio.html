@@ -95,6 +95,9 @@ function finishedLoading(buffers) {
     for (var k = 1; k < bufferList.length; ++k) {
         form += '<input type="radio" name="mediatype"';
         form += ' value="' + mediaInfo[0].info + '"';
+        if (!(bufferList[k] instanceof AudioBuffer)) {
+          form += 'disabled';
+        }
         form += ' onClick="setSource(' + k + ');">';
         form += mediaInfo[k].info + "<br/>";
     }
