@@ -27,7 +27,7 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
                 }
             },
             function () {
-                alert('error decoding file data: ' + url);
+                console.log('error decoding file data: ' + url);
             });
     }
 
