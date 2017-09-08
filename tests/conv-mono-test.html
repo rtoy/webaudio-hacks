@@ -57,11 +57,9 @@ var convolver;
 
 function runTest() {
     // Create offline audio context.
-    if (typeof webkitOfflineAudioContext == 'function') {
-        context = new webkitOfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
-    } else {
-        context = new webkitAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
-    }
+    window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+
+    context = new OfflineAudioContext(2, sampleRate * renderLengthSeconds, sampleRate);
 
     squarePulse = createSquarePulseBuffer(context, pulseLengthFrames);
     trianglePulse = createTrianglePulseBuffer(context, 2 * pulseLengthFrames);
