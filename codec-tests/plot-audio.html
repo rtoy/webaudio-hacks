@@ -19,6 +19,7 @@ var xTickSpacing = 500;
 var maxSamplesToPlot = 60000;
 
 var context;
+var offlineContext;
 var bufferLoader;
 var source;
 
@@ -60,7 +61,13 @@ var mediaInfo =
     }, {
         url: "resources/media/24bitsine.wav",
         info: "sine wave, 24-bit wav"
-    }, ];
+    }, {
+        url: "resources/media/square3.flac",
+        info: "square wave, FLAC"
+    }, {
+        url: "resources/media/square3.webm",
+        info: "square wave, webm"
+    }];
 
 // Decoded audio samples      
 var bufferList = 0;
@@ -88,6 +95,9 @@ function finishedLoading(buffers) {
     for (var k = 1; k < bufferList.length; ++k) {
         form += '<input type="radio" name="mediatype"';
         form += ' value="' + mediaInfo[0].info + '"';
+        if (!(bufferList[k] instanceof AudioBuffer)) {
+          form += 'disabled';
+        }
         form += ' onClick="setSource(' + k + ');">';
         form += mediaInfo[k].info + "<br/>";
     }
@@ -235,8 +245,13 @@ function init() {
     source = context.createBufferSource();
     source.connect(context.destination);
     source.loop = true;
+
+    // All of the files have a sample rate of 44100 Hz.  This context is used
+    // for decoding those files so that no resampling is done when creating the
+    // AudioBuffer for the files.
+    offlineContext = new OfflineAudioContext(1, 1, 44100);
     bufferLoader = new BufferLoader(
-        context,
+        offlineContext,
         mediaInfo.map(function(value) {
             return value.url;
         }),

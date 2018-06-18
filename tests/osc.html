@@ -2,28 +2,31 @@
 <html>
   <head>
     <title></title>
-<script src="../resources/compatibility.js"></script>
-<script>
-var context = new AudioContext(),
-      
-oscillator = context.createOscillator(); // Oscillator defaults to sine wave
-
-document.write("<h2>Simple Oscillator Demo</h2>");      
-document.write("<p>Context sample rate = " + context.sampleRate + " kHz</p>");
-
-oscillator.connect(context.destination);
-oscillator.start(0);
-</script>
+    <script src="../resources/compatibility.js"></script>
   </head>
   <body>
-    <h1></h1>
+    <h2>Simple Oscillator Demo</h2>
 
+    <script>
+      var context = new AudioContext(),
+      
+      oscillator = context.createOscillator();
 
+      oscillator.connect(context.destination);
+      oscillator.start(0);
+
+      // TODO: Do something better than document.write!
+      document.write("<p>Context sample rate = " + context.sampleRate + " Hz</p>");
+      if (context.baseLatency) {
+        document.write("<p> baseLatency = " + context.baseLatency + " sec (" +
+          (context.baseLatency * context.sampleRate) + " frames)</p>");
+      }
+    </script>
 
     <hr>
 <!-- Created: Fri Aug  3 14:50:20 PDT 2012 -->
 <!-- hhmts start -->
-Last modified: Mon May 19 14:30:02 PDT 2014
+Last modified: Tue Jul 18 14:05:52 PDT 2017
 <!-- hhmts end -->
   </body>
 </html>
