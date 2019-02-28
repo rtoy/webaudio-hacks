@@ -1,32 +1,43 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!doctype>
 <html>
   <head>
     <title></title>
     <script src="../resources/compatibility.js"></script>
+    <script>
+      const context = new AudioContext();
+
+      let oscillator = 0;
+
+      function play() {
+        if (oscillator) {
+          oscillator.stop();
+        }
+
+        oscillator = new OscillatorNode(context);
+
+        oscillator.connect(context.destination);
+        oscillator.start();
+
+        let element = document.getElementById("status");;
+        let message = `<p>Context sample rate = ${context.sampleRate} Hz</p>`;
+        if (context.baseLatency) {
+          message += `<p> baseLatency = ${context.baseLatency} sec`;
+          message += ` (${context.baseLatency * context.sampleRate} frames)</p>`;
+        }
+        element.innerHTML = message;
+      }
+    </script>
   </head>
   <body>
     <h2>Simple Oscillator Demo</h2>
 
-    <script>
-      var context = new AudioContext(),
-      
-      oscillator = context.createOscillator();
-
-      oscillator.connect(context.destination);
-      oscillator.start(0);
-
-      // TODO: Do something better than document.write!
-      document.write("<p>Context sample rate = " + context.sampleRate + " Hz</p>");
-      if (context.baseLatency) {
-        document.write("<p> baseLatency = " + context.baseLatency + " sec (" +
-          (context.baseLatency * context.sampleRate) + " frames)</p>");
-      }
-    </script>
-
+    <button onclick="play()">Play</button>
+    <hr>
+    <div id="status"></div>
     <hr>
 <!-- Created: Fri Aug  3 14:50:20 PDT 2012 -->
 <!-- hhmts start -->
-Last modified: Tue Jul 18 14:05:52 PDT 2017
+Last modified: Thu Feb 28 10:22:16 PST 2019
 <!-- hhmts end -->
   </body>
 </html>
