@@ -22,7 +22,7 @@
       request.open('GET', 'rdn056.m4a', true);
       request.responseType = 'arraybuffer';
       request.onload = function() {
-          console.log("Got data of " + request.response.lengthInBytes + " bytes");
+          console.log("Got data of " + request.response.byteLength + " bytes");
           startTime = new Date().getTime();
           context.decodeAudioData(request.response, function(buffer) {
             endTime = new Date().getTime();
@@ -42,7 +42,7 @@
     <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Tue Sep 23 10:04:17 PDT 2014 -->
 <!-- hhmts start -->
-Last modified: Tue Sep 23 13:43:42 PDT 2014
+Last modified: Thu Feb 28 13:26:32 PST 2019
 <!-- hhmts end -->
   </body>
 </html>
