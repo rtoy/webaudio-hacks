@@ -153,11 +153,7 @@ function init()
     canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);    
 
     // Create offline audio context.
-    if (typeof webkitOfflineAudioContext == 'function') {
-      context = new webkitOfflineAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
-    } else {
-      context = new webkitAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
-    }
+    context = new OfflineAudioContext(1, sampleRate * lengthInSeconds, sampleRate);
 
     bufferLoader = new BufferLoader(
         context,
