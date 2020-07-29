@@ -1,3 +1,4 @@
+let filter;
 function texifyNumber(number, options) {
     // Convert the number to a string.  If it is in scientific form,
     // replace with the appropriate teX version.
@@ -79,7 +80,7 @@ function calc() {
     console.log("Q = " + Q);
     console.log("gain = " + gain);
 
-    let filter = createFilter(filterType, freq / sampleRate, Q, gain);
+    filter = createFilter(filterType, freq / sampleRate, Q, gain);
     console.log(filter);
 
     let term = [[1, [filter.b0, filter.b1, filter.b2]],
@@ -87,6 +88,10 @@ function calc() {
     let formula = digitalTermTeX(term);
     console.log(formula);
 
-    let math = MathJax.Hub.getAllJax("eqn");
-    MathJax.Hub.Queue(["Text", math[0], formula]);
+    MathJax.typesetPromise().then(() => {
+	    const eqn = document.querySelector("#eqn");
+	    eqn.innerHTML = "$$" + formula + "$$";
+	    MathJax.typesetPromise();
+	}).catch((err) => console.log(err.message));
+	    
 }
