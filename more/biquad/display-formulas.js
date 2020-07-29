@@ -93,5 +93,6 @@ function calc() {
 	    eqn.innerHTML = "$$" + formula + "$$";
 	    MathJax.typesetPromise();
 	}).catch((err) => console.log(err.message));
-	    
+
+    plotResponse(filter, sampleRate);
 }
