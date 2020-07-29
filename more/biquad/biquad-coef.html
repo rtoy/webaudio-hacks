@@ -1,66 +1,94 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Biquad Filter Coefficients</title>
-    <script type="text/javascript" id="MathJax-script" async
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-    </script>
-    <script src="display-formulas.js"></script>
-    <script src="biquad-filters.js"></script>
-  </head>
-
-  <body>
-    <h1>Biquad Filter Coefficients</h1>
-
-    <p>
-      Select the filter type and enter the values for the filter paramters.
-      Then press compute to show what the actual biquad filter coefficients are.
-    </p>
-
-    <div id="container" style="display: flex">
-      <div id="filtertypes" style="width:25%;float:left;">
-	<h2>Filter type</h2>
-	<form>
-	  <input type="radio" name="filtertype" value="Lowpass" onClick="setFilterType('lowpass');"checked="checked" >Lowpass<br/>
-	  <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType('highpass');">Highpass<br/>
-	  <input type="radio" name="filtertype" value="Bandpass"
-	    onClick="setFilterType('bandpass');">Bandpass<br/>
-	  <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType('lowshelf');">Lowshelf<br/>
-	  <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType('highshelf');">Highshelf<br/>
-	  <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType('peaking');">Peaking<br/>
-	  <input type="radio" name="filtertype" value="Notch" onClick="setFilterType('notch');">Notch<br/>
-	  <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType('allpass');">Allpass<br/>
-	</form>
-      </div>
-      <div id="Filterparam" style="width:25%;float:left">
-        <h2>Filter parameters</h2>
-        <form>
-          <input id="samplerate" type="number" value="48000">  sample rate (Hz)</input>
-          <br>
-          <input id="frequency" type="number" value="350">  frequency (Hz)</input>
-          <br>
-          <input id="Q" type="number" value="1">  Q</input>
-          <br>
-          <input id="gain" type="number" value="0">  gain (dB)</input>
-        </form>
-      </div>
+<head>
+  <title>Biquad Filter Coefficients</title>
+  <script type="text/javascript"
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
+  <script src="display-formulas.js">
+  </script>
+  <script src="biquad-filters.js">
+  </script>
+</head>
+<body>
+  <h1>Biquad Filter Coefficients</h1>
+  <p>Select the filter type and enter the values for the filter paramters. Then
+  press compute to show what the actual biquad filter coefficients are.</p>
+  <div id="container"
+       style="display: flex">
+    <div id="filtertypes"
+         style="width:25%;float:left;">
+      <h2>Filter type</h2>
+      <form>
+        <input type="radio"
+              name="filtertype"
+              value="Lowpass"
+              onclick="setFilterType('lowpass');"
+              checked="checked">Lowpass<br>
+        <input type="radio"
+              name="filtertype"
+              value="Highpass"
+              onclick="setFilterType('highpass');">Highpass<br>
+        <input type="radio"
+              name="filtertype"
+              value="Bandpass"
+              onclick="setFilterType('bandpass');">Bandpass<br>
+        <input type="radio"
+              name="filtertype"
+              value="Lowshelf"
+              onclick="setFilterType('lowshelf');">Lowshelf<br>
+        <input type="radio"
+              name="filtertype"
+              value="Highshelf"
+              onclick="setFilterType('highshelf');">Highshelf<br>
+        <input type="radio"
+              name="filtertype"
+              value="Peaking"
+              onclick="setFilterType('peaking');">Peaking<br>
+        <input type="radio"
+              name="filtertype"
+              value="Notch"
+              onclick="setFilterType('notch');">Notch<br>
+        <input type="radio"
+              name="filtertype"
+              value="Allpass"
+              onclick="setFilterType('allpass');">Allpass<br>
+      </form>
     </div>
-
-    <br>
-    <div id="coef">
-      <button onclick="calc()">Compute filter coefficients</button>
-      <br>
-      <div id="eqn" class="left">
-	  \[{}\]
-      </div>
+    <div id="Filterparam"
+         style="width:25%;float:left">
+      <h2>Filter parameters</h2>
+      <form>
+        <input id="samplerate"
+              type="number"
+              value="48000"> sample rate (Hz)<br>
+        <input id="frequency"
+              type="number"
+              value="350"> frequency (Hz)<br>
+        <input id="Q"
+              type="number"
+              value="1"> Q<br>
+        <input id="gain"
+              type="number"
+              value="0"> gain (dB)
+      </form>
     </div>
-
-    <br>
-    <hr>
-    <address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
-<!-- Created: Thu Feb 28 13:37:47 PST 2019 -->
-<!-- hhmts start -->
-Last modified: Wed Jul 29 13:25:49 PDT 2020
+  </div><br>
+  <div id="coef">
+    <button onclick="calc()">Compute filter coefficients</button><br>
+    <div id="eqn"
+         class="left">
+      \[{}\]
+    </div>
+  </div><br>
+  <hr>
+  <address>
+    <a href="mailto:rtoy@google.com">Raymond Toy</a>
+  </address><!-- Created: Thu Feb 28 13:37:47 PST 2019 -->
+  <!-- hhmts start -->
+Last modified: Wed Jul 29 13:32:03 PDT 2020
 <!-- hhmts end -->
-  </body>
+</body>
 </html>
