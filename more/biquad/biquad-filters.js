@@ -319,6 +319,84 @@ function createAllpassFilter(freq, q, gain) {
   return coef;
 }
 
+function createLowShelfQFilter(freq, q, gain) {
+  // q not used
+  let b0;
+  let b1;
+  let b2;
+  let a0;
+  let a1;
+  let a2;
+  let coef;
+
+  let S = 1;
+  let A = Math.pow(10, gain / 40);
+
+  if (freq == 1) {
+    // The filter is just a constant gain
+    coef = {b0: A * A, b1: 0, b2: 0, a1: 0, a2: 0};
+  } else if (freq == 0) {
+    // The filter is 1
+    coef = {b0: 1, b1: 0, b2: 0, a1: 0, a2: 0};
+  } else {
+    let w0 = Math.PI * freq;
+    let alpha = Math.sin(w0) / (2 * q);
+    let k = Math.cos(w0);
+    let k2 = 2 * Math.sqrt(A) * alpha;
+    let Ap1 = A + 1;
+    let Am1 = A - 1;
+
+    b0 = A * (Ap1 - Am1 * k + k2);
+    b1 = 2 * A * (Am1 - Ap1 * k);
+    b2 = A * (Ap1 - Am1 * k - k2);
+    a0 = Ap1 + Am1 * k + k2;
+    a1 = -2 * (Am1 + Ap1 * k);
+    a2 = Ap1 + Am1 * k - k2;
+    coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+  }
+
+  return coef;
+}
+
+function createHighShelfQFilter(freq, q, gain) {
+  // q not used
+  let b0;
+  let b1;
+  let b2;
+  let a0;
+  let a1;
+  let a2;
+  let coef;
+
+  let A = Math.pow(10, gain / 40);
+
+  if (freq == 1) {
+    // When freq = 1, the z-transform is 1
+    coef = {b0: 1, b1: 0, b2: 0, a1: 0, a2: 0};
+  } else if (freq > 0) {
+    let w0 = Math.PI * freq;
+    let alpha = Math.sin(w0) / (2*q);
+    let k = Math.cos(w0);
+    let k2 = 2 * Math.sqrt(A) * alpha;
+    let Ap1 = A + 1;
+    let Am1 = A - 1;
+
+    b0 = A * (Ap1 + Am1 * k + k2);
+    b1 = -2 * A * (Am1 + Ap1 * k);
+    b2 = A * (Ap1 + Am1 * k - k2);
+    a0 = Ap1 - Am1 * k + k2;
+    a1 = 2 * (Am1 - Ap1 * k);
+    a2 = Ap1 - Am1 * k - k2;
+
+    coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+  } else {
+    // When freq = 0, the filter is just a gain
+    coef = {b0: A * A, b1: 0, b2: 0, a1: 0, a2: 0};
+  }
+
+  return coef;
+}
+
 // Map the filter type name to a function that computes the filter coefficents
 // for the given filter type.
 let filterCreatorFunction = {
@@ -329,7 +407,9 @@ let filterCreatorFunction = {
   'highshelf': createHighShelfFilter,
   'peaking': createPeakingFilter,
   'notch': createNotchFilter,
-  'allpass': createAllpassFilter
+  'allpass': createAllpassFilter,
+  'lowshelfq': createLowShelfQFilter,
+  'highshelfq': createHighShelfQFilter
 };
 
 let filterTypeName = {
@@ -340,7 +420,9 @@ let filterTypeName = {
   'highshelf': 'Highshelf filter',
   'peaking': 'Peaking filter',
   'notch': 'Notch filter',
-  'allpass': 'Allpass filter'
+  'allpass': 'Allpass filter',
+  'lowshelfq': 'Lowshelf filter with Q',
+  'highshelfq': 'Highshelf filter wiht Q'
 };
 
 function createFilter(filterType, freq, q, gain) {
