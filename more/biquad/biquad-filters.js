@@ -339,20 +339,25 @@ function createLowShelfQFilter(freq, q, gain) {
     // The filter is 1
     coef = {b0: 1, b1: 0, b2: 0, a1: 0, a2: 0};
   } else {
-    let w0 = Math.PI * freq;
-    let alpha = Math.sin(w0) / (2 * q);
-    let k = Math.cos(w0);
-    let k2 = 2 * Math.sqrt(A) * alpha;
-    let Ap1 = A + 1;
-    let Am1 = A - 1;
+    if (q > 0) {
+	let w0 = Math.PI * freq;
+	let alpha = Math.sin(w0) / (2 * q);
+	let k = Math.cos(w0);
+	let k2 = 2 * Math.sqrt(A) * alpha;
+	let Ap1 = A + 1;
+	let Am1 = A - 1;
 
-    b0 = A * (Ap1 - Am1 * k + k2);
-    b1 = 2 * A * (Am1 - Ap1 * k);
-    b2 = A * (Ap1 - Am1 * k - k2);
-    a0 = Ap1 + Am1 * k + k2;
-    a1 = -2 * (Am1 + Ap1 * k);
-    a2 = Ap1 + Am1 * k - k2;
-    coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+	b0 = A * (Ap1 - Am1 * k + k2);
+	b1 = 2 * A * (Am1 - Ap1 * k);
+	b2 = A * (Ap1 - Am1 * k - k2);
+	a0 = Ap1 + Am1 * k + k2;
+	a1 = -2 * (Am1 + Ap1 * k);
+	a2 = Ap1 + Am1 * k - k2;
+	coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+    } else {
+	// The limit of the filter response as Q approaches 0 is A.
+	coef = {b0: A, b1: 0, b2: 0, a1: 0, a2: 0};
+    }
   }
 
   return coef;
@@ -374,21 +379,26 @@ function createHighShelfQFilter(freq, q, gain) {
     // When freq = 1, the z-transform is 1
     coef = {b0: 1, b1: 0, b2: 0, a1: 0, a2: 0};
   } else if (freq > 0) {
-    let w0 = Math.PI * freq;
-    let alpha = Math.sin(w0) / (2*q);
-    let k = Math.cos(w0);
-    let k2 = 2 * Math.sqrt(A) * alpha;
-    let Ap1 = A + 1;
-    let Am1 = A - 1;
+    if (q > 0) {
+      let w0 = Math.PI * freq;
+      let alpha = Math.sin(w0) / (2*q);
+      let k = Math.cos(w0);
+      let k2 = 2 * Math.sqrt(A) * alpha;
+      let Ap1 = A + 1;
+      let Am1 = A - 1;
 
-    b0 = A * (Ap1 + Am1 * k + k2);
-    b1 = -2 * A * (Am1 + Ap1 * k);
-    b2 = A * (Ap1 + Am1 * k - k2);
-    a0 = Ap1 - Am1 * k + k2;
-    a1 = 2 * (Am1 - Ap1 * k);
-    a2 = Ap1 - Am1 * k - k2;
+      b0 = A * (Ap1 + Am1 * k + k2);
+      b1 = -2 * A * (Am1 + Ap1 * k);
+      b2 = A * (Ap1 + Am1 * k - k2);
+      a0 = Ap1 - Am1 * k + k2;
+      a1 = 2 * (Am1 - Ap1 * k);
+      a2 = Ap1 - Am1 * k - k2;
 
-    coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+      coef = normalizeFilterCoefficients(b0, b1, b2, a0, a1, a2);
+    } else {
+      // The limit of the filter response as Q approaches 0 is A.
+      coef = {b0: A, b1: 0, b2: 0, a1: 0, a2: 0};
+    }
   } else {
     // When freq = 0, the filter is just a gain
     coef = {b0: A * A, b1: 0, b2: 0, a1: 0, a2: 0};
