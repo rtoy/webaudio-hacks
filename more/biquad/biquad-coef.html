@@ -185,10 +185,14 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Thu Jul 30 08:43:40 PDT 2020
+Last modified: Thu Jul 30 08:52:25 PDT 2020
 <!-- hhmts end -->
   <script>
-    window.onload = () => setFilterType('lowpass');	      
+    window.onload = () => setFilterType('lowpass');
+    ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {	      
+      let input = document.getElementById(id);
+      input.addEventListener('change', calc);
+    });	      
   </script>
 </body>
 </html>
