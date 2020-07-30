@@ -14,6 +14,10 @@
   </script>
   <script language="javascript"
         type="text/javascript"
+        src="../../lib/jquery.event.drag.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
         src="../../flot-master/source/jquery.canvaswrapper.js">
   </script>
   <script language="javascript"
@@ -59,6 +63,26 @@
   <script language="javascript"
         type="text/javascript"
         src="../../flot-master/source/jquery.flot.legend.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../source/jquery.flot.navigate.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.touchNavigate.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.hover.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.touch.js">
+  </script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.selection.js">
   </script><!-- My stuff for the page -->
 
   <script src="filter-response.js">
@@ -190,11 +214,14 @@
            class="demo-placeholder"></div>
     </div>
   </div>
+  <div>
+    Mouse position <span id="hoverdata"></span>
+  </div>
   <hr>
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Thu Jul 30 10:28:14 PDT 2020
+Last modified: Thu Jul 30 15:48:04 PDT 2020
 <!-- hhmts end -->
    
   <script>
@@ -207,6 +234,14 @@ Last modified: Thu Jul 30 10:28:14 PDT 2020
       let input = document.getElementById(id);
       input.addEventListener('change', calc);
     });       
+  $("<div id='tooltip'><\/div>").css({
+        position: 'absolute',
+              display: 'none',
+              border: '1px solid #fdd',
+              padding:  '2px',
+              'background-color': '#fee',
+              opacity: 0.8
+      }).appendTo('body');
   </script>
 </body>
 </html>

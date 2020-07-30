@@ -105,6 +105,7 @@ function plotResponse(filterType, filter, sampleRate) {
         }
       ],
       {
+        grid: { hoverable: true},
         legend: {
           position: 'ne',
           show: true,
@@ -145,4 +146,25 @@ function plotResponse(filterType, filter, sampleRate) {
             'Placeholder is now ' + $(this).width() + 'x' + $(this).height() +
             ' pixels');
   });
+
+  $('#graph').bind('plothover', (event, pos, item) => {
+	  if (!pos.x || !pos.y) {
+	      return;
+	  }
+	  let str = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+	  $('#hoverdata').text(str);
+	  if (item) {
+	      let x = item.datapoint[0].toFixed(2);
+	      let y = item.datapoint[1].toFixed(2);
+	      $('#tooltip').html(
+		  `${item.series.label} at ${x} = ${y}`)
+		  .css({top: item.pageY+5, left: item.pageX+5})
+		  .fadeIn(200);
+	  } else {
+	      $('#tooltip').stop().hide();
+	  }
+      });
+  $('#graph').bind('plothovercleanup', (event, pos, item) => {
+	  $('#tooltip').hide();
+      });
 }
