@@ -78,7 +78,8 @@ function plotResponse(filter, sampleRate) {
 
   //$.plot("#graph"), [response[0], response[1]]);
   let graph = $('#graph');
-  let plot = $.plot(graph,
+  let plot = $.plot(
+      graph,
       [
         {data: magResponse, label: 'Mag (dB)', lines: {linewidth: 5}}, {
           data: phaseResponse,
@@ -88,6 +89,11 @@ function plotResponse(filter, sampleRate) {
         }
       ],
       {
+        legend: {
+          position: 'ne',
+          show: true,
+          // container: document.getElementById("legendContainer")
+        },
         xaxis: {
           mode: 'log',
           ticks: 10,
@@ -117,15 +123,11 @@ function plotResponse(filter, sampleRate) {
             //  ticks: [-180, -135, -90, -45, 0, 45, 90, 135, 180]
           }
         ],
-        legend: {position: 'ne'}
       });
-  graph.resize(() => 
-      {
-        $(".message").text("Placeholder is now "
-                           + $(this).width() + "x" + $(this).height()
-                           + " pixels");
-      }
-               );
-
-        
+  graph.resize(() => {
+    $('.message')
+        .text(
+            'Placeholder is now ' + $(this).width() + 'x' + $(this).height() +
+            ' pixels');
+  });
 }
