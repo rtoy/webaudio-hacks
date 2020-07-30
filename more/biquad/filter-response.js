@@ -80,32 +80,41 @@ function plotResponse(filter, sampleRate) {
   $.plot(
       $('#graph'),
       [
-        {data: magResponse, label: 'Mag (dB)', lines: {linewidth: 3}}, {
+        {data: magResponse, label: 'Mag (dB)', lines: {linewidth: 5}}, {
           data: phaseResponse,
           label: 'Phase (deg)',
-          lines: {linewidth: 3},
+          lines: {linewidth: 5},
           yaxis: 2
         }
       ],
       {
-        xaxis: {mode: 'log', ticks: 10, showMinorTicks: true},
+        xaxis: {
+          mode: 'log',
+          ticks: 10,
+          showMinorTicks: true,
+          axisLabel: 'Freq (Hz)'
+        },
         // xaxes: [ { ticks : tickScale } ],
         yaxes: [
           {
-              // tickFormatter: dBFormatter,
-              // min: magmin,
-              // max: magmax,
-              // ticks : tickScale
+            position: 'left',
+            axisLabel: 'Mag (dB)',
+            // tickFormatter: dBFormatter,
+            // min: magmin,
+            // max: magmax,
+            // ticks : tickScale
           },
           {
+            axisLabel: 'Phase (deg)',
             // align if we are to the right
-            alignTicksWithAxis: position = 'right' ? 1 : null,
-            position: position,
+            alignTicksWithAxis: 1,
+            position: 'right',
             // tickFormatter: degFormatter,
             min: -180,
             max: 180,
-            autoScale: 'none'
-            // ticks : tickScale
+            autoScale: 'none',
+            showMinorTicks: true,
+            //  ticks: [-180, -135, -90, -45, 0, 45, 90, 135, 180]
           }
         ],
         legend: {position: 'ne'}
