@@ -5,100 +5,109 @@
   <script type="text/javascript"
         id="MathJax-script"
         async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-        <!-- Get Flot plotting package -->
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script><!-- Get Flot plotting package -->
 
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.js"></script>
+        src="../../flot-master/source/jquery.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.canvaswrapper.js"></script>
+        src="../../flot-master/source/jquery.canvaswrapper.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.colorhelpers.js"></script>
+        src="../../flot-master/source/jquery.colorhelpers.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.js"></script>
+        src="../../flot-master/source/jquery.flot.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.saturated.js"></script>
+        src="../../flot-master/source/jquery.flot.saturated.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.browser.js"></script>
+        src="../../flot-master/source/jquery.flot.browser.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.drawSeries.js"></script>
+        src="../../flot-master/source/jquery.flot.drawSeries.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.uiConstants.js"></script>
+        src="../../flot-master/source/jquery.flot.uiConstants.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.legend.js"></script>
+        src="../../flot-master/source/jquery.flot.legend.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.logaxis.js"></script>
+        src="../../flot-master/source/jquery.flot.logaxis.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.axislabels.js"></script>
+        src="../../flot-master/source/jquery.flot.axislabels.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.resize.js"></script>
+        src="../../flot-master/source/jquery.flot.resize.js">
+  </script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.legend.js"></script>
-        <!-- My stuff for the page -->
+        src="../../flot-master/source/jquery.flot.legend.js">
+  </script><!-- My stuff for the page -->
 
-  <script src="filter-response.js"></script>
-  <script src="display-formulas.js"></script>
-  <script src="biquad-filters.js"></script>
-
+  <script src="filter-response.js">
+  </script>
+  <script src="display-formulas.js">
+  </script>
+  <script src="biquad-filters.js">
+  </script>
   <style>
-.demo-container {
-  box-sizing: border-box;
-  width: 75%;
-  height: 450px;
-  padding: 20px 15px 15px 15px;
-  margin: 15px auto 30px auto;
-  border: 1px solid #ddd;
-  background: #fff;
-  background: linear-gradient(#f6f6f6 0, #fff 50px);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  user-select: none;
-}
+  /* Draw a box around the graph area */
+  .demo-container {
+    box-sizing: border-box;
+    width: 75%;
+    height: 450px;
+    padding: 20px 15px 15px 15px;
+    margin: 15px auto 30px auto;
+    border: 1px solid #ddd;
+    background: #fff;
+    background: linear-gradient(#f6f6f6 0, #fff 50px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    user-select: none;
+  }
 
-.demo-placeholder {
-  width: 100%;
-  height: 100%;
-  font-size: 14px;
-}
+  /* This holds the graph */
+  .demo-placeholder {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+  }
 
-.legend {
-  display: block;
-  -webkit-padding-start: 2px;
-  -webkit-padding-end: 2px;
-  border-width: initial;
-  border-style: none;
-  border-color: initial;
-  border-image: initial;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
+  /*
+  * Styling for the legend block.  These are really important to make the legend
+  * show up.  Without this, the block is black.
+  */
+  .legendLayer {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: rgba(0, 0, 0, 0.85);
+    stroke-width: 1;
+  }
 
-.legendLayer .background {
-  fill: rgba(255, 255, 255, 0.85);
-  stroke: rgba(0, 0, 0, 0.85);
-  stroke-width: 1;
-}
-
-  </style>  
+  </style>
 </head>
 <body>
   <h1>Biquad Filter Coefficients</h1>
   <p>Select the filter type and enter the values for the filter paramters. Then
   press compute to show what the actual biquad filter coefficients are.</p>
+  <p>Note that \(Q\) is in dB for the Lowpass and Highpass filters and can be
+  positive or negative. For all other filters it is a linear value that must be
+  positive.</p>
   <div id="container"
        style="display: flex">
     <div id="filtertypes"
@@ -185,14 +194,19 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Thu Jul 30 08:52:25 PDT 2020
+Last modified: Thu Jul 30 10:28:14 PDT 2020
 <!-- hhmts end -->
+   
   <script>
+    // Set the filter type and draw the equation and graph on start up.
     window.onload = () => setFilterType('lowpass');
-    ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {	      
+
+    // When any of the filter parameters change, automatically update the
+    // equation and graph.
+    ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {        
       let input = document.getElementById(id);
       input.addEventListener('change', calc);
-    });	      
+    });       
   </script>
 </body>
 </html>
