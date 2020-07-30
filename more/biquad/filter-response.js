@@ -81,10 +81,17 @@ function plotResponse(filter, sampleRate) {
   let plot = $.plot(
       graph,
       [
-        {data: magResponse, label: 'Mag (dB)', lines: {linewidth: 5}}, {
+        {
+          data: magResponse,
+          label: 'Mag (dB)',
+          lines: {linewidth: 5},
+          color: 'red'
+        },
+        {
           data: phaseResponse,
           label: 'Phase (deg)',
-          lines: {linewidth: 5},
+          lines: {linewidth: 10},
+          color: 'green',
           yaxis: 2
         }
       ],
