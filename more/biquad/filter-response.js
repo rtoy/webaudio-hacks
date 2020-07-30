@@ -9,12 +9,13 @@ function H(omegas, coef) {
   let mag = [];
   let phase = [];
   omegas.forEach((omega) => {
-      let s = Math.sin(omega);
-      let c = Math.cos(omega);
-      let s2 = Math.sin(2*omega);
-      let c2 = Math.cos(2*omega);
+      let w = Math.PI*omega;
+      let s = Math.sin(w);
+      let c = Math.cos(w);
+      let s2 = Math.sin(2*w);
+      let c2 = Math.cos(2*w);
 
-      let topReal = b0 + b2*c + b2*c2;
+      let topReal = b0 + b1*c + b2*c2;
       let topImag = -(b1*s + b2*s2);
       let botReal = 1 + a1*c + a2 * c2;
       let botImag = -(a1*s + a2*s2);
@@ -39,7 +40,7 @@ function H(omegas, coef) {
 }
 
 function getResponse(filter, sampleRate) {
-  const noctaves = 8;
+  const noctaves = 10;
   const nyquist = sampleRate / 2;
   // Just uniformly sample from 0 to pi.
   const steps = 1000;
@@ -70,6 +71,7 @@ function plotResponse(filter, sampleRate) {
     phaseResponse[k][0] = phaseResponse[k][0] * nyquist;
     phaseResponse[k][1] = radToDeg * phaseResponse[k][1];
   }
+  
   //$.plot("#graph"), [response[0], response[1]]);
   $.plot($("#graph"),
          [{
@@ -97,8 +99,9 @@ function plotResponse(filter, sampleRate) {
 		 null,
 		   position: position,
 		   //tickFormatter: degFormatter,
-		   //min: phasemin,
-		   //max: phasemax,
+		   min: -180,
+		   max: 180,
+                   autoScale: "none"
 		   //ticks : tickScale
 		   }],
              legend: { position: 'ne' }
