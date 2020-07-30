@@ -52,6 +52,7 @@ function digitalTermTeX(term) {
 let filterType = 'lowpass';
 function setFilterType(type) {
   filterType = type;
+  calc();
 }
 
 function calc() {
