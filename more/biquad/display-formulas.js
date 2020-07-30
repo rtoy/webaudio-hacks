@@ -82,5 +82,5 @@ function calc() {
       })
       .catch((err) => console.log(err.message));
 
-  plotResponse(filter, sampleRate);
+  plotResponse(filterType, filter, sampleRate);
 }
