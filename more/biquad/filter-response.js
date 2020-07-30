@@ -20,7 +20,7 @@ function H(omegas, coef) {
     let botReal = 1 + a1 * c + a2 * c2;
     let botImag = -(a1 * s + a2 * s2);
 
-    if (0) {
+    if (1) {
       // Perform complex division
       let denom = Math.pow(Math.hypot(botReal, botImag), 2);
 
@@ -61,7 +61,7 @@ function getResponse(filter, sampleRate) {
   return response;
 }
 
-function plotResponse(filter, sampleRate) {
+function plotResponse(filterType, filter, sampleRate) {
   const nyquist = sampleRate / 2;
   let response = getResponse(filter, sampleRate);
   let magResponse = response[0];
@@ -76,8 +76,17 @@ function plotResponse(filter, sampleRate) {
     phaseResponse[k][1] = radToDeg * phaseResponse[k][1];
   }
 
+  let ymin;
+  let ymax;
+  if (filterType == 'allpass') {
+    ymin = -1;
+    ymax = 1;
+  }
+  
+      
   //$.plot("#graph"), [response[0], response[1]]);
   let graph = $('#graph');
+
   let plot = $.plot(
       graph,
       [
@@ -113,8 +122,7 @@ function plotResponse(filter, sampleRate) {
             position: 'left',
             axisLabel: 'Mag (dB)',
             // tickFormatter: dBFormatter,
-            // min: magmin,
-            // max: magmax,
+              tickDecimals: 1
             // ticks : tickScale
           },
           {
