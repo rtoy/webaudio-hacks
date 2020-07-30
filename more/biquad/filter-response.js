@@ -77,8 +77,8 @@ function plotResponse(filter, sampleRate) {
   }
 
   //$.plot("#graph"), [response[0], response[1]]);
-  $.plot(
-      $('#graph'),
+  let graph = $('#graph');
+  let plot = $.plot(graph,
       [
         {data: magResponse, label: 'Mag (dB)', lines: {linewidth: 5}}, {
           data: phaseResponse,
@@ -119,4 +119,13 @@ function plotResponse(filter, sampleRate) {
         ],
         legend: {position: 'ne'}
       });
+  graph.resize(() => 
+      {
+        $(".message").text("Placeholder is now "
+                           + $(this).width() + "x" + $(this).height()
+                           + " pixels");
+      }
+               );
+
+        
 }
