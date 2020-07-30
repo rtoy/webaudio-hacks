@@ -43,7 +43,7 @@ function H(omegas, coef) {
 }
 
 function getResponse(filter, sampleRate) {
-  const noctaves = 10;
+  const noctaves = 12;
   const nyquist = sampleRate / 2;
   // Just uniformly sample from 0 to pi.
   const steps = 1000;
