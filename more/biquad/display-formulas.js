@@ -33,7 +33,7 @@ function digitalTermTeX(term) {
     f += '1 ' + texifyNumber(term[1][1], {addSign: true}) + 'z^{-1}';
     f += '}';
   } else {
-    f += texifyNumber(term[0][0], {showUnity: false}) + '1';
+    f += texifyNumber(term[0][1][0], {showUnity: true});
     if (term[0][1][0] != 0) {
       f += texifyNumber(term[0][1][1], {addSign: true}) + '\\,z^{-1}';
     }
