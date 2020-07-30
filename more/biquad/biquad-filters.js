@@ -4,7 +4,6 @@
 // The formulas for the various filters were taken from
 // http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt.
 
-
 // Lowpass filter.
 function createLowpassFilter(freq, q, gain) {
   let b0;
