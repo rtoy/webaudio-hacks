@@ -127,6 +127,16 @@
     stroke-width: 1;
   }
 
+  /* For the tool tip */
+  #tooltip {
+    position: absolute;
+    display: none;
+    border: 1px solid #fdd;
+    padding: 2px;
+    background-color: #fee;
+    opacity: 0.8
+  }
+      
   #container {
     display: flex
   }
@@ -250,11 +260,13 @@
   <div>
     Mouse position <span id="hoverdata"></span>
   </div>
+  <!-- Needed for the graph tool tip -->
+  <div id="tooltip"></div>
   <hr>
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Fri Jul 31 10:07:34 PDT 2020
+Last modified: Fri Jul 31 13:40:28 PDT 2020
 <!-- hhmts end -->
    
   <script>
@@ -273,15 +285,7 @@ Last modified: Fri Jul 31 10:07:34 PDT 2020
     ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {        
       let input = document.getElementById(id);
       input.addEventListener('change', calc);
-    });       
-  $("<div id='tooltip'><\/div>").css({
-        position: 'absolute',
-              display: 'none',
-              border: '1px solid #fdd',
-              padding:  '2px',
-              'background-color': '#fee',
-              opacity: 0.8
-      }).appendTo('body');
+    });
   </script>
 </body>
 </html>
