@@ -213,8 +213,24 @@
               type="number"
               value="0"> gain (dB)
       </form>
-    </div>
-  </div><br>
+      <h2>Graph options</h2>
+      <form>
+	<input id="lowest-freq"
+	  type="number"
+	  value="10"
+	  onchange="calc();"> Lowest frequency to display<br>
+	<input type="radio"
+	  name="axistype"
+	  checked="checked"
+	  onclick="setLogAxis(true);">Log frequency axis<br>
+	<input type="radio"
+	  name="axistype"
+	  onclick="setLogAxis(false);">Linear frequency axis<br>
+      </form>
+      </div>
+  </div>
+
+    <br>
   <div id="coef">
     <button onclick="calc()">Compute filter coefficients</button>
     <button onclick="enableAudio()">Toggle Audio</button>
@@ -238,7 +254,7 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Fri Jul 31 08:52:46 PDT 2020
+Last modified: Fri Jul 31 10:07:34 PDT 2020
 <!-- hhmts end -->
    
   <script>

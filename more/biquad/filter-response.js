@@ -45,16 +45,16 @@ function H(omegas, coef) {
 function getResponse(filter, sampleRate) {
   const nyquist = sampleRate / 2;
 
-  // Lowest frequency we want to show.  Should be a power of 10 so the
-  // graph starts at a nice power of 10 location.
-  const lowestFrequency = 10;
-
   // How many samples to take for the frequency axis.
   const steps = 1000;
 
   // Array of frequency samples.  The values are normalized
   // frequencies from 0 to 1 where 1 represents Nyquist.
   let omega = new Array(steps);
+
+  // Lowest frequency we want to show.  Should be a power of 10 so the
+  // graph starts at a nice power of 10 location.
+  let lowestFrequency = document.getElementById('lowest-freq').value;;
 
   // Logarithmically sample between the lowest frequency and Nyquist.
   let loFreq = Math.log10(lowestFrequency);
@@ -69,6 +69,13 @@ function getResponse(filter, sampleRate) {
   let response = H(omega, filter);
 
   return response;
+}
+
+let logaxis = true;
+
+function setLogAxis(isLog) {
+    logaxis = isLog;
+    calc();
 }
 
 function plotResponse(filterType, filter, sampleRate) {
@@ -122,7 +129,7 @@ function plotResponse(filterType, filter, sampleRate) {
           // container: document.getElementById("legendContainer")
         },
         xaxis: {
-          mode: 'log',
+          mode: logaxis ? 'log' : null,
           ticks: 10,
           showMinorTicks: true,
           axisLabel: 'Freq (Hz)'
