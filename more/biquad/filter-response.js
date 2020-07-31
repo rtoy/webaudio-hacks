@@ -43,17 +43,27 @@ function H(omegas, coef) {
 }
 
 function getResponse(filter, sampleRate) {
-  const noctaves = 12;
   const nyquist = sampleRate / 2;
-  // Just uniformly sample from 0 to pi.
+
+  // Lowest frequency we want to show.  Should be a power of 10 so the
+  // graph starts at a nice power of 10 location.
+  const lowestFrequency = 10;
+
+  // How many samples to take for the frequency axis.
   const steps = 1000;
+
+  // Array of frequency samples.  The values are normalized
+  // frequencies from 0 to 1 where 1 represents Nyquist.
   let omega = new Array(steps);
 
+  // Logarithmically sample between the lowest frequency and Nyquist.
+  let loFreq = Math.log10(lowestFrequency);
+  let hiFreq = Math.log10(nyquist);
+  let delta = (hiFreq - loFreq) / steps
+
   for (let k = 0; k < steps; ++k) {
-    let f = k / steps;
-    // Conver to log frequency scale (octaves)
-    f = Math.pow(2, noctaves * (f - 1));
-    omega[k] = f;
+      let f = loFreq + k * delta;
+      omega[k] = Math.pow(10, f) / nyquist;
   }
 
   let response = H(omega, filter);
