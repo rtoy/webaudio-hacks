@@ -86,6 +86,39 @@
 
     <style type="text/css">
       #slider { margin: 10px; }
+
+  /* Draw a box around the graph area */
+  .demo-container {
+    box-sizing: border-box;
+    width: 75%;
+    height: 450px;
+    padding: 20px 15px 15px 15px;
+    margin: 15px auto 30px auto;
+    border: 1px solid #ddd;
+    background: #fff;
+    background: linear-gradient(#f6f6f6 0, #fff 50px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    user-select: none;
+  }
+
+  /* This holds the graph */
+  .demo-placeholder {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+  }
+
+  /*
+  * Styling for the legend block.  These are really important to make the legend
+  * show up.  Without this, the block is black.
+  */
+  .legendLayer {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: rgba(0, 0, 0, 0.85);
+    stroke-width: 1;
+  }
+
+
     </style>
     <script type="text/javascript">
       // Events
@@ -282,36 +315,64 @@
 
       console.log('magmin: ' + magmin + ' magmax: ' + magmax);
         $.plot($("#graph"),
-          [ { data : magData, label: "Mag (dB)", lines: { lineWidth: 3} },
+          [ { data : magData, label: "Mag (dB)", lines: { lineWidth:
+          3}, color: "red" },
             { data : phaseData, label: "Phase (deg)", lines: {
-            lineWidth: 3}, yaxis: 2 }],
+            lineWidth: 3}, color: "green", yaxis: 2 }],
           {
             xaxis: {
               mode: 'log',
               ticks: 10,
-              showMinorTicks: true
+              showMinorTicks: true,
+              axisLabel: 'Freq (Hz)'
             },
             //xaxes: [ { ticks : tickScale } ],
-            yaxes: [ { tickFormatter: dBFormatter,
+            yaxes: [ { 
+ position: 'left',
+axisLabel: 'Mag (dB)',
+//tickFormatter: dBFormatter,
                        min: magmin,
                        max: magmax,
                        //ticks : tickScale
-                       autoScale: "none"
+                       autoScale: "none",
+ tickDecimals: 1,
                      },
                      {
+      position: 'right',
+      axisLabel: 'Phase (deg)',
                        // align if we are to the right
-                       alignTicksWithAxis: position = "right" ? 1 :
-                       null,
-                       position: position,
-                       tickFormatter: degFormatter,
+                       alignTicksWithAxis: 1,
+                       //tickFormatter: degFormatter,
                        min: phasemin,
                        max: phasemax,
                        //ticks : tickScale
                        autoScale: "none"
                       }],
-            legend: { position: 'ne' }
+            legend: { position: 'ne', show: true },
+      gird: { hoverable: true }
           }
           );
+  $('#graph').bind('plothover', (event, pos, item) => {
+	  if (!pos.x || !pos.y) {
+	      return;
+	  }
+	  let str = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+	  $('#hoverdata').text(str);
+	  if (item) {
+	      let x = item.datapoint[0].toFixed(2);
+	      let y = item.datapoint[1].toFixed(2);
+	      $('#tooltip').html(
+		  `${item.series.label} at ${x} = ${y}`)
+		  .css({top: item.pageY+5, left: item.pageX+5})
+		  .fadeIn(200);
+	  } else {
+	      $('#tooltip').stop().hide();
+	  }
+      });
+  $('#graph').bind('plothovercleanup', (event, pos, item) => {
+	  $('#tooltip').hide();
+      });
+
       }
 
       function stopSound() {
@@ -439,7 +500,16 @@
       }
       
       function init () {
-        AudioContext=AudioContext||webkitAudioContext;
+  $("<div id='tooltip'><\/div>").css({
+        position: 'absolute',
+              display: 'none',
+              border: '1px solid #fdd',
+              padding:  '2px',
+              'background-color': '#fee',
+              opacity: 0.8
+      }).appendTo('body');
+
+      AudioContext=AudioContext||webkitAudioContext;
         // Setup biquad and other audio stuff
         context = new AudioContext();
         nyquist = context.sampleRate / 2;
@@ -491,7 +561,10 @@
     filter.  Note that all filters respond to the cutoff value, but
     not all filters use the Q or gain parameters.</p>
     
-    <div id="graph" style="width:80%;height:40%;"></div>
+    <div class="demo-container">
+      <div id="graph" class="demo-placeholder">
+      </div>
+    </div>
     
     <!-- Sliders and other controls will be added here -->
     <div id="controls"> </div>
@@ -531,7 +604,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Thu Jul 30 18:51:37 PDT 2020
+Last modified: Thu Jul 30 19:05:29 PDT 2020
 <!-- hhmts end -->
       </div>
     </div>
