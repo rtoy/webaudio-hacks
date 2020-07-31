@@ -20,6 +20,10 @@ async function enableAudio() {
 }
 
 function playAudio(filterType, filterCoef) {
+  if (!audioOn) {
+    return;
+  }
+
   let sampleRate = document.getElementById('samplerate').value;
   if (sampleRate != context.sampleRate) {
     // Need to rebuild the graph
