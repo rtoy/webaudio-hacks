@@ -6,9 +6,19 @@
     <!-- Slider stuff -->
     <script type="text/javascript" src="lib/events.js">
     </script>
-    <script type="text/javascript" src="../flot/jquery.js"></script>
-    <script type="text/javascript" src="../flot/jquery.flot.js"></script>
-    <script type="text/javascript" src="../flot/jquery.flot.resize.js"></script>
+    <script type="text/javascript" src="flot-master/source/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="flot-master/source/jquery.canvaswrapper.js"></script>
+    <script language="javascript" type="text/javascript" src="flot-master/source/jquery.colorhelpers.js"></script>
+    <script type="text/javascript"
+    src="flot-master/source/jquery.flot.js"></script>
+<script language="javascript" type="text/javascript" src="flot-master/source/jquery.flot.saturated.js"></script>
+    <script language="javascript" type="text/javascript" src="flot-master/source/jquery.flot.browser.js"></script>
+        <script language="javascript" type="text/javascript" src="flot-master/source/jquery.flot.drawSeries.js"></script>
+
+    <script language="javascript" type="text/javascript" src="flot-master/source/jquery.flot.uiConstants.js"></script>
+        <script language="javascript" type="text/javascript" src="flot-master/source/jquery.flot.axislabels.js"></script>
+    <script type="text/javascript" src="flot-master/source/jquery.flot.resize.js"></script>
+    <script type="text/javascript" src="flot-master/source/jquery.flot.logaxis.js"></script>
     <style type="text/css">
       #slider { margin: 10px; }
     </style>
@@ -17,12 +27,13 @@
       window.onload = init;
       var context;
       var filter;
+      var masterGain;
       var sound;
       var cutoff = .5;
       var q = 10.0; // in dB
       var gain = 0.0; // in dB
       var source = null;
-      var noctaves = 8;
+      var noctaves = 10;
       var cutoffOctaves = 10;
 
       // canvas stuff
@@ -108,7 +119,7 @@
       }
       
       function drawCurve() {
-        var width = 500;
+        var width = 1000;
 
         var freq = new Float32Array(width);
         var magResponse = new Float32Array(width);
@@ -138,57 +149,89 @@
 
         var type = filter.type;
 
-        if (type == "lowpass") {
+        switch (type) {
+          case "lowpass":
             magmin = -80;
             magmax = 40;
             phasemin = -200;
             phasemax = 0;
-        } else if (type == "highpass") {
+            break;
+          case "highpass":
             magmin = -80;
             magmax = 20;
             phasemin = 0;
             phasemax = 180;
-        } else if (type == "bandpass") {
+            break;
+          case "bandpass":
             magmin = -80;
             magmax = 0;
             phasemin = -180;
             phasemax = 180;
-        } else if (type == "lowshelf") {
-            magmin = -15;
-            magmax = 15;
-            phasemin = -50;
-            phasemax = 50;
-        } else if (type == "highshelf") {
-            magmin = -15;
-            magmax = 15;
-            phasemin = -60;
-            phasemax = 60;
-        } else if (type == "peaking") {
-            magmin = -10;
-            magmax = 10;
-            phasemin = -45;
-            phasemax = 45;
-        } else if (type == "notch") {
+            break;
+          case "lowshelf":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -180;
+              phasemax = 180;
+            }
+            break;
+          case "highshelf":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -180;
+              phasemax = 180;
+            }
+            break;
+          case "peaking":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -90;
+              phasemax = 90;
+            }
+            break;
+          case "notch":
             magmin = -60;
             magmax = 0;
             phasemin = -100;
             phasemax = 100;
-        } else if (type == "allpass") {
+            break;
+          case "allpass":
             magmin = -1;
             magmax = 1;
             phasemin = -180;
             phasemax = 180;
+            break;
+          default:
+            console.log(`Unknown filter type: ${type}`)
+            break;
         }
 
+      console.log('magmin: ' + magmin + ' magmax: ' + magmax);
         $.plot($("#graph"),
-          [ { data : magData, label: "Mag (dB)" },
-            { data : phaseData, label: "Phase (deg)", yaxis: 2 }],
+          [ { data : magData, label: "Mag (dB)", lines: { lineWidth: 3} },
+            { data : phaseData, label: "Phase (deg)", lines: {
+            lineWidth: 3}, yaxis: 2 }],
           {
+            xaxis: {
+              mode: 'log',
+              ticks: 10,
+              showMinorTicks: true
+            },
             //xaxes: [ { ticks : tickScale } ],
             yaxes: [ { tickFormatter: dBFormatter,
                        min: magmin,
                        max: magmax,
                        //ticks : tickScale
+                       autoScale: "none"
                      },
                      {
                        // align if we are to the right
@@ -199,10 +242,18 @@
                        min: phasemin,
                        max: phasemax,
                        //ticks : tickScale
+                       autoScale: "none"
                       }],
             legend: { position: 'ne' }
           }
           );
+      }
+
+      function stopSound() {
+        if (source) {
+          source.stop(0);
+          source = null;
+        }
       }
 
       function loadSound(url) {
@@ -217,11 +268,13 @@
               source.stop(0);
               source = null;
             }
-            source = context.createBufferSource();
-            source.connect(filter);
-            source.loop = true;
-            source.buffer = buffer;
-            source.start(0);
+            context.resume().then(() => {
+              source = context.createBufferSource();
+              source.connect(filter);
+              source.loop = true;
+              source.buffer = buffer;
+              source.start(0);
+            });
 
           }, function(){console.log("error decoding file.")});
         };
@@ -264,8 +317,54 @@
         info.innerHTML = "gain = " + gain.toFixed(3) + "dB";
       }
       
+      function masterGainHandler(event, ui) {
+        let g = new Number(ui.value);
+        // The master gain is in dB.
+        masterGain.gain.value = Math.pow(10, g/20);;
+
+        let element= document.getElementById("master-gain-value");
+        element.innerHTML = 'Master volume = ' + g.toFixed(3) + ' dB';
+      }
+
       function setFilterType(filterType) {
         filter.type = filterType;
+
+        // Need to adjust the Q slider range depending on the filter type.  This
+        // is because the Q parameter for the lowpass and highpass filters is in
+        // dB, but linear for the others.
+
+        switch (filterType) {
+          case "lowpass":
+          case "highpass":
+            // Q is in dB for these filters.  And the gain is not used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, -50, 50, qHandler);
+            document.getElementById('gainSlider').disabled = true;
+            break;
+          case "bandpass":
+          case "notch":
+          case "allpass":
+            // Q is linear and gain is not used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, 0, 100, qHandler);
+            document.getElementById('gainSlider').disabled = true;
+            break;
+          case "peaking":
+            // Q is linear, and gain is used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, 0, 100, qHandler);
+            document.getElementById('gainSlider').disabled = false;
+            break;
+          case "lowshelf":
+          case "highshelf":
+            // Q is not used, but gain is.
+            document.getElementById('QSlider').disabled = true;
+            document.getElementById('gainSlider').disabled = false;
+            break;
+          default:
+           console.log(`Unhandled filter type: ${filterType}`);
+           break;
+        }
         drawCurve();
       }
 
@@ -278,11 +377,13 @@
         AudioContext=AudioContext||webkitAudioContext;
         // Setup biquad and other audio stuff
         context = new AudioContext();
+        nyquist = context.sampleRate / 2;
         filter = context.createBiquadFilter();
-        filter.type = 2; // Bandpass
+        filter.type = "bandpass"; // Bandpass
         filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
         filter.Q.value = q;
         filter.gain.value = gain;
+        masterGain = context.createGain();
         var period = 2;
         var startTime = context.currentTime;
       
@@ -292,23 +393,28 @@
 //	}
       
       
-        filter.connect(context.destination);
-        loadSound("audio/sounds/tones/pinkgood.wav");
-
+        filter.connect(masterGain).connect(context.destination);
 
 	addSlider("cutoff");
 	addSlider("Q");
         addSlider("gain");
+        addSlider("master-gain");
+        // Default values for the sliders.  These may get reconfigured when the
+        // selected filter type changes.
 	configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
-	configureSlider("Q", q, -20.0, 100.0, qHandler);
-        configureSlider("gain", gain, -10.0, 10.0, gainHandler);
+        configureSlider("Q", q, 0, 100, qHandler);
+        configureSlider("gain", gain, -40.0, 40.0, gainHandler);
+        configureSlider("master-gain", 0, -10, 10, masterGainHandler);
         
+        // The default (checked) button below is bandpass, so set up sliders for
+        // bandpass.
+        setFilterType("bandpass");
+
         // Give audio process some time initialize itself.
         drawCurve();
         //animateCurve();
       }
 
-      
     </script>
   </head>
 
@@ -346,7 +452,8 @@
       <div id="sources" style="width:25%;float:left;">
 	<h2>Source</h2>
 	<form>
-	  <input type="radio" checked="checked" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
+	  <input type="radio" checked="checked" name="source" onClick="stopSound();">None<br/>
+	  <input type="radio" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/cauldron.wav');">Cauldron<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/waves.wav');">Waves<br/>
 	  <input type="radio" name="source"
@@ -359,7 +466,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Thu May 29 14:32:31 PDT 2014
+Last modified: Tue Jul 28 21:07:24 PDT 2020
 <!-- hhmts end -->
       </div>
     </div>
