@@ -93,13 +93,13 @@ function plotResponse(filterType, filter, sampleRate) {
         {
           data: magResponse,
           label: 'Mag (dB)',
-          lines: {linewidth: 5},
+          lines: {lineWidth: 2},
           color: 'red'
         },
         {
           data: phaseResponse,
           label: 'Phase (deg)',
-          lines: {linewidth: 10},
+          lines: {lineWidth: 2},
           color: 'green',
           yaxis: 2
         }
