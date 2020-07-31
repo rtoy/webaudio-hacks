@@ -87,6 +87,8 @@
         src="../../flot-master/source/jquery.flot.selection.js">
   </script><!-- My stuff for the page -->
 
+  <script src="webaudio.js">
+  </script>
   <script src="filter-response.js">
   </script>
   <script src="display-formulas.js">
@@ -214,7 +216,9 @@
     </div>
   </div><br>
   <div id="coef">
-    <button onclick="calc()">Compute filter coefficients</button><br>
+    <button onclick="calc()">Compute filter coefficients</button>
+    <button onclick="enableAudio()">Toggle Audio</button>
+    <br>
     <div id="eqn"
          class="left">
       \[{}\]
@@ -234,12 +238,19 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Thu Jul 30 19:15:01 PDT 2020
+Last modified: Fri Jul 31 08:52:46 PDT 2020
 <!-- hhmts end -->
    
   <script>
+    let context;
+    let mainGain;
+
     // Set the filter type and draw the equation and graph on start up.
-    window.onload = () => setFilterType('lowpass');
+    window.onload = () => {
+	      let rate = document.getElementById('samplerate').value;
+	      createBasicGraph(rate);
+	      setFilterType('lowpass');
+	      };
 
     // When any of the filter parameters change, automatically update the
     // equation and graph.

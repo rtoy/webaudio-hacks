@@ -50,6 +50,8 @@ function digitalTermTeX(term) {
 }
 
 let filterType = 'lowpass';
+let filterCoef;
+
 function setFilterType(type) {
   filterType = type;
   calc();
@@ -69,11 +71,11 @@ function calc() {
 
   // Filters want a normalized frequency where 1 represent the Nyquist
   // frequency (half the sample rate).
-  filter = createFilter(filterType, freq / (sampleRate / 2), Q, gain);
-  console.log(filter);
+  filterCoef = createFilter(filterType, freq / (sampleRate / 2), Q, gain);
+  console.log(filterCoef);
 
   let term =
-      [[1, [filter.b0, filter.b1, filter.b2]], [1, filter.a1, filter.a2]];
+      [[1, [filterCoef.b0, filterCoef.b1, filterCoef.b2]], [1, filterCoef.a1, filterCoef.a2]];
   let formula = digitalTermTeX(term);
   console.log(formula);
 
@@ -85,5 +87,7 @@ function calc() {
       })
       .catch((err) => console.log(err.message));
 
-  plotResponse(filterType, filter, sampleRate);
+  plotResponse(filterType, filterCoef, sampleRate);
+
+  playAudio(filterType, filterCoef);
 }
