@@ -67,7 +67,9 @@ function calc() {
   console.log('Q = ' + Q);
   console.log('gain = ' + gain);
 
-  filter = createFilter(filterType, freq / sampleRate, Q, gain);
+  // Filters want a normalized frequency where 1 represent the Nyquist
+  // frequency (half the sample rate).
+  filter = createFilter(filterType, freq / (sampleRate / 2), Q, gain);
   console.log(filter);
 
   let term =
