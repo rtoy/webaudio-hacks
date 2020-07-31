@@ -67,6 +67,23 @@
   <style type="text/css">
       #slider { margin: 10px; }
 
+  .controls-container {
+    box-sizing: border-box;
+    width: 75%;
+    padding: 20px 15px 15px 15px;
+    margin: 15px auto 30px auto;
+    border: 1px solid #ddd;
+    background: #fff;
+    background: linear-gradient(#f6f6f6 0, #fff 50px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    user-select: none;
+  }
+  #controls {
+    padding-left: 70px;
+  }
+  #cutoffSlider {
+    width: 400px;
+  }
   /* Draw a box around the graph area */
   .demo-container {
     box-sizing: border-box;
@@ -557,8 +574,10 @@
     <div id="graph"
          class="demo-placeholder"></div>
   </div><!-- Sliders and other controls will be added here -->
+  <div class="controls-container">
   <div id="controls"></div>
   <div id="info"></div>
+  </div>
   <div id="container">
     <div id="filtertypes"
          style="width:25%;float:left;">
@@ -629,7 +648,7 @@
         <a href="mailto:rtoy@google.com">Raymond Toy</a>
       </address><!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
       <!-- hhmts start -->
-Last modified: Thu Jul 30 19:12:06 PDT 2020
+Last modified: Thu Jul 30 19:25:40 PDT 2020
 <!-- hhmts end -->
     </div>
   </div>
