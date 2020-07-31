@@ -125,6 +125,18 @@
     stroke-width: 1;
   }
 
+  #container {
+    display: flex
+  }
+  #filtertypes {
+    width: 25%;
+    float: left;
+  }
+
+  #filterparam {
+    width: 25%;
+    float: left;
+  }
   </style>
 </head>
 <body>
@@ -136,10 +148,8 @@
   <p>Note that \(Q\) is in dB for the Lowpass and Highpass filters and can be
   positive or negative. For all other filters it is a linear value that must be
   positive.</p>
-  <div id="container"
-       style="display: flex">
-    <div id="filtertypes"
-         style="width:25%;float:left;">
+  <div id="container">
+    <div id="filtertypes">
       <h2>Filter type</h2>
       <form>
         <input type="radio"
@@ -185,8 +195,7 @@
               onclick="setFilterType('highshelfq');">Highshelf with Q<br>
       </form>
     </div>
-    <div id="Filterparam"
-         style="width:25%;float:left">
+    <div id="filterparam">
       <h2>Filter parameters</h2>
       <form>
         <input id="samplerate"
@@ -225,7 +234,7 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Thu Jul 30 17:06:51 PDT 2020
+Last modified: Thu Jul 30 17:20:36 PDT 2020
 <!-- hhmts end -->
    
   <script>
