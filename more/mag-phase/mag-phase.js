@@ -1,6 +1,6 @@
 var context;
 var filter;
-var masterGain;
+var outputGain;
 var sound;
 var cutoff = 350;
 var q = 10.0;    // in dB
@@ -388,14 +388,14 @@ function gainHandler(event, ui) {
   info.innerHTML = 'gain = ' + gain.toFixed(3) + 'dB';
 }
 
-function masterGainHandler(event, ui) {
+function outputGainHandler(event, ui) {
   let g = new Number(ui.value);
-  // The master gain is in dB.
-  masterGain.gain.value = Math.pow(10, g / 20);
+  // The output gain is in dB; convert to linear.
+  outputGain.gain.value = Math.pow(10, g / 20);
   ;
 
-  let element = document.getElementById('master-gain-value');
-  element.innerHTML = 'Master volume = ' + g.toFixed(3) + ' dB';
+  let element = document.getElementById('Volume-value');
+  element.innerHTML = 'Volume = ' + g.toFixed(2) + ' dB';
 }
 
 function setFilterType(filterType) {
@@ -466,7 +466,7 @@ function init() {
   filter.frequency.value = cutoff;  // cutoff
   filter.Q.value = q;
   filter.gain.value = gain;
-  masterGain = context.createGain();
+  outputGain = context.createGain();
   var period = 2;
   var startTime = context.currentTime;
 
@@ -478,12 +478,12 @@ function init() {
   //      }
 
 
-  filter.connect(masterGain).connect(context.destination);
+  filter.connect(outputGain).connect(context.destination);
 
   addSlider('cutoff');
   addSlider('Q');
   addSlider('gain');
-  addSlider('master-gain');
+  addSlider('Volume');
   // Default values for the sliders.  These may get reconfigured when the
   // selected filter type changes.
 
@@ -493,7 +493,7 @@ function init() {
   configureSlider('cutoff', Math.log10(cutoff), Math.log10(lowestFrequency), Math.log10(nyquist), cutoffHandler);
   configureSlider('Q', q, 0, 100, qHandler);
   configureSlider('gain', gain, -40.0, 40.0, gainHandler);
-  configureSlider('master-gain', 0, -10, 10, masterGainHandler);
+  configureSlider('Volume', 0, -10, 10, outputGainHandler);
 
   // The default (checked) button below is bandpass, so set up sliders for
   // bandpass.
