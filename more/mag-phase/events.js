@@ -5,13 +5,14 @@ function addSlider(name) {
 
   let sliderText =
     `<div class="slider-container">
-       <input class="slider-bar "id="${divName}" type="range" min="0" max="0" step="0.01" value="0">
+       <input class="slider-bar "id="${divName}" type="range"
+         min="0" max="0" step="0.01" value="0">
        <div class="slider-text" id="${name}-value">
         ${name}
        </div>
      </div>
      <br>`;
-  
+
   controls.innerHTML = controls.innerHTML + sliderText;
 }
 
