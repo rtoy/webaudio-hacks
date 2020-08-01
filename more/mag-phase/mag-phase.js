@@ -23,6 +23,8 @@ var gridColor = 'rgb(200,200,200)';
 var sampleRate = 44100.0;
 var nyquist = 0.5 * sampleRate;
 
+let plot;
+
 function dBFormatter(v, axis) {
   return v.toFixed(axis.tickDecimals) + ' dB';
 }
@@ -183,7 +185,7 @@ function drawCurve() {
   }
 
   console.log('magmin: ' + magmin + ' magmax: ' + magmax);
-  $.plot(
+  plot = $.plot(
       $('#graph'),
       [
         {
@@ -254,6 +256,9 @@ function drawCurve() {
   $('#graph').bind('plothovercleanup', (event, pos, item) => {
     $('#tooltip').hide();
   });
+
+  slider = document.getElementById('cutoffSlider');
+  x_axis = plot.getAxes().xaxis;
 }
 
 function stopSound() {
@@ -301,6 +306,7 @@ function normalizedCutoffToHz(normalizedFreq, noctaves) {
 }
 
 function cutoffHandler(event, ui) {
+  console.log('cutoffHandler ' + event + ' ' + ui);
   var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
   filter.frequency.value = cutoff;
 
@@ -320,6 +326,7 @@ function qHandler(event, ui) {
 }
 
 function gainHandler(event, ui) {
+  console.log('gainHandler ' + event + ' ' + ui);
   var gain = new Number(ui.value);
   filter.gain.value = gain;
   // setTimeout("drawCurve()", 100);
