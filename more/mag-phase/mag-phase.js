@@ -2,7 +2,7 @@ var context;
 var filter;
 var masterGain;
 var sound;
-var cutoff = .5;
+var cutoff = 350;
 var q = 10.0;    // in dB
 var gain = 0.0;  // in dB
 var source = null;
@@ -268,13 +268,48 @@ function drawCurve() {
   x_axis = plot.getAxes().xaxis;
   // Add a div to the x axis so we can figure some things about the axis
   let box = x_axis.box;
+
   $("<div class='axisTarget' style='position:absolute; left:" + box.left + "px; top:" + box.top + "px; width:" + box.width +  "px; height:" + box.height + "px'></div>")
                                 .data("axis.direction", x_axis.direction)
                                 .data("axis.n", x_axis.n)
                                 .css({ backgroundColor: "#f00", opacity: 0, cursor: "pointer" })
     .appendTo(plot.getPlaceholder());
   
+  adjustSliderPositions();
+  
+}
 
+function adjustSliderPositions() {
+  console.log('adjustSliderPosition');
+
+  let box = x_axis.box;
+  console.log(x_axis);
+
+  console.log(box);
+  
+  // Now get the dimensions of the axisTarget and use that to adjust the size of the sliders.
+  let axisTarget = document.querySelector(".axisTarget")
+  axisTarget.style.left = `${box.left}px`;
+  axisTarget.style.top = `${box.top}px`;
+  axisTarget.style.width = `${box.width}px`;
+  axisTarget.style.height = `${box.height}px`;
+
+  // Update controls container to move sliders to the right a bit.
+  // But the axisTargetStyle.left value is just a little too far to
+  // left. So add a fudge factor.  Haven't figured out how to get the
+  // actual position of the left axis.
+  let controls = document.getElementById("controls");
+  const leftExtra = 10;
+  
+  controls.style.paddingLeft = `${box.left + leftExtra}px`;
+  
+  
+  // Set the slider widths appropriately
+  let sliders = document.getElementsByClassName("slider-bar");
+
+  Array.prototype.forEach.call(sliders, (slider) => {
+    slider.style.width = `${box.width - 30}px`;
+  });
 }
 
 function stopSound() {
@@ -428,8 +463,7 @@ function init() {
   nyquist = context.sampleRate / 2;
   filter = context.createBiquadFilter();
   filter.type = 'bandpass';  // Bandpass
-  filter.frequency.value =
-      normalizedCutoffToHz(cutoff, cutoffOctaves);  // cutoff
+  filter.frequency.value = cutoff;  // cutoff
   filter.Q.value = q;
   filter.gain.value = gain;
   masterGain = context.createGain();
@@ -456,7 +490,7 @@ function init() {
   // The cutoff slider is in log10 units ranging from lowestFrequency
   // to Nyquist.  Set set the limits to the log of these values, after
   // normalizing them.
-  configureSlider('cutoff', cutoff, Math.log10(lowestFrequency), Math.log10(nyquist), cutoffHandler);
+  configureSlider('cutoff', Math.log10(cutoff), Math.log10(lowestFrequency), Math.log10(nyquist), cutoffHandler);
   configureSlider('Q', q, 0, 100, qHandler);
   configureSlider('gain', gain, -40.0, 40.0, gainHandler);
   configureSlider('master-gain', 0, -10, 10, masterGainHandler);
@@ -465,6 +499,8 @@ function init() {
   // bandpass.
   setFilterType('bandpass');
 
+  window.addEventListener('resize', adjustSliderPositions);
+  
   // Give audio process some time initialize itself.
   drawCurve();
   // animateCurve();
