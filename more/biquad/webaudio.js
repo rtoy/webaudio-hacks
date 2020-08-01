@@ -19,6 +19,14 @@ async function enableAudio() {
   }
 }
 
+function setAudioSource(source) {
+  if (src) {
+    src.stop();
+  }
+
+  src = source;
+}
+
 function playAudio(filterType, filterCoef) {
   if (!audioOn) {
     return;
@@ -55,10 +63,32 @@ function playAudio(filterType, filterCoef) {
   f.connect(mainGain);
 
   if (src) {
-    src.stop();
-    src = null;
+    src.connect(f);
+    src.start();
   }
-  src = new OscillatorNode(context, {type: 'sawtooth', frequency: 880});
-  src.connect(f);
-  src.start();
+}
+
+function loadSound(path) {
+  fetch(path)
+    .then(response => {
+	console.log("Got response");
+	console.log(response);
+	return response.arrayBuffer();
+      })
+    .then(buffer => {
+	console.log("decodeAudioData");
+	return context.decodeAudioData(buffer);
+      })
+    .then(audio => {
+	console.log("Decoded and playing");
+	let s = new AudioBufferSourceNode(context, {buffer: audio});
+       return s;
+      }, e => {
+	console.log('Decode failed');
+	console.log(e);
+      });
+}
+
+function playAudioClip(url) {
+  setAudioSource(loadSound(url));
 }

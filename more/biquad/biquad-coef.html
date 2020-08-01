@@ -243,7 +243,6 @@
     <br>
   <div id="coef">
     <button onclick="calc()">Compute filter coefficients</button>
-    <button onclick="enableAudio()">Toggle Audio</button>
     <br>
     <div id="eqn"
          class="left">
@@ -260,13 +259,32 @@
   <div>
     Mouse position <span id="hoverdata"></span>
   </div>
+  <hr>
+  <div>
+    <button onclick="enableAudio()">Toggle Audio</button>
+    <br>
+      <form>
+        <input type="radio"
+              checked="checked" name="source" onclick="enableAudio(false);">None<br>
+        <input type="radio"
+              name="source" onclick="playAudioClip('../../demos/sounds/tones/pinkgood.wav');">Noise<br>
+        <input type="radio"
+              name="source"
+              onclick="playAudioClip('../../demos/sounds/effects/cauldron.wav');">Cauldron<br>
+        <input type="radio"
+              name="source" onclick="playAudioClip('../../demos/sounds/effects/waves.wav');">Waves<br>
+        <input type="radio"
+              name="source" onclick="playAudioClip('../../demos/sounds/effects/ticking.wav');">Ticking
+              clock<br>
+      </form>
+  </div>	      
   <!-- Needed for the graph tool tip -->
   <div id="tooltip"></div>
   <hr>
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Fri Jul 31 13:40:28 PDT 2020
+Last modified: Fri Jul 31 13:58:04 PDT 2020
 <!-- hhmts end -->
    
   <script>
