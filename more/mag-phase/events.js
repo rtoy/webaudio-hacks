@@ -3,13 +3,15 @@ function addSlider(name) {
 
   let divName = name + 'Slider';
 
-
-  let sliderText = '<div style="width:500px; height:20px;"> <input id="' +
-      divName + '" ' +
-      'type="range" min="0" max="1" step="0.01" value="0" style="height: 20px; width: 450px;"> <div id="' +
-      name + '-value" style="position:relative; left:30em; top:-18px;">' +
-      name + '</div> </div> <br>  ';
-
+  let sliderText =
+    `<div class="slider-container">
+       <input class="slider-bar "id="${divName}" type="range" min="0" max="0" step="0.01" value="0">
+       <div class="slider-text" id="${name}-value">
+        ${name}
+       </div>
+     </div>
+     <br>`;
+  
   controls.innerHTML = controls.innerHTML + sliderText;
 }
 
