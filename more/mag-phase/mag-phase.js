@@ -265,8 +265,16 @@ function drawCurve() {
     $('#tooltip').hide();
   });
 
-  slider = document.getElementById('cutoffSlider');
   x_axis = plot.getAxes().xaxis;
+  // Add a div to the x axis so we can figure some things about the axis
+  let box = x_axis.box;
+  $("<div class='axisTarget' style='position:absolute; left:" + box.left + "px; top:" + box.top + "px; width:" + box.width +  "px; height:" + box.height + "px'></div>")
+                                .data("axis.direction", x_axis.direction)
+                                .data("axis.n", x_axis.n)
+                                .css({ backgroundColor: "#f00", opacity: 0, cursor: "pointer" })
+    .appendTo(plot.getPlaceholder());
+  
+
 }
 
 function stopSound() {
