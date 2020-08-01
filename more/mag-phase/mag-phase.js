@@ -322,8 +322,10 @@ function normalizedCutoffToHz(normalizedFreq, noctaves) {
 }
 
 function cutoffHandler(event, ui) {
-  console.log('cutoffHandler ' + event + ' ' + ui);
-  var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
+  console.log('cutoffHandler ' + event + ' ' + ui.value);
+  //var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
+  let cutoff = Math.pow(10, ui.value);
+  
   filter.frequency.value = cutoff;
 
   // setTimeout("drawCurve()", 50);
@@ -450,7 +452,11 @@ function init() {
   addSlider('master-gain');
   // Default values for the sliders.  These may get reconfigured when the
   // selected filter type changes.
-  configureSlider('cutoff', cutoff, 0.0, 1.0, cutoffHandler);
+
+  // The cutoff slider is in log10 units ranging from lowestFrequency
+  // to Nyquist.  Set set the limits to the log of these values, after
+  // normalizing them.
+  configureSlider('cutoff', cutoff, Math.log10(lowestFrequency), Math.log10(nyquist), cutoffHandler);
   configureSlider('Q', q, 0, 100, qHandler);
   configureSlider('gain', gain, -40.0, 40.0, gainHandler);
   configureSlider('master-gain', 0, -10, 10, masterGainHandler);
