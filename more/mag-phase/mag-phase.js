@@ -9,6 +9,10 @@ var source = null;
 var noctaves = 10;
 var cutoffOctaves = 10;
 
+// Lowest frequency we want to plot.  This should be a power of 10 for
+// the nicest graph.
+const lowestFrequency = 10;
+
 // canvas stuff
 var canvas;
 var canvasContext;
@@ -94,18 +98,22 @@ function tickScale(axis) {
 }
 
 function drawCurve() {
+  // Lowest frequency
   var width = 1000;
 
   var freq = new Float32Array(width);
   var magResponse = new Float32Array(width);
   var phaseResponse = new Float32Array(width);
 
+  // Logarithmically sample between lowest frequency and Nyquist by
+  // uniformly sampling between the logs of the frequencies.
 
+  let delta = Math.log10(nyquist / lowestFrequency) / width;
+  let logLowest = Math.log10(lowestFrequency);
+  
   for (var k = 0; k < width; ++k) {
-    var f = k / width;
-    // Convert to log frequency scale (octaves).
-    f = Math.pow(2.0, noctaves * (f - 1.0));
-    freq[k] = f * nyquist;
+    var f = logLowest + k * delta;
+    freq[k] = Math.pow(10, f);
   }
 
   filter.getFrequencyResponse(freq, magResponse, phaseResponse);
