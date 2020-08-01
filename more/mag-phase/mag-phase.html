@@ -81,20 +81,23 @@
     user-select: none;
   }
   #controls {
-    padding-left: 70px;
   }
-  .slider-container {
-    width: 500px;
-    height: 20px;
+  .row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
   }
-  .slider-bar {
-    height: 20px;
-    width: 450px;
+  .column {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 100%;
+    flex: 1;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
   .slider-text {
-    position: relative;
-    left: 30em;
-    top: -18px;
+    padding-left: 10px;
   }
   /* Draw a box around the graph area */
   .demo-container {
@@ -218,7 +221,7 @@
         <a href="mailto:toy.raymond@gmail.com">Raymond Toy</a>
       </address><!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
       <!-- hhmts start -->
-Last modified: Sat Aug  1 09:53:24 PDT 2020
+Last modified: Sat Aug  1 10:48:33 PDT 2020
 <!-- hhmts end -->
     </div>
   </div>
