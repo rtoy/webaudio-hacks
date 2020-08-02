@@ -3,8 +3,7 @@ function addSlider(name) {
 
   let divName = name + 'Slider';
 
-  let sliderText =
-    `<div class="row">
+  let sliderText = `<div class="row">
        <div class="column">
          <input class="slider-bar "id="${divName}" type="range"
           min="0" max="0" step="0.01" value="0">
@@ -21,9 +20,6 @@ function addSlider(name) {
 }
 
 function configureSlider(name, value, min, max, handler) {
-  // let controls = document.getElementById("controls");
-  //
-
   let divName = name + 'Slider';
 
   let slider = document.getElementById(divName);
@@ -35,4 +31,3 @@ function configureSlider(name, value, min, max, handler) {
     handler(0, this);
   };
 }
-
