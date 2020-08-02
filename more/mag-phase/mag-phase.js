@@ -260,7 +260,7 @@ function drawCurve() {
       let y = item.datapoint[1].toFixed(2);
       $('#tooltip')
           .html(`${item.series.label} at ${x} = ${y}`)
-          .css({top: item.pageY + 5, left: item.pageX + 5})
+          .css({top: item.pageY - 25, left: item.pageX + 10})
           .fadeIn(200);
     } else {
       $('#tooltip').stop().hide();
@@ -269,8 +269,6 @@ function drawCurve() {
   $('#graph').bind('plothovercleanup', (event, pos, item) => {
     $('#tooltip').hide();
   });
-
-  adjustSliderPositions();
 }
 
 function adjustSliderPositions() {
@@ -437,17 +435,6 @@ function animateCurve() {
 }
 
 function init() {
-  $('<div id=\'tooltip\'><\/div>')
-      .css({
-        position: 'absolute',
-        display: 'none',
-        border: '1px solid #fdd',
-        padding: '2px',
-        'background-color': '#fee',
-        opacity: 0.8
-      })
-      .appendTo('body');
-
   AudioContext = AudioContext || webkitAudioContext;
   // Setup biquad and other audio stuff
   context = new AudioContext();
@@ -481,6 +468,8 @@ function init() {
   // The default (checked) button below is bandpass, so set up sliders for
   // bandpass.
   setFilterType('bandpass');
+
+  adjustSliderPositions();
 
   window.addEventListener('resize', adjustSliderPositions);
 
