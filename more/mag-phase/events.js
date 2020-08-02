@@ -27,7 +27,11 @@ function configureSlider(name, value, min, max, handler) {
   slider.min = min;
   slider.max = max;
   slider.value = value;
-  slider.onchange = function() {
+
+  // Use oninput so the biquad changes as we move the sliders around
+  // instead of waiting until we stop moving the slider.  To go back
+  // to the old behavior, use onchange instead of oninput.
+  slider.oninput = function() {
     handler(0, this);
   };
 }
