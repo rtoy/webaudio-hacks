@@ -257,7 +257,7 @@ function displayWebAudio(webaudioDesc, options) {
     text += "</pre>\n";
     var element = document.getElementById("webaudio-eq");
     element.innerHTML = text;
-    hljs.highlightBlock(element);
+    //hljs.highlightBlock(element);
     
 }
 
@@ -341,26 +341,62 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
         dataPhase.push([freq[k], totalPhase[k]*180/Math.PI]);
     }
     
+    let legendContainer = document.getElementById("graph-webaudio-legend");
     if (plotType == "dB") {
-	plotOptions = {
+      plotOptions = {
+      grid: {hoverable: true},
+      legend: 
+      {
+        //position: 'se',
+      show: true,
+        container: legendContainer,    
+      },
+      xaxis: 
+      {
+        //mode: 'log',
+      axisLabel: 'Freq (Hz)'
+      }
+      ,
         yaxes: [{
-            min: -80
+        min: -100,
+        max: 5,
+        axisLabel: 'Mag'
         }, {
-            position: "right"
+            alignTicksWithAxis: 1,
+            position: "right",
+            axisLabel: 'Phase (deg)'
 		}]};
 	    
     } else {
 	plotOptions = {
-	  yaxes: [{}, {position: "right"}]
+      grid: {hoverable: true},
+      legend: 
+      {
+        //position: 'se',
+      show: true,
+        container: legendContainer,    
+      },
+      xaxis: 
+      {
+        //mode: 'log',
+      }
+      ,
+      yaxes: [{}, {position: "right",
+                    alignTicksWithAxis: 1,
+}]
 	};
     }
 
     $.plot($("#graph-webaudio"), [{
         data: dataMag,
-        label: "Magnitude response"
+            label: "Magnitude response",
+            lines: { lineWidth: 2},
+            color: 'red'
     }, {
         data: dataPhase,
         label: "Phase response",
+            lines: { lineWidt: 2},
+            color: 'green',
         yaxis: 2
     }], plotOptions);
 
@@ -391,14 +427,29 @@ function plotAnalogResponse(filter) {
 
     var plotOptions;
 
+    let legendContainer = document.getElementById("graph-analog-legend");
     if (plotType == "dB") {
 	plotOptions = {
+        grid: {hoverable: true},
+        legend: 
+        {
+          //position: 'se',
+        show: true,
+        container: legendContainer,    
+        },
+        xaxis: 
+        {
+          //mode: 'log',
+        axisLabel: 'Freq (Hz)'
+        },
         yaxes: [{
-            min: -80
-        }, {
-            position: "right"
-		}]};
-	    
+          min: -80,
+          axisLabel: 'Mag'
+          }, {
+          position: "right",
+          alignTicksWithAxis: 1,
+          axisLabel: 'Phase (deg)'
+          }]};
     } else {
 	plotOptions = {
 	  yaxes: [{}, {position: "right"}]
@@ -407,10 +458,15 @@ function plotAnalogResponse(filter) {
 
     $.plot($("#graph-analog"), [{
         data: analogMag,
-        label: "Magnitude response"
+            label: "Magnitude response",
+            lines: {lineWidth: 2},
+            color: 'red'
     }, {
         data: analogPhase,
         label: "Phase response",
+            label: "Magnitude response",
+            lines: {lineWidth: 2},
+            color: 'green',
         yaxis: 2
     }], plotOptions
     );
@@ -439,26 +495,54 @@ function plotDigitalResponse(filter, Fs) {
 
     var plotOptions;
 
+    let legendContainer = document.getElementById("graph-digital-legend");
     if (plotType == "dB") {
 	plotOptions = {
+      legend: 
+      {
+        //position: 'se',
+      show: true,
+      container: legendContainer,    
+      },
+      xaxis: 
+      {
+      axisLabel: 'Freq (Hz)'
+      },
+      
         yaxes: [{
-            min: -80
+        min: -80,
+        axisLabel: 'Mag'
         }, {
-            position: "right"
+            alignTicksWithAxis: 1,
+            position: "right",
+            axisLabel: 'Phase (deg)'
 		}]};
 	    
     } else {
 	plotOptions = {
-	  yaxes: [{}, {position: "right"}]
+      grid: {hoverable: true},
+      legend: 
+      {
+        //position: 'ne',
+      show: true,
+        //container: legendContainer,    
+      },
+      yaxes: [{}, {position: "right",
+                   alignTicksWithAxis: 1,
+        }]
 	};
     }
 
     $.plot($("#graph-digital"), [{
         data: digitalMag,
-        label: "Magnitude response"
+            label: "Magnitude response",
+            lines: { lineWidth: 2},
+            color: 'red'
     }, {
         data: digitalPhase,
         label: "Phase response",
+            lines: { lineWidt: 2},
+            color: 'green',
         yaxis: 2
     }], plotOptions
 	);
