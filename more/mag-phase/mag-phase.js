@@ -366,7 +366,7 @@ function cutoffHandler(event, ui) {
   // setTimeout("drawCurve()", 50);
   drawCurve();
   var info = document.getElementById('cutoff-value');
-  info.innerHTML = 'cutoff = ' + cutoff.toFixed(1) + 'Hz';
+  info.textContent = `cutoff = ${cutoff.toFixed(1)} Hz`;
 }
 
 function qHandler(event, ui) {
@@ -375,27 +375,27 @@ function qHandler(event, ui) {
   // setTimeout("drawCurve()", 50);
   drawCurve();
   var info = document.getElementById('Q-value');
-  info.innerHTML = 'Q = ' + q.toFixed(3);
+  info.textContent = `Q = ${q.toFixed(3)}`;
 }
 
 function gainHandler(event, ui) {
-  console.log('gainHandler ' + event + ' ' + ui);
+  console.log(filter);
+  
   var gain = new Number(ui.value);
   filter.gain.value = gain;
   // setTimeout("drawCurve()", 100);
   drawCurve();
   var info = document.getElementById('gain-value');
-  info.innerHTML = 'gain = ' + gain.toFixed(3) + 'dB';
+  info.textContent = `gain = ${gain.toFixed(3)} dB`;
 }
 
 function outputGainHandler(event, ui) {
   let g = new Number(ui.value);
   // The output gain is in dB; convert to linear.
   outputGain.gain.value = Math.pow(10, g / 20);
-  ;
 
   let element = document.getElementById('Volume-value');
-  element.innerHTML = 'Volume = ' + g.toFixed(2) + ' dB';
+  element.textContent = `Volume = ${g.toFixed(2)} dB`;
 }
 
 function setFilterType(filterType) {
