@@ -545,6 +545,7 @@ function plotDigitalResponse(filter, Fs) {
 
   let legendContainer = document.getElementById('graph-digital-legend');
   let plotOptions = {
+      grid: {hoverable: true},
       legend: {
         // position: 'se',
         show: true,
