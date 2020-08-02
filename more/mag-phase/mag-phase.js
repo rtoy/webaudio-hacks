@@ -1,22 +1,37 @@
+// The AudioContext 
 let context;
+
+// The biquad filter
 let filter;
+
+// The output gain node to control output volume
 let outputGain;
-let sound;
+
+// Default biquad cutoff frequency, in Hz.
 let cutoff = 350;
-let q = 10.0;    // in dB
+
+// Default biquad Q
+let q = 10.0;
+
+// Defalut biquad gain
 let gain = 0.0;  // in dB
+
+// AudioBufferSourceNode of the source to be played.
 let source = null;
 
 // Lowest frequency we want to plot.  This should be a power of 10 for
 // the nicest graph.
 const lowestFrequency = 10;
 
+// Default sample rate and corresponding Nyquist frequency.  This will
+// get updated when the context is created.
 let sampleRate = 44100.0;
 let nyquist = 0.5 * sampleRate;
 
 // AudioBuffer for a frequency-swept sine wave.
 let sweptSineWave;
 
+// The flot plot object.
 let plot;
 
 function dBFormatter(v, axis) {
@@ -73,6 +88,7 @@ function toms463(xmin, xmax, n) {
   }
   return [xminp, xmaxp, dist];
 }
+
 function tickScale(axis) {
   // Compute scale
   var tickInfo = toms463(axis.min, axis.max, 4);
@@ -88,7 +104,7 @@ function tickScale(axis) {
 }
 
 function drawCurve() {
-  // Lowest frequency
+  // Number of samples to use for sampling the frequency.
   var width = 1000;
 
   var freq = new Float32Array(width);
@@ -97,7 +113,6 @@ function drawCurve() {
 
   // Logarithmically sample between lowest frequency and Nyquist by
   // uniformly sampling between the logs of the frequencies.
-
   let delta = Math.log10(nyquist / lowestFrequency) / width;
   let logLowest = Math.log10(lowestFrequency);
 
@@ -112,14 +127,13 @@ function drawCurve() {
   var phaseData = [];
 
   for (var k = 0; k < width; ++k) {
-    db = 20.0 * Math.log(magResponse[k]) / Math.LN10;
+    db = 20.0 * Math.log10(magResponse[k]);
     phaseDeg = 180 / Math.PI * phaseResponse[k];
     magData.push([freq[k], db]);
     phaseData.push([freq[k], phaseDeg]);
   }
 
   // Figure out the y axis range based on the filter type.
-
   var type = filter.type;
 
   switch (type) {
@@ -183,6 +197,8 @@ function drawCurve() {
   }
 
   console.log('magmin: ' + magmin + ' magmax: ' + magmax);
+
+  // Plot the data.
   plot = $.plot(
       $('#graph'),
       [
@@ -229,6 +245,10 @@ function drawCurve() {
         legend: {position: 'ne', show: true},
         grid: {hoverable: true}
       });
+
+  // This allows the user to hover over a point on the graph and see a
+  // tooltip that shows frequency and the magnitude or phase at that
+  // point.
   $('#graph').bind('plothover', (event, pos, item) => {
     if (!pos.x || !pos.y) {
       return;
@@ -250,39 +270,17 @@ function drawCurve() {
     $('#tooltip').hide();
   });
 
-  x_axis = plot.getAxes().xaxis;
-  // Add a div to the x axis so we can figure some things about the axis
-  let box = x_axis.box;
-
-  $('<div class=\'axisTarget\' style=\'position:absolute; left:' + box.left +
-    'px; top:' + box.top + 'px; width:' + box.width +
-    'px; height:' + box.height + 'px\'></div>')
-      .data('axis.direction', x_axis.direction)
-      .data('axis.n', x_axis.n)
-      .css({backgroundColor: '#f00', opacity: 0, cursor: 'pointer'})
-      .appendTo(plot.getPlaceholder());
-
   adjustSliderPositions();
 }
 
 function adjustSliderPositions() {
   console.log('adjustSliderPosition');
 
-  let box = x_axis.box;
-  console.log(x_axis);
-
+  let box = plot.getAxes().xaxis.box;
   console.log(box);
 
-  // Now get the dimensions of the axisTarget and use that to adjust the size of
-  // the sliders.
-  let axisTarget = document.querySelector('.axisTarget')
-  axisTarget.style.left = `${box.left}px`;
-  axisTarget.style.top = `${box.top}px`;
-  axisTarget.style.width = `${box.width}px`;
-  axisTarget.style.height = `${box.height}px`;
-
   // Update controls container to move sliders to the right a bit.
-  // But the axisTargetStyle.left value is just a little too far to
+  // But the box.left value is just a little too far to
   // left. So add a fudge factor.  Haven't figured out how to get the
   // actual position of the left axis.
   let controls = document.getElementById('controls');
@@ -291,7 +289,8 @@ function adjustSliderPositions() {
   controls.style.paddingLeft = `${box.left + leftExtra}px`;
 
 
-  // Set the slider widths appropriately
+  // Set the slider widths appropriately with a fudge factor because
+  // the box width is a little too wide.
   let sliders = document.getElementsByClassName('slider-bar');
 
   Array.prototype.forEach.call(sliders, (slider) => {
@@ -321,7 +320,6 @@ function loadSound(url) {
           console.log('error decoding file.')
         });
   };
-
 
   request.send();
 }
@@ -499,8 +497,6 @@ function init() {
       sweptSineWave = audio;
     });
   }
-
-
 
   // Give audio process some time initialize itself.
   drawCurve();
