@@ -361,8 +361,9 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
   }
 
   let legendContainer = document.getElementById('graph-webaudio-legend');
-  if (plotType == 'dB') {
-    plotOptions = {
+
+  let plotOptions = 
+    {
       grid: {hoverable: true},
       legend: {
         // position: 'se',
@@ -373,30 +374,20 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
         // mode: 'log',
         axisLabel: 'Freq (Hz)'
       },
-      yaxes: [
+    };
+    
+  if (plotType == 'dB') {
+    plotOptions["yaxes"] = [
         {min: -100, max: 5, axisLabel: 'Mag'},
         {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
-      ]
-    };
-
+                            ];
   } else {
-    plotOptions = {
-      grid: {hoverable: true},
-      legend: {
-        // position: 'se',
-        show: true,
-        container: legendContainer,
-      },
-      xaxis: {
-          // mode: 'log',
-      },
-      yaxes: [
+    plotOptions["yaxes"] = [
         {}, {
           position: 'right',
           alignTicksWithAxis: 1,
         }
-      ]
-    };
+                            ];
   }
 
   $.plot(
@@ -466,11 +457,8 @@ function plotAnalogResponse(filter) {
     analogPhase.push([freq[k], (phase[k] * 180 / Math.PI) % 180]);
   }
 
-  var plotOptions;
-
   let legendContainer = document.getElementById('graph-analog-legend');
-  if (plotType == 'dB') {
-    plotOptions = {
+  let plotOptions = {
       grid: {hoverable: true},
       legend: {
         // position: 'se',
@@ -480,14 +468,16 @@ function plotAnalogResponse(filter) {
       xaxis: {
         // mode: 'log',
         axisLabel: 'Freq (Hz)'
-      },
-      yaxes: [
+      }
+  };
+
+  if (plotType == 'dB') {
+    plotOptions["yaxes"] = [
         {min: -80, axisLabel: 'Mag'},
         {position: 'right', alignTicksWithAxis: 1, axisLabel: 'Phase (deg)'}
-      ]
-    };
+                           ];
   } else {
-    plotOptions = {yaxes: [{}, {position: 'right'}]};
+    plotOptions["yaxes"] = [{}, {position: 'right'}];
   }
 
   $.plot(
@@ -552,39 +542,30 @@ function plotDigitalResponse(filter, Fs) {
     digitalPhase.push([freq[k], phase[k] * 180 / Math.PI]);
   }
 
-  var plotOptions;
 
   let legendContainer = document.getElementById('graph-digital-legend');
-  if (plotType == 'dB') {
-    plotOptions = {
+  let plotOptions = {
       legend: {
         // position: 'se',
         show: true,
         container: legendContainer,
       },
-      xaxis: {axisLabel: 'Freq (Hz)'},
-
-      yaxes: [
+      xaxis: {axisLabel: 'Freq (Hz)'}
+  };
+      
+  if (plotType == 'dB') {
+    plotOptions["yaxes"] = [
         {min: -80, axisLabel: 'Mag'},
         {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
-      ]
-    };
+      ];
 
   } else {
-    plotOptions = {
-      grid: {hoverable: true},
-      legend: {
-        // position: 'ne',
-        show: true,
-        // container: legendContainer,
-      },
-      yaxes: [
+    plotOptions["yaxes"] = [
         {}, {
           position: 'right',
           alignTicksWithAxis: 1,
         }
-      ]
-    };
+      ];
   }
 
   $.plot(
