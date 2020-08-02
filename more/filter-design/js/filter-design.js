@@ -82,8 +82,17 @@ function designLowpassFilter(filterImplType) {
 
     var description = "Analog lowpass " + filterImplType + " design of order " + analogFilter.order;
     document.getElementById("analog-type").innerHTML = description;
-    var math = MathJax.Hub.getAllJax("analog-eq");
-    MathJax.Hub.Queue(["Text", math[0], aFormula]);
+
+    //var math = MathJax.Hub.getAllJax("analog-eq");
+    //MathJax.Hub.Queue(["Text", math[0], aFormula]);
+    MathJax.typesetPromise()
+      .then(() => {
+          const eqn = document.querySelector("#analog-eq");
+          eqn.innerHTML = '$$' + aFormula + '$$';
+          MathJax.typesetPromise();
+        })
+      .catch((err) => console.log(err.message));
+            
 
     plotAnalogResponse(analogFilter);
 
@@ -104,8 +113,15 @@ function designLowpassFilter(filterImplType) {
     description = "Digital lowpass " + filterImplType + " design of order " + digitalFilter.order;
     description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
-    math = MathJax.Hub.getAllJax("digital-eq");
-    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+    //math = MathJax.Hub.getAllJax("digital-eq");
+    //MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+    MathJax.typesetPromise()
+      .then(() => {
+          const eqn = document.querySelector("#digital-eq");
+          eqn.innerHTML = '$$' + digitalTeXFormula + '$$';
+          MathJax.typesetPromise();
+        })
+      .catch((err) => console.log(err.message));
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
@@ -140,8 +156,15 @@ function designHighpassFilter(filterImplType) {
 
     var description = "Analog highpass " + filterImplType + " design of order " + analogFilter.order;
     document.getElementById("analog-type").innerHTML = description;
-    var math = MathJax.Hub.getAllJax("analog-eq");
-    MathJax.Hub.Queue(["Text", math[0], aFormula]);
+    //var math = MathJax.Hub.getAllJax("analog-eq");
+    //MathJax.Hub.Queue(["Text", math[0], aFormula]);
+    MathJax.typesetPromise()
+      .then(() => {
+          const eqn = document.querySelector("#analog-eq");
+          eqn.innerHTML = '$$' + aFormula + '$$';
+          MathJax.typesetPromise();
+        })
+      .catch((err) => console.log(err.message));
 
     plotAnalogResponse(analogFilter);
 
@@ -152,8 +175,15 @@ function designHighpassFilter(filterImplType) {
     description = "Digital highpass " + filterImplType + " design of order " + digitalFilter.order;
     description += ", sample rate " + sampleRate + " Hz";
     document.getElementById("digital-type").innerHTML = description;
-    math = MathJax.Hub.getAllJax("digital-eq");
-    MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+    //math = MathJax.Hub.getAllJax("digital-eq");
+    //MathJax.Hub.Queue(["Text", math[0], digitalTeXFormula]);
+    MathJax.typesetPromise()
+      .then(() => {
+          const eqn = document.querySelector("#analog-eq");
+          eqn.innerHTML = '$$' + digitalTeXFormula + '$$';
+          MathJax.typesetPromise();
+        })
+      .catch((err) => console.log(err.message));
 
     plotDigitalResponse(digitalFilter, sampleRate);
 
