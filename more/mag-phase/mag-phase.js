@@ -1,31 +1,18 @@
-var context;
-var filter;
-var outputGain;
-var sound;
-var cutoff = 350;
-var q = 10.0;    // in dB
-var gain = 0.0;  // in dB
-var source = null;
-var noctaves = 10;
-var cutoffOctaves = 10;
+let context;
+let filter;
+let outputGain;
+let sound;
+let cutoff = 350;
+let q = 10.0;    // in dB
+let gain = 0.0;  // in dB
+let source = null;
 
 // Lowest frequency we want to plot.  This should be a power of 10 for
 // the nicest graph.
 const lowestFrequency = 10;
 
-// canvas stuff
-var canvas;
-var canvasContext;
-var canvasWidth = 0;
-var canvasHeight = 0;
-
-var curveColor = 'rgb(192,192,192)';
-var playheadColor = 'rgb(80, 100, 80)';
-var noteColor = 'rgb(200,60,20)';
-var gridColor = 'rgb(200,200,200)';
-
-var sampleRate = 44100.0;
-var nyquist = 0.5 * sampleRate;
+let sampleRate = 44100.0;
+let nyquist = 0.5 * sampleRate;
 
 let plot;
 
@@ -347,15 +334,8 @@ function loadSound(url) {
   request.send();
 }
 
-function normalizedCutoffToHz(normalizedFreq, noctaves) {
-  var f = new Number(normalizedFreq);
-  f = nyquist * Math.pow(2.0, noctaves * (f - 1.0));
-  return f;
-}
-
 function cutoffHandler(event, ui) {
   console.log('cutoffHandler ' + event + ' ' + ui.value);
-  // var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
   let cutoff = Math.pow(10, ui.value);
 
   filter.frequency.value = cutoff;
