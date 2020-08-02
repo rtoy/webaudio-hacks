@@ -66,22 +66,12 @@
         src="../../flot-master/source/jquery.flot.selection.js"></script>
   <script src="mag-phase.js"></script>
   <style type="text/css">
-      #slider { margin: 10px; }
-
-  .controls-container {
-    box-sizing: border-box;
-    width: 75%;
-    padding: 20px 15px 15px 15px;
-    margin: 15px auto 30px auto;
-    border: 1px solid #ddd;
-    background: #fff;
-    background: linear-gradient(#f6f6f6 0, #fff 50px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    user-select: none;
-  }
   #controls {
     margin-top: 20px
   }
+  /*
+   * .row and .column is for laying out the slider and text annotation
+   */
   .row {
     display: flex;
     flex-direction: row;
@@ -96,17 +86,20 @@
     padding-top: 5px;
     padding-bottom: 5px;
   }
+
+  /* Default width of the slider*/	
   .slider-bar {
     width: 870px;
   }
+  /* Some padding of the text from the slider */
   .slider-text {
     padding-left: 10px;
   }
-  /* Draw a box around the graph area */
+
+  /* Draws a box around the graph area */
   .demo-container {
     box-sizing: border-box;
     width: 75%;
-    /*height: 450px;*/
     padding: 20px 15px 15px 15px;
     margin: 15px auto 30px auto;
     border: 1px solid #ddd;
@@ -116,11 +109,16 @@
     user-select: none;
   }
 
-  /* This holds the graph. */
+  /*
+   * This holds the graph.  The width is less than 100% so that we
+   * have some room left on the right for the slider annotation.
+   *
+   * Height is fairly arbitrary.
+   */
   .demo-placeholder {
     width: 90%;
     height: 450px;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   /*
@@ -229,7 +227,7 @@
         <a href="mailto:toy.raymond@gmail.com">Raymond Toy</a>
       </address><!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
       <!-- hhmts start -->
-Last modified: Sat Aug  1 17:35:04 PDT 2020
+Last modified: Sat Aug  1 17:56:51 PDT 2020
 <!-- hhmts end -->
     </div>
   </div>
