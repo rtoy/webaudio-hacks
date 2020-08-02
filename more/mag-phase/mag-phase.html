@@ -3,8 +3,8 @@
 <head>
   <meta http-equiv="Content-Type"
         content="text/html; charset=utf-8">
-  <title>Biquad Magnitude and Phase Example</title>
- <!-- Slider stuff -->
+  <title>Biquad Magnitude and Phase Example</title><!-- Slider stuff -->
+
   <script type="text/javascript"
         src="events.js"></script>
   <script language="javascript"
@@ -64,7 +64,6 @@
   <script language="javascript"
         type="text/javascript"
         src="../../flot-master/source/jquery.flot.selection.js"></script>
-
   <script src="mag-phase.js"></script>
   <style type="text/css">
       #slider { margin: 10px; }
@@ -137,7 +136,6 @@
 
   </style>
   <script type="text/javascript">
-    // Events
     window.onload = init;
   </script>
 </head>
@@ -203,17 +201,25 @@
               onclick="stopSound();">None<br>
         <input type="radio"
               name="source"
-              onclick="loadSound('../../demos/sounds/tones/pinkgood.wav');">Noise<br>
+              onclick=
+              "loadSound('../../demos/sounds/tones/pinkgood.wav');">Noise<br>
         <input type="radio"
               name="source"
-              onclick="loadSound('../../demos/sounds/effects/cauldron.wav');">Cauldron<br>
+              onclick=
+              "loadSound('../../demos/sounds/effects/cauldron.wav');">Cauldron<br>
         <input type="radio"
               name="source"
-              onclick="loadSound('../../demos/sounds/effects/waves.wav');">Waves<br>
+              onclick=
+              "loadSound('../../demos/sounds/effects/waves.wav');">Waves<br>
         <input type="radio"
               name="source"
-              onclick="loadSound('../../demos/sounds/effects/ticking.wav');">Ticking
+              onclick=
+              "loadSound('../../demos/sounds/effects/ticking.wav');">Ticking
               clock<br>
+        <input type="radio"
+              name="source"
+              onclick="setBufferSource(sweptSineWave);">Frequency-swept sine
+              wave<br>
       </form>
     </div>
     <div id="footer"
@@ -223,7 +229,7 @@
         <a href="mailto:toy.raymond@gmail.com">Raymond Toy</a>
       </address><!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
       <!-- hhmts start -->
-Last modified: Sat Aug  1 13:33:39 PDT 2020
+Last modified: Sat Aug  1 17:35:04 PDT 2020
 <!-- hhmts end -->
     </div>
   </div>

@@ -14,6 +14,9 @@ const lowestFrequency = 10;
 let sampleRate = 44100.0;
 let nyquist = 0.5 * sampleRate;
 
+// AudioBuffer for a frequency-swept sine wave.
+let sweptSineWave;
+
 let plot;
 
 function dBFormatter(v, axis) {
@@ -312,18 +315,7 @@ function loadSound(url) {
     context.decodeAudioData(
         request.response,
         function(buffer) {
-          sound = buffer;
-          if (source) {
-            source.stop(0);
-            source = null;
-          }
-          context.resume().then(() => {
-            source = context.createBufferSource();
-            source.connect(filter);
-            source.loop = true;
-            source.buffer = buffer;
-            source.start(0);
-          });
+          setBufferSource(buffer);
         },
         function() {
           console.log('error decoding file.')
@@ -332,6 +324,19 @@ function loadSound(url) {
 
 
   request.send();
+}
+
+function setBufferSource(buffer) {
+  if (source) {
+    source.stop(0);
+    source = null;
+  }
+  context.resume().then(() => {
+    source = new AudioBufferSourceNode(context, {buffer: buffer});
+    source.connect(filter);
+    source.loop = true;
+    source.start();
+  });
 }
 
 function cutoffHandler(event, ui) {
@@ -455,16 +460,6 @@ function init() {
   filter.Q.value = q;
   filter.gain.value = gain;
   outputGain = context.createGain();
-  var period = 2;
-  var startTime = context.currentTime;
-
-  //      for (var i = 0; i < 100; ++i) {
-  //          filter.frequency.exponentialRampToValueAtTime(200.0,
-  //          startTime + i*period);
-  //          filter.frequency.exponentialRampToValueAtTime(10000.0,
-  //          startTime + i*period + 0.5*period);
-  //      }
-
 
   filter.connect(outputGain).connect(context.destination);
 
@@ -490,6 +485,22 @@ function init() {
   setFilterType('bandpass');
 
   window.addEventListener('resize', adjustSliderPositions);
+
+  // Now create a swept sine-wave buffer that we can use as a source
+  {
+    let oc = new OfflineAudioContext(
+        {length: 4 * context.sampleRate, sampleRate: context.sampleRate});
+    let osc = new OscillatorNode(oc, {frequency: lowestFrequency});
+    osc.connect(oc.destination);
+    osc.frequency.exponentialRampToValueAtTime(nyquist, 2);
+    osc.frequency.exponentialRampToValueAtTime(lowestFrequency, 4);
+    osc.start();
+    oc.startRendering().then((audio) => {
+      sweptSineWave = audio;
+    });
+  }
+
+
 
   // Give audio process some time initialize itself.
   drawCurve();
