@@ -417,6 +417,30 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
         }
       ],
       plotOptions);
+
+  // This allows the user to hover over a point on the graph and see a
+  // tooltip that shows frequency and the magnitude or phase at that
+  // point.
+  $('#graph-webaudio').bind('plothover', (event, pos, item) => {
+    if (!pos.x || !pos.y) {
+      return;
+    }
+    let str = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+    $('#hoverdata').text(str);
+    if (item) {
+      let x = item.datapoint[0].toFixed(2);
+      let y = item.datapoint[1].toFixed(2);
+      $('#tooltip')
+          .html(`${item.series.label} at ${x} = ${y}`)
+          .css({top: item.pageY - 25, left: item.pageX + 10})
+          .fadeIn(200);
+    } else {
+      $('#tooltip').stop().hide();
+    }
+  });
+  $('#graph-webaudio').bind('plothovercleanup', (event, pos, item) => {
+    $('#tooltip').hide();
+  });
 }
 
 function plotAnalogResponse(filter) {
@@ -485,6 +509,26 @@ function plotAnalogResponse(filter) {
         }
       ],
       plotOptions);
+  $('#graph-analog').bind('plothover', (event, pos, item) => {
+    if (!pos.x || !pos.y) {
+      return;
+    }
+    let str = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+    $('#hoverdata').text(str);
+    if (item) {
+      let x = item.datapoint[0].toFixed(2);
+      let y = item.datapoint[1].toFixed(2);
+      $('#tooltip')
+          .html(`${item.series.label} at ${x} = ${y}`)
+          .css({top: item.pageY - 25, left: item.pageX + 10})
+          .fadeIn(200);
+    } else {
+      $('#tooltip').stop().hide();
+    }
+  });
+  $('#graph-analog').bind('plothovercleanup', (event, pos, item) => {
+    $('#tooltip').hide();
+  });
 }
 
 function plotDigitalResponse(filter, Fs) {
@@ -561,6 +605,26 @@ function plotDigitalResponse(filter, Fs) {
         }
       ],
       plotOptions);
+  $('#graph-digital').bind('plothover', (event, pos, item) => {
+    if (!pos.x || !pos.y) {
+      return;
+    }
+    let str = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+    $('#hoverdata').text(str);
+    if (item) {
+      let x = item.datapoint[0].toFixed(2);
+      let y = item.datapoint[1].toFixed(2);
+      $('#tooltip')
+          .html(`${item.series.label} at ${x} = ${y}`)
+          .css({top: item.pageY - 25, left: item.pageX + 10})
+          .fadeIn(200);
+    } else {
+      $('#tooltip').stop().hide();
+    }
+  });
+  $('#graph-digital').bind('plothovercleanup', (event, pos, item) => {
+    $('#tooltip').hide();
+  });
 }
 
 // Check the Q implementation and return a promise.
