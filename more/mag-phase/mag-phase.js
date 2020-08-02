@@ -110,7 +110,7 @@ function drawCurve() {
 
   let delta = Math.log10(nyquist / lowestFrequency) / width;
   let logLowest = Math.log10(lowestFrequency);
-  
+
   for (var k = 0; k < width; ++k) {
     var f = logLowest + k * delta;
     freq[k] = Math.pow(10, f);
@@ -196,12 +196,7 @@ function drawCurve() {
   plot = $.plot(
       $('#graph'),
       [
-        {
-          data: magData,
-          label: 'Mag (dB)',
-          lines: {lineWidth: 3},
-          color: 'red'
-        },
+        {data: magData, label: 'Mag (dB)', lines: {lineWidth: 3}, color: 'red'},
         {
           data: phaseData,
           label: 'Phase (deg)',
@@ -269,14 +264,15 @@ function drawCurve() {
   // Add a div to the x axis so we can figure some things about the axis
   let box = x_axis.box;
 
-  $("<div class='axisTarget' style='position:absolute; left:" + box.left + "px; top:" + box.top + "px; width:" + box.width +  "px; height:" + box.height + "px'></div>")
-                                .data("axis.direction", x_axis.direction)
-                                .data("axis.n", x_axis.n)
-                                .css({ backgroundColor: "#f00", opacity: 0, cursor: "pointer" })
-    .appendTo(plot.getPlaceholder());
-  
+  $('<div class=\'axisTarget\' style=\'position:absolute; left:' + box.left +
+    'px; top:' + box.top + 'px; width:' + box.width +
+    'px; height:' + box.height + 'px\'></div>')
+      .data('axis.direction', x_axis.direction)
+      .data('axis.n', x_axis.n)
+      .css({backgroundColor: '#f00', opacity: 0, cursor: 'pointer'})
+      .appendTo(plot.getPlaceholder());
+
   adjustSliderPositions();
-  
 }
 
 function adjustSliderPositions() {
@@ -286,9 +282,10 @@ function adjustSliderPositions() {
   console.log(x_axis);
 
   console.log(box);
-  
-  // Now get the dimensions of the axisTarget and use that to adjust the size of the sliders.
-  let axisTarget = document.querySelector(".axisTarget")
+
+  // Now get the dimensions of the axisTarget and use that to adjust the size of
+  // the sliders.
+  let axisTarget = document.querySelector('.axisTarget')
   axisTarget.style.left = `${box.left}px`;
   axisTarget.style.top = `${box.top}px`;
   axisTarget.style.width = `${box.width}px`;
@@ -298,14 +295,14 @@ function adjustSliderPositions() {
   // But the axisTargetStyle.left value is just a little too far to
   // left. So add a fudge factor.  Haven't figured out how to get the
   // actual position of the left axis.
-  let controls = document.getElementById("controls");
+  let controls = document.getElementById('controls');
   const leftExtra = 10;
-  
+
   controls.style.paddingLeft = `${box.left + leftExtra}px`;
-  
-  
+
+
   // Set the slider widths appropriately
-  let sliders = document.getElementsByClassName("slider-bar");
+  let sliders = document.getElementsByClassName('slider-bar');
 
   Array.prototype.forEach.call(sliders, (slider) => {
     slider.style.width = `${box.width - 30}px`;
@@ -358,9 +355,9 @@ function normalizedCutoffToHz(normalizedFreq, noctaves) {
 
 function cutoffHandler(event, ui) {
   console.log('cutoffHandler ' + event + ' ' + ui.value);
-  //var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
+  // var cutoff = normalizedCutoffToHz(ui.value, cutoffOctaves);
   let cutoff = Math.pow(10, ui.value);
-  
+
   filter.frequency.value = cutoff;
 
   // setTimeout("drawCurve()", 50);
@@ -378,9 +375,20 @@ function qHandler(event, ui) {
   info.textContent = `Q = ${q.toFixed(3)}`;
 }
 
+function qHandlerdB(event, ui) {
+  var q = new Number(ui.value);
+  filter.Q.value = q;
+  // setTimeout("drawCurve()", 50);
+  drawCurve();
+  var info = document.getElementById('Q-value');
+  info.textContent = `Q = ${q.toFixed(3)} dB`;
+}
+
+
+
 function gainHandler(event, ui) {
   console.log(filter);
-  
+
   var gain = new Number(ui.value);
   filter.gain.value = gain;
   // setTimeout("drawCurve()", 100);
@@ -410,7 +418,7 @@ function setFilterType(filterType) {
     case 'highpass':
       // Q is in dB for these filters.  And the gain is not used
       document.getElementById('QSlider').disabled = false;
-      configureSlider('Q', q, -50, 50, qHandler);
+      configureSlider('Q', q, -50, 50, qHandlerdB);
       document.getElementById('gainSlider').disabled = true;
       break;
     case 'bandpass':
@@ -418,7 +426,7 @@ function setFilterType(filterType) {
     case 'allpass':
       // Q is linear and gain is not used
       document.getElementById('QSlider').disabled = false;
-      configureSlider('Q', q, 0, 100, qHandler);
+      configureSlider('Q', Math.max(q, 0), 0, 100, qHandler);
       document.getElementById('gainSlider').disabled = true;
       break;
     case 'peaking':
@@ -462,7 +470,7 @@ function init() {
   context = new AudioContext();
   nyquist = context.sampleRate / 2;
   filter = context.createBiquadFilter();
-  filter.type = 'bandpass';  // Bandpass
+  filter.type = 'bandpass';         // Bandpass
   filter.frequency.value = cutoff;  // cutoff
   filter.Q.value = q;
   filter.gain.value = gain;
@@ -490,7 +498,9 @@ function init() {
   // The cutoff slider is in log10 units ranging from lowestFrequency
   // to Nyquist.  Set set the limits to the log of these values, after
   // normalizing them.
-  configureSlider('cutoff', Math.log10(cutoff), Math.log10(lowestFrequency), Math.log10(nyquist), cutoffHandler);
+  configureSlider(
+      'cutoff', Math.log10(cutoff), Math.log10(lowestFrequency),
+      Math.log10(nyquist), cutoffHandler);
   configureSlider('Q', q, 0, 100, qHandler);
   configureSlider('gain', gain, -40.0, 40.0, gainHandler);
   configureSlider('Volume', 0, -10, 10, outputGainHandler);
@@ -500,7 +510,7 @@ function init() {
   setFilterType('bandpass');
 
   window.addEventListener('resize', adjustSliderPositions);
-  
+
   // Give audio process some time initialize itself.
   drawCurve();
   // animateCurve();
