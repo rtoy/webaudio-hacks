@@ -397,7 +397,7 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
 
   if (plotType == 'dB') {
     plotOptions['yaxes'] = [
-      {min: -100, max: 5, axisLabel: 'Mag'},
+      {min: -100, max: 5, axisLabel: 'Mag (dB)'},
       {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
     ];
   } else {
@@ -493,7 +493,7 @@ function plotAnalogResponse(filter) {
 
   if (plotType == 'dB') {
     plotOptions['yaxes'] = [
-      {min: -80, axisLabel: 'Mag'},
+      {min: -80, axisLabel: 'Mag (dB)'},
       {position: 'right', alignTicksWithAxis: 1, axisLabel: 'Phase (deg)'}
     ];
   } else {
@@ -582,7 +582,7 @@ function plotDigitalResponse(filter, Fs) {
 
   if (plotType == 'dB') {
     plotOptions['yaxes'] = [
-      {min: -80, axisLabel: 'Mag'},
+      {min: -80, axisLabel: 'Mag (dB)'},
       {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
     ];
 
