@@ -10,13 +10,24 @@ var phase;
 
 var filterType = 'lowpass';
 var plotType = 'dB';
+let freqType = 'linear';
 var gain;
 var osc;
 var modGain;
 var mod;
 
+// Lowest frequency to use when doing a log plot of the frequency
+// axis.  Should be a power of 10 for the nicest looking plots.
+const lowestFrequency = 100;
+
 function setPlotType(type) {
   plotType = type;
+}
+
+function setFreqType(type) {
+  console.log(`setFreqType(${type})`);
+
+  freqType = type;
 }
 
 function setFilterType(type) {
@@ -328,11 +339,9 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     return;
   }
 
-  var freq = new Float32Array(1000);
 
-  for (var k = 0; k < freq.length; ++k) {
-    freq[k] = k * sampleRate / 2 / freq.length;
-  }
+  let freq =
+      getFrequencySamples(1000, sampleRate, freqType == 'dB', lowestFrequency);
 
   var totalMag = new Float32Array(freq.length);
   var totalPhase = new Float32Array(freq.length);
@@ -344,6 +353,11 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
   } else {
     totalMag.fill(1);
   }
+
+  let dataMag = [];
+  let dataPhase = [];
+
+
   for (var k = 0; k < filters.length; ++k) {
     filters[k].getFrequencyResponse(freq, mag, phase);
     for (var m = 0; m < mag.length; ++m) {
@@ -352,42 +366,47 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
     }
   }
 
-  var dataMag = [];
-  var dataPhase = [];
+  if (plotType == 'dB') {
+    for (var k = 0; k < totalMag.length; ++k) {
+      var r = 20 * Math.log10(totalMag[k]);
+      dataMag.push([freq[k], r]);
+    }
+  } else {
+    for (var k = 0; k < totalMag.length; ++k) {
+      var r = totalMag[k];
+      dataMag.push([freq[k], r]);
+    }
+  }
   for (var k = 0; k < totalMag.length; ++k) {
-    var r = plotType === 'dB' ? 20 * Math.log10(totalMag[k]) : totalMag[k];
-    dataMag.push([freq[k], r]);
     dataPhase.push([freq[k], totalPhase[k] * 180 / Math.PI]);
   }
 
+
+
   let legendContainer = document.getElementById('graph-webaudio-legend');
 
-  let plotOptions = 
-    {
-      grid: {hoverable: true},
-      legend: {
-        // position: 'se',
-        show: true,
-        container: legendContainer,
-      },
-      xaxis: {
-        // mode: 'log',
-        axisLabel: 'Freq (Hz)'
-      },
-    };
-    
+  let plotOptions = {
+    grid: {hoverable: true},
+    legend: {
+      // position: 'se',
+      show: true,
+      container: legendContainer,
+    },
+    xaxis: {mode: freqType == 'dB' ? 'log' : null, axisLabel: 'Freq (Hz)'},
+  };
+
   if (plotType == 'dB') {
-    plotOptions["yaxes"] = [
-        {min: -100, max: 5, axisLabel: 'Mag'},
-        {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
-                            ];
+    plotOptions['yaxes'] = [
+      {min: -100, max: 5, axisLabel: 'Mag'},
+      {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
+    ];
   } else {
-    plotOptions["yaxes"] = [
-        {}, {
-          position: 'right',
-          alignTicksWithAxis: 1,
-        }
-                            ];
+    plotOptions['yaxes'] = [
+      {}, {
+        position: 'right',
+        alignTicksWithAxis: 1,
+      }
+    ];
   }
 
   $.plot(
@@ -435,11 +454,15 @@ function plotWebAudioResponse(webaudioDesc, Fs, filterType) {
 }
 
 function plotAnalogResponse(filter) {
+  /*
   var freq = new Float32Array(1000);
 
   for (var k = 0; k < freq.length; ++k) {
     freq[k] = k * sampleRate / 2 / freq.length;
-  }
+    }
+  */
+  let freq =
+      getFrequencySamples(1000, sampleRate, freqType == 'dB', lowestFrequency);
 
   // var {mag, phase} = analogResponse(filter, freq);
   var response = analogResponse(filter, freq);
@@ -459,25 +482,22 @@ function plotAnalogResponse(filter) {
 
   let legendContainer = document.getElementById('graph-analog-legend');
   let plotOptions = {
-      grid: {hoverable: true},
-      legend: {
-        // position: 'se',
-        show: true,
-        container: legendContainer,
-      },
-      xaxis: {
-        // mode: 'log',
-        axisLabel: 'Freq (Hz)'
-      }
+    grid: {hoverable: true},
+    legend: {
+      // position: 'se',
+      show: true,
+      container: legendContainer,
+    },
+    xaxis: {mode: freqType == 'dB' ? 'log' : null, axisLabel: 'Freq (Hz)'}
   };
 
   if (plotType == 'dB') {
-    plotOptions["yaxes"] = [
-        {min: -80, axisLabel: 'Mag'},
-        {position: 'right', alignTicksWithAxis: 1, axisLabel: 'Phase (deg)'}
-                           ];
+    plotOptions['yaxes'] = [
+      {min: -80, axisLabel: 'Mag'},
+      {position: 'right', alignTicksWithAxis: 1, axisLabel: 'Phase (deg)'}
+    ];
   } else {
-    plotOptions["yaxes"] = [{}, {position: 'right'}];
+    plotOptions['yaxes'] = [{}, {position: 'right'}];
   }
 
   $.plot(
@@ -522,11 +542,17 @@ function plotAnalogResponse(filter) {
 }
 
 function plotDigitalResponse(filter, Fs) {
+  /*
   var freq = new Float32Array(1000);
 
   for (var k = 0; k < freq.length; ++k) {
     freq[k] = k * sampleRate / 2 / freq.length;
-  }
+    }
+  */
+
+  let freq =
+      getFrequencySamples(1000, sampleRate, freqType == 'dB', lowestFrequency);
+
 
   // var {mag, phase} = digitalResponse(filter, freq, Fs);
   var response = digitalResponse(filter, freq, Fs);
@@ -545,28 +571,28 @@ function plotDigitalResponse(filter, Fs) {
 
   let legendContainer = document.getElementById('graph-digital-legend');
   let plotOptions = {
-      grid: {hoverable: true},
-      legend: {
-        // position: 'se',
-        show: true,
-        container: legendContainer,
-      },
-      xaxis: {axisLabel: 'Freq (Hz)'}
+    grid: {hoverable: true},
+    legend: {
+      // position: 'se',
+      show: true,
+      container: legendContainer,
+    },
+    xaxis: {mode: freqType == 'dB' ? 'log' : null, axisLabel: 'Freq (Hz)'}
   };
-      
+
   if (plotType == 'dB') {
-    plotOptions["yaxes"] = [
-        {min: -80, axisLabel: 'Mag'},
-        {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
-      ];
+    plotOptions['yaxes'] = [
+      {min: -80, axisLabel: 'Mag'},
+      {alignTicksWithAxis: 1, position: 'right', axisLabel: 'Phase (deg)'}
+    ];
 
   } else {
-    plotOptions["yaxes"] = [
-        {}, {
-          position: 'right',
-          alignTicksWithAxis: 1,
-        }
-      ];
+    plotOptions['yaxes'] = [
+      {}, {
+        position: 'right',
+        alignTicksWithAxis: 1,
+      }
+    ];
   }
 
   $.plot(
@@ -635,6 +661,29 @@ function checkBiquadFilterQ() {
   });
 }
 
+function getFrequencySamples(length, sampleRate, dB, lowestFreq) {
+  const Nyquist = sampleRate / 2;
+  let freq = new Float32Array(length)
+
+  if (dB) {
+    const lowestFreqdB = Math.log10(lowestFreq);
+    const delta = Math.log10(Nyquist / lowestFreq) / freq.length;
+
+    for (let k = 0; k < freq.length; ++k) {
+      freq[k] = Math.pow(10, lowestFreqdB + k * delta);
+    }
+  }
+  else {
+    const delta = Nyquist / freq.length;
+
+    for (var k = 0; k < freq.length; ++k) {
+      freq[k] = k * delta;
+    }
+  }
+
+  return freq;
+}
+
 // Initialization.  Determine if this browser supports the biquad
 // filter with the new Q interpretation and if the browser supports
 // IIRFilters.
@@ -643,5 +692,15 @@ function init() {
     hasNewBiquadFilter = flag;
     context = new AudioContext();
     hasIIRFilter = context['createIIRFilter'] ? true : false;
-  })
+  });
+
+  const magStyle = document.querySelector('#mag-select');
+  magStyle.addEventListener('change', (event) => {
+    setPlotType(event.target.value);
+  });
+
+  const freqStyle = document.querySelector('#freq-select');
+  freqStyle.addEventListener('change', (event) => {
+    setFreqType(event.target.value);
+  });
 }

@@ -213,16 +213,20 @@
       </tr>
     </table>
   </form><br>
-  <h3>Plot style for response</h3>
-  <form>
-    <input type="radio"
-          name="plotType"
-          onclick="setPlotType('dB')"
-          checked>dB plot<br>
-    <input type="radio"
-          name="plotType"
-          onclick="setPlotType('linear')">linear plot<br>
-  </form>
+  <h3>Plot Options</h3>
+  <div style="display: flexbox; flex-direction: column; flex-wrap: wrap;">
+    <label for="mag-select">Axis style for Magnitude</label>
+    <select name="mag" id="mag-select">
+      <option value="dB">dB</option>
+      <option value="linear">linear</option>
+    </select>
+    <br>
+    <label for="freq-select">Axis style for Frequency</label>
+    <select name="freq" id="freq-select">
+      <option value="dB">dB</option>
+      <option value="linear" selected>linear</option>
+    </select>
+  </div>
   <h3>Design Filter</h3><button type="button"
         onclick="designFilter('butterworth')">Design Butterworth
         Filter</button> <button type="button"
@@ -283,7 +287,7 @@
     <a href="mailto:toy.raymond@gmail.com">Raymond Toy</a>
   </address><!-- Created: Sat May 28 08:15:55 PDT 2016 -->
   <!-- hhmts start -->
-Last modified: Sun Aug  2 14:44:07 PDT 2020
+Last modified: Sun Aug  2 19:21:22 PDT 2020
 <!-- hhmts end -->
 </body>
 </html>
