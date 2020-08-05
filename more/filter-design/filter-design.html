@@ -1,160 +1,293 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Digital Filter Design</title>
+  <script type="text/javascript"
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+        <!-- Get Flot plotting package -->
 
-  <head>
-    <title>Digital Filter Design</title>
-    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
-    <script type="text/javascript" src="../../flot/jquery.js"></script>
-    <script type="text/javascript" src="../../flot/jquery.flot.js"></script>
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
-    <script src="js/filter-design.js"></script>
-    <script src="js/complex.js"></script>
-    <script src="js/elliptic.js"></script>
-    <script src="js/design.js"></script>
-    <style type="text/css">
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../lib/jquery.event.drag.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.canvaswrapper.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.colorhelpers.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.saturated.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.browser.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.drawSeries.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.uiConstants.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.legend.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.logaxis.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.axislabels.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.resize.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.legend.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../source/jquery.flot.navigate.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.touchNavigate.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.hover.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.touch.js"></script>
+  <script language="javascript"
+        type="text/javascript"
+        src="../../flot-master/source/jquery.flot.selection.js"></script>
+        <!-- My stuff -->
+
+  <script src="js/filter-design.js"></script>
+  <script src="js/complex.js"></script>
+  <script src="js/elliptic.js"></script>
+  <script src="js/design.js"></script>
+  <style type="text/css">
       .flexbox {
-        display: -ms-flex;
-        display: -webkit-flex;
         display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: flex-start;
         width: 100%;
       }
       
       .left {
-#        background: #a0ffa0;
         min-width: 75px;
         flex-grow: 1;
       }
       
       .right {
-#        background: #a0a0ff;
         flex-grow: 0;
+        width: 50%;
+        height: 500px;
       }
-    </style>
-  </head>
+      .graph-box {
+        width: 100%;       
+        height: 450px;
+      }
+  /*
+  * Styling for the legend block.  These are really important to make the legend
+  * show up.  Without this, the block is black.
+  */
+  .legend {
+                display: block;
+                border-width: initial;
+                border-style: none;
+                border-color: initial;
+                border-image: initial;
+                padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+  }
 
-  <body>
-    <h1>Digital Filter Design</h1>
+  .legendLayer {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: rgba(0, 0, 0, 0.85);
+    stroke-width: 1;
+  }
 
-
-    <h3>Filter Parameters</h3>
-    <form>
-      <input type="radio" name="filterType" onclick="setFilterType('lowpass')" checked>Lowpass<br>
-      <input type="radio" name="filterType" onclick="setFilterType('highpass')">Highpass<br>
-      <input type="radio" name="filterType" onclick="setFilterType('bandpass')" disabled>Bandpass<br>
-      <input type="radio" name="filterType" onclick="setFilterType('bandstop')" disabled>Bandstop<br>
-    </form>
+  #tooltip {
+    position: absolute;
+    display: none;
+    border: 1px solid #fdd;
+    padding: 2px;
+    background-color: #fee;
+    opacity: 0.8
+  }
+  </style>
+</head>
+<body>
+  <h1>Digital Filter Design</h1>
+  <h3>Filter Parameters</h3>
+  <form>
+    <input type="radio"
+          name="filterType"
+          onclick="setFilterType('lowpass')"
+          checked>Lowpass<br>
+    <input type="radio"
+          name="filterType"
+          onclick="setFilterType('highpass')">Highpass<br>
+    <input type="radio"
+          name="filterType"
+          onclick="setFilterType('bandpass')"
+          disabled>Bandpass<br>
+    <input type="radio"
+          name="filterType"
+          onclick="setFilterType('bandstop')"
+          disabled>Bandstop<br>
+  </form><br>
+  <form>
     <br>
-    <form>
-      <br>
-      <table>
-	<tr>
-          <td>
-	    Sample Rate (Hz)
-	  </td>
-	  <td>
-            <input id="samplerate" type="number" min="3000" max="192000" value="48000">
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <div id="band1" style="float:left">Passband (Hz)</div>
-          </td>
-          <td>
-            <input id="band1-value" type="number" min="0" value="4800" />
-	  </td>
-	  <td>
-          </td>
-	</tr>
-        <tr>
-          <td>
-            <div id="band1-db" style="float:left">Passband attenuation, dB</div>
-          </td>
-          <td>
-            <input id="band1-db-value" type="number" min="0" value="1" />
-	  </td>
-	</tr>
-        <tr>
-          <td>
-            <div id="band2" style="float:left">Stopband (Hz)</div>
-          </td>
-          <td>
-            <input id="band2-value" type="number" min="0" value="7200" />
-	  </td>
-	  <td>
-          </td>
-	</tr>
-        <tr>
-          <td>
-            <div id="band2-db" style="float:left">Stopband attenuation, dB</div>
-          </td>
-          <td>
-            <input id="band2-db-value" type="number" min="0" value="15" />
-	  </td>
-	</tr>
-      </table>
-    </form>
-
+    <table>
+      <tr>
+        <td>Sample Rate (Hz)</td>
+        <td><input id="samplerate"
+               type="number"
+               min="3000"
+               max="192000"
+               value="48000"></td>
+      </tr>
+      <tr>
+        <td>
+          <div id="band1"
+               style="float:left">
+            Passband (Hz)
+          </div>
+        </td>
+        <td><input id="band1-value"
+               type="number"
+               min="0"
+               value="4800"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <div id="band1-db"
+               style="float:left">
+            Passband attenuation, dB
+          </div>
+        </td>
+        <td><input id="band1-db-value"
+               type="number"
+               min="0"
+               value="1"></td>
+      </tr>
+      <tr>
+        <td>
+          <div id="band2"
+               style="float:left">
+            Stopband (Hz)
+          </div>
+        </td>
+        <td><input id="band2-value"
+               type="number"
+               min="0"
+               value="7200"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <div id="band2-db"
+               style="float:left">
+            Stopband attenuation, dB
+          </div>
+        </td>
+        <td><input id="band2-db-value"
+               type="number"
+               min="0"
+               value="15"></td>
+      </tr>
+    </table>
+  </form><br>
+  <h3>Plot Options</h3>
+  <div style="display: flexbox; flex-direction: column; flex-wrap: wrap;">
+    <label for="mag-select">Axis style for Magnitude</label>
+    <select name="mag" id="mag-select">
+      <option value="dB">dB</option>
+      <option value="linear">linear</option>
+    </select>
     <br>
-    <h3>Plot style for response</h3>
-    <form>
-      <input type="radio" name="plotType" onclick="setPlotType('dB')" checked>dB plot<br>
-      <input type="radio" name="plotType" onclick="setPlotType('linear')">linear plot<br>
-    </form>
-
-    <h3>Design Filter</h3>
-    <button type="button" onclick="designFilter('butterworth')">Design Butterworth Filter</button>
-    <button type="button" onclick="designFilter('cheby-1')">Design Chebyshev-1 Filter</button>
-    <button type="button" onclick="designFilter('cheby-2')">Design Chebyshev-2 Filter</button>
-    <button type="button" onclick="designFilter('elliptic')">Design Elliptic Filter</button>
-
-    <br>
-    <hr>
-    <div style="display: flex">
-      <div id="analog-design" class="left">
-	<div id="analog-type"></div>
-	<div id="analog-eq">
-	  \[{}\]
-	</div>
+    <label for="freq-select">Axis style for Frequency</label>
+    <select name="freq" id="freq-select">
+      <option value="dB">dB</option>
+      <option value="linear" selected>linear</option>
+    </select>
+  </div>
+  <h3>Design Filter</h3><button type="button"
+        onclick="designFilter('butterworth')">Design Butterworth
+        Filter</button> <button type="button"
+        onclick="designFilter('cheby-1')">Design Chebyshev-1 Filter</button>
+        <button type="button"
+        onclick="designFilter('cheby-2')">Design Chebyshev-2 Filter</button>
+        <button type="button"
+        onclick="designFilter('elliptic')">Design Elliptic Filter</button><br>
+  <hr>
+  <div class="flexbox">
+    <div id="analog-design"
+         class="left">
+      <div id="analog-type"></div>
+      <div id="analog-eq">
+        \[{}\]
       </div>
-      <div id="graph-analog" class="right" style="width:50%;height:400px;"></div>
     </div>
-
-    <br>
-    <hr>
-
-    <div style="display: flex">
-      <div class="left">
-	<div id="digital-type"></div>
-	<div id="digital-eq" class="left">
-	  \[{}\]
-	</div>
-      </div>
-      <div id="graph-digital" class="right" style="width:50%;height:400px;"></div>
+    <div class="right">
+      <div id="graph-analog-legend"
+           class="legend"></div>
+      <div id="graph-analog"
+           class="graph-box"></div>
     </div>
-    <br>
-    <hr>
-    <div style="display: flex">
-      <div class="left">
-	<div id="webaudio-eq">
-	</div>
-      </div>
-      <div id="graph-webaudio" class="right" style="width:50%;height:400px">
+  </div><br>
+  <hr>
+  <div class="flexbox">
+    <div class="left">
+      <div id="digital-type"></div>
+      <div id="digital-eq">
+        \[{}\]
       </div>
     </div>
-
-    <br>
-
-    <hr>
-
-    <script>
+    <div class="right">
+      <div id="graph-digital-legend"
+           class="legend"></div>
+      <div id="graph-digital"
+           class="graph-box"></div>
+    </div>
+  </div><br>
+  <hr>
+  <div class="flexbox">
+    <div class="left">
+      <div id="webaudio-eq"></div>
+    </div>
+    <div class="right">
+      <div id="graph-webaudio-legend"
+           class="legend"></div>
+      <div id="graph-webaudio"
+           class="graph-box"></div>
+    </div>
+  </div><br>
+  <div id="tooltip"></div>
+  <hr>
+  <script>
       window.onload = init;
-    </script>
-    <address><a href="mailto:toy.raymond@gmail.com">Raymond Toy</a></address>
-    <!-- Created: Sat May 28 08:15:55 PDT 2016 -->
-    <!-- hhmts start -->
-Last modified: Sun Jun 26 10:14:53 PDT 2016
+  </script>
+  <address>
+    <a href="mailto:toy.raymond@gmail.com">Raymond Toy</a>
+  </address><!-- Created: Sat May 28 08:15:55 PDT 2016 -->
+  <!-- hhmts start -->
+Last modified: Sun Aug  2 19:21:22 PDT 2020
 <!-- hhmts end -->
-  </body>
-
+</body>
 </html>
