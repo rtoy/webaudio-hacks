@@ -133,6 +133,14 @@
     padding: 10px;  
   }
 
+  #tooltip {
+    position: absolute;
+    display: none;
+    border: 1px solid #fdd;
+    padding: 2px;
+    background-color: #fee;
+    opacity: 0.8;
+  }
   </style>
 </head>
 <body>
@@ -243,10 +251,11 @@
     Mouse position <span id="hoverdata"></span>
   </div>
   <hr>
+  <div id="tooltip"></div>
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Tue Aug  4 21:28:34 PDT 2020
+Last modified: Tue Aug  4 21:36:36 PDT 2020
 <!-- hhmts end -->
    
   <script>
@@ -266,16 +275,6 @@ Last modified: Tue Aug  4 21:28:34 PDT 2020
       let input = document.getElementById(id);
       input.addEventListener('change', calc);
     });
-    $('<div id=\'tooltip\'><\/div>')
-        .css({
-          position: 'absolute',
-          display: 'none',
-          border: '1px solid #fdd',
-          padding: '2px',
-          'background-color': '#fee',
-          opacity: 0.8
-        })
-        .appendTo('body');
   </script>
 </body>
 </html>
