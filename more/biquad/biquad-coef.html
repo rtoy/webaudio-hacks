@@ -4,100 +4,76 @@
   <meta charset="utf-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1">
-  <title>
-      Biquad Filter Coefficients and Frequency Response
-    </title>
+  <title>Biquad Filter Coefficients and Frequency Response</title>
   <script type="text/javascript"
         id="MathJax-script"
         async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-  </script><!-- Get Flot plotting package -->
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+        <!-- Get Flot plotting package -->
 
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.js">
-  </script>
+        src="../../flot-master/source/jquery.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../lib/jquery.event.drag.js">
-  </script>
+        src="../../lib/jquery.event.drag.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.canvaswrapper.js">
-  </script>
+        src="../../flot-master/source/jquery.canvaswrapper.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.colorhelpers.js">
-  </script>
+        src="../../flot-master/source/jquery.colorhelpers.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.saturated.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.saturated.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.browser.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.browser.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.drawSeries.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.drawSeries.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.uiConstants.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.uiConstants.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.legend.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.legend.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.logaxis.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.logaxis.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.axislabels.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.axislabels.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.resize.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.resize.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.legend.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.legend.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../source/jquery.flot.navigate.js">
-  </script>
+        src="../../source/jquery.flot.navigate.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.touchNavigate.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.touchNavigate.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.hover.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.hover.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.touch.js">
-  </script>
+        src="../../flot-master/source/jquery.flot.touch.js"></script>
   <script language="javascript"
         type="text/javascript"
-        src="../../flot-master/source/jquery.flot.selection.js">
-  </script><!-- My stuff for the page -->
+        src="../../flot-master/source/jquery.flot.selection.js"></script>
+        <!-- My stuff for the page -->
 
-  <script src="webaudio.js">
-  </script>
-  <script src="filter-response.js">
-  </script>
-  <script src="display-formulas.js">
-  </script>
-  <script src="biquad-filters.js">
-  </script>
+  <script src="webaudio.js"></script>
+  <script src="filter-response.js"></script>
+  <script src="display-formulas.js"></script>
+  <script src="biquad-filters.js"></script>
   <style>
   /* Draw a box around the graph area */
   .demo-container {
@@ -131,25 +107,39 @@
   }
 
   #container {
-    display: flex
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
   #filtertypes {
-    width: 25%;
-    float: left;
+    /*width: 25%;*/
+    /*float: left;*/
+    order: 0;
+    padding: 10px;  
   }
 
   #filterparam {
-    width: 25%;
-    float: left;
+    /*width: 25%;*/
+    /*float: left;*/
+    order: 1;
+    padding: 10px;  
   }
+
+  #graphoptions {
+    /*width: 25%;*/
+    /*float: left;*/
+    order: 2;
+    padding: 10px;  
+  }
+
   </style>
 </head>
 <body>
   <h1>Biquad Filter Coefficients</h1>
-  <p>Select the filter type and enter the values for the filter paramters. Then
-  press compute to show what the actual biquad filter coefficients
-  are and the corresponding frequency response.</p>
-    
+  <p>Select the filter type and enter the values for the filter parameters.
+  Then press compute to show what the actual biquad filter coefficients are and
+  the corresponding frequency response.</p>
   <p>Note that \(Q\) is in dB for the Lowpass and Highpass filters and can be
   positive or negative. For all other filters it is a linear value that must be
   positive.</p>
@@ -216,28 +206,27 @@
               type="number"
               value="0"> gain (dB)
       </form>
+    </div>
+    <div id="graphoptions">
       <h2>Graph options</h2>
       <form>
-	<input id="lowest-freq"
-	  type="number"
-	  value="10"
-	  onchange="calc();"> Lowest frequency to display<br>
-	<input type="radio"
-	  name="axistype"
-	  checked="checked"
-	  onclick="setLogAxis(true);">Log frequency axis<br>
-	<input type="radio"
-	  name="axistype"
-	  onclick="setLogAxis(false);">Linear frequency axis<br>
+        <input id="lowest-freq"
+              type="number"
+              value="10"
+              onchange="calc();"> Lowest frequency to display<br>
+        <input type="radio"
+              name="axistype"
+              checked="checked"
+              onclick="setLogAxis(true);">Log frequency axis<br>
+        <input type="radio"
+              name="axistype"
+              onclick="setLogAxis(false);">Linear frequency axis<br>
       </form>
-      </div>
-  </div>
-
-    <br>
+    </div>
+  </div><br>
   <div id="coef">
     <button onclick="calc()">Compute filter coefficients</button>
-    <button onclick="enableAudio()">Toggle Audio</button>
-    <br>
+    <button onclick="enableAudio()">Toggle Audio</button><br>
     <div id="eqn"
          class="left">
       \[{}\]
@@ -257,7 +246,7 @@
   <address>
     <a href="mailto:rtoy@google.com">Raymond Toy</a>
   </address><!-- hhmts start -->
-Last modified: Sun Aug  2 07:10:49 PDT 2020
+Last modified: Tue Aug  4 21:28:34 PDT 2020
 <!-- hhmts end -->
    
   <script>
@@ -266,25 +255,27 @@ Last modified: Sun Aug  2 07:10:49 PDT 2020
 
     // Set the filter type and draw the equation and graph on start up.
     window.onload = () => {
-	      let rate = document.getElementById('samplerate').value;
-	      createBasicGraph(rate);
-	      setFilterType('lowpass');
-	      };
+      let rate = document.getElementById('samplerate').value;
+      createBasicGraph(rate);
+      setFilterType('lowpass');
+    };
 
     // When any of the filter parameters change, automatically update the
     // equation and graph.
-    ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {        
+    ['samplerate', 'frequency', 'Q', 'gain'].forEach((id) => {
       let input = document.getElementById(id);
       input.addEventListener('change', calc);
-    });       
-  $("<div id='tooltip'><\/div>").css({
-        position: 'absolute',
-              display: 'none',
-              border: '1px solid #fdd',
-              padding:  '2px',
-              'background-color': '#fee',
-              opacity: 0.8
-      }).appendTo('body');
+    });
+    $('<div id=\'tooltip\'><\/div>')
+        .css({
+          position: 'absolute',
+          display: 'none',
+          border: '1px solid #fdd',
+          padding: '2px',
+          'background-color': '#fee',
+          opacity: 0.8
+        })
+        .appendTo('body');
   </script>
 </body>
 </html>
